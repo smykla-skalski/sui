@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart's View Chart Data stands one gap under its own plot or legend, open or closed, where a closed one dropped to the foot of a taller neighbour, left a hole as tall as 74px under the plot and jumped 41px from the pointer when pressed; L-66 changes with it.
 - A loading chart's note leads with the clock mark in its muted ink, so its words start where every other chart note's do, where they stood 21px further in; on dark a `HeatmapChart` prints every value under its peak in white, where only the step under the peak was white.
 - The rail and a collapsed side nav are 5rem wide, where 4.5rem left a tile's words 55px and "Personal" 4px of room each side; `--sui-rail-width` and `--sui-sidebar-width-collapsed` change.
 - A sortable `DataTable` heading is a 28px control whose ground reaches 8px past its words, with a 16px arrow, where it was a 24px chip 4px past them with a 12px arrow that drew 8 by 4px of ink; the heading row keeps its height.

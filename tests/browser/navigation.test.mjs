@@ -2050,7 +2050,7 @@ suite('navigation', together, () => {
     });
 
     test(
-      'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not (L-66)',
+      'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not, and a table’s summary follows its own plot, open or closed (L-66)',
       long,
       async () => {
         const page = await charts();
@@ -2098,35 +2098,51 @@ suite('navigation', together, () => {
               assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
             } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
           if (width !== 1440) continue;
-          // Charts side by side end their closed data tables on one line, and each legend
-          // stands one gap under its own plot, whatever room the chart gains.
-          const pairs = await page.evaluate(() =>
-            [...document.querySelectorAll('#charts [data-layout="pairs"]')].map((pair) =>
-              [...pair.querySelectorAll('.sui-chart')].map((chart) => {
-                const band = /** @type {Element} */ (chart.querySelector('.plot-band'));
-                const legend = band.nextElementSibling;
-                const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
-                return {
-                  link: chart.querySelector('details > summary')?.getBoundingClientRect().top,
-                  legendGap: shown
-                    ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
-                    : 16
-                };
-              })
-            )
-          );
-          assert.ok(pairs.length > 0 && pairs.every((pair) => pair.length === 2));
-          for (const [first, second] of pairs) {
-            assert.ok(
-              Math.abs(Number(first.link) - Number(second.link)) < 0.5,
-              'a pair ends apart'
+          // Each legend stands one gap under its own plot and the table's summary one gap under
+          // that, and opening a table moves neither its summary nor its neighbour's.
+          const summaries = () =>
+            page.evaluate(() =>
+              [...document.querySelectorAll('#charts [data-layout="pairs"] .sui-chart')].map(
+                (chart) => {
+                  const band = /** @type {Element} */ (chart.querySelector('.plot-band'));
+                  const legend = band.nextElementSibling;
+                  const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
+                  const above = shown ? legend : band;
+                  const summary = /** @type {Element} */ (chart.querySelector('details > summary'));
+                  const top = summary.getBoundingClientRect().top + scrollY;
+                  return {
+                    top,
+                    legendGap: shown
+                      ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
+                      : 16,
+                    summaryGap: Math.round(top - scrollY - above.getBoundingClientRect().bottom)
+                  };
+                }
+              )
             );
-            for (const chart of [first, second])
-              assert.ok(
-                Math.abs(chart.legendGap - 16) < 0.5,
-                `a legend ${chart.legendGap}px under`
-              );
-          }
+          const closed = await summaries();
+          assert.ok(closed.length >= 2 && closed.length % 2 === 0);
+          for (const chart of closed)
+            assert.ok(Math.abs(chart.legendGap - 16) < 0.5, `a legend ${chart.legendGap}px under`);
+          assert.equal(
+            new Set(closed.map((chart) => chart.summaryGap)).size,
+            1,
+            `summaries stand ${closed.map((chart) => chart.summaryGap)}px under what they follow`
+          );
+          await page
+            .locator('#charts [data-layout="pairs"] .sui-chart details > summary')
+            .first()
+            .click();
+          const opened = await summaries();
+          await page
+            .locator('#charts [data-layout="pairs"] .sui-chart details > summary')
+            .first()
+            .click();
+          assert.deepEqual(
+            opened.slice(0, 2).map((chart) => chart.top),
+            closed.slice(0, 2).map((chart) => chart.top),
+            'opening a table moves its summary or its neighbour’s'
+          );
         }
         assert.deepEqual(kinds, new Set([true, false]));
       }

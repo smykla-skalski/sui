@@ -284,8 +284,8 @@
   }
 
   /* A chart stretched to a taller neighbour's height, in a line of cards or specimens, keeps its
-     legend one gap under its own plot and its closed table at its foot, so charts side by side
-     end on one line. An open table follows its plot. */
+     legend one gap under its own plot and its table's summary one gap under that, open or
+     closed, so opening the table never moves the summary pressed, nor a neighbour's. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
@@ -492,10 +492,6 @@
       outline: var(--sui-stroke) solid GrayText;
       outline-offset: calc(-1 * var(--sui-stroke));
     }
-  }
-
-  details:not([open]) {
-    margin-block-start: auto;
   }
 
   /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
