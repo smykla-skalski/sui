@@ -401,7 +401,8 @@ following a row closes the drawer.
     gap: var(--sui-space-4);
     min-block-size: 0;
     padding: var(--sui-space-4) var(--sui-space-3);
-    /* The head starts at a page header's gutter, so its kicker and the page's share one line. */
+    /* The head starts at a page header's gutter, and its kicker is set as the page's eyebrow,
+       so their capitals share one line. */
     padding-block-start: var(--sui-rhythm-pane-gutter);
   }
 
@@ -473,9 +474,9 @@ following a row closes the drawer.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

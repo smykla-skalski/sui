@@ -329,16 +329,22 @@ suite('navigation', together, () => {
   test('the side nav kicker and the page header eyebrow share one cap line', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
+      // The box tops alone met while the capitals stood a pixel apart, so the type is held too.
       const [nav, header] = await page.evaluate(() =>
-        ['.sui-side-nav-kicker', '.sui-page-header-eyebrow'].map(
-          (name) =>
-            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().top
-        )
+        ['.sui-side-nav-kicker', '.sui-page-header-eyebrow'].map((name) => {
+          const element = /** @type {Element} */ (document.querySelector(name));
+          const look = getComputedStyle(element);
+          return {
+            top: element.getBoundingClientRect().top,
+            type: [look.fontSize, look.fontWeight, look.letterSpacing, look.lineHeight].join(' ')
+          };
+        })
       );
       assert.ok(
-        Math.abs(nav - header) <= 0.5,
-        `the kicker stands at ${nav}, the eyebrow at ${header}`
+        Math.abs(nav.top - header.top) <= 0.5,
+        `the kicker stands at ${nav.top}, the eyebrow at ${header.top}`
       );
+      assert.equal(nav.type, header.type, 'the kicker is set apart from the eyebrow');
     } finally {
       await page.close();
     }

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `SideNav` kicker is set as a page header's eyebrow, 12px at 0.05em, so their capitals share one line, where it was 11px at 0.07em and its capitals stood a pixel under the eyebrow's.
 - A chart's View Chart Data stands one gap under its own plot or legend, open or closed, where a closed one dropped to the foot of a taller neighbour, left a hole as tall as 74px under the plot and jumped 41px from the pointer when pressed; L-66 changes with it.
 - A loading chart's note leads with the clock mark in its muted ink, so its words start where every other chart note's do, where they stood 21px further in; on dark a `HeatmapChart` prints every value under its peak in white, where only the step under the peak was white.
 - The rail and a collapsed side nav are 5rem wide, where 4.5rem left a tile's words 55px and "Personal" 4px of room each side; `--sui-rail-width` and `--sui-sidebar-width-collapsed` change.
