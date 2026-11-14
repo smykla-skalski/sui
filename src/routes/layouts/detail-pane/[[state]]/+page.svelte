@@ -434,6 +434,12 @@
     container-type: inline-size;
   }
 
+  /* The panel is all the page holds, so its title reads as an alert's headline, a step over
+     the section titles a loaded check shows. */
+  .missing > :global(*) {
+    --sui-font-size-state-title: var(--sui-font-size-alert-title);
+  }
+
   @container (min-width: 44rem) {
     .missing > :global(*) {
       max-inline-size: calc(100% - var(--sui-rhythm-section-gap) - clamp(18rem, 30%, 20rem));
