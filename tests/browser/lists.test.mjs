@@ -706,7 +706,7 @@ suite('lists', together, () => {
         );
     });
 
-    test('a code block comment steps back past its punctuation and holds 4.5:1 in both themes', async () => {
+    test('a code block comment and line number step back past its punctuation and hold 4.5:1 in both themes', async () => {
       const page = await opened();
       for (const scheme of /** @type {const} */ (['light', 'dark'])) {
         await page.emulateMedia({ colorScheme: scheme });
@@ -743,13 +743,21 @@ suite('lists', together, () => {
             );
             return (Math.max(ink, ground) + 0.05) / (Math.min(ink, ground) + 0.05);
           };
-          return { comment: contrast('.tok-com'), punct: contrast('.tok-pun') };
+          return {
+            comment: contrast('.tok-com'),
+            punct: contrast('.tok-pun'),
+            ink: getComputedStyle(/** @type {Element} */ (block.querySelector('.tok-com'))).color,
+            number: getComputedStyle(
+              /** @type {Element} */ (document.querySelector('#code-block .no'))
+            ).color
+          };
         });
         assert.ok(inks.comment >= 4.5, `in ${scheme} a comment holds ${inks.comment.toFixed(2)}:1`);
         assert.ok(
           inks.comment < inks.punct - 0.4,
           `in ${scheme} a comment (${inks.comment.toFixed(2)}:1) does not step back past its punctuation (${inks.punct.toFixed(2)}:1)`
         );
+        assert.equal(inks.number, inks.ink, `in ${scheme} a line number is not in a comment's ink`);
       }
       await page.emulateMedia({ colorScheme: null });
     });

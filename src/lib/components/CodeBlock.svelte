@@ -209,7 +209,8 @@ A read-only code window: mono at 14px on the inset ground, colored by the langua
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
-`lineNumbers` draws a gutter in the gutter ink at full opacity behind a divider 12px from
+`lineNumbers` draws a gutter in a comment's ink at full opacity, so a number never outranks
+the code it counts, behind a divider 12px from
 its numbers and its code, which never selects or copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame, its fill and the code's start inset for a host that frames and insets
 the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
@@ -278,6 +279,11 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
      a line, or sits in the file name's row. */
   .sui-code-block {
     --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
+    /* The block's quietest ink, a comment's and a line number's (see .tok-com). */
+    --sui-local-code-quiet: light-dark(
+      color-mix(in srgb, var(--sui-text-muted) 95%, var(--sui-surface-code)),
+      color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code))
+    );
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
@@ -539,7 +545,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   .no {
     background: var(--sui-surface-code);
     border-inline-end: var(--sui-stroke) solid var(--sui-border-subtle);
-    color: var(--sui-code-gutter);
+    color: var(--sui-local-code-quiet);
     inset-inline-start: 0;
     padding-inline: var(--sui-space-4) var(--sui-space-3);
     position: sticky;
@@ -582,10 +588,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
      so a note reads apart from the code it explains. A diff keeps the shared comment ink, which
      its tinted rows need to hold that contrast. */
   .tok-com {
-    color: light-dark(
-      color-mix(in srgb, var(--sui-text-muted) 95%, var(--sui-surface-code)),
-      color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code))
-    );
+    color: var(--sui-local-code-quiet);
   }
 
   .tok-pun {
