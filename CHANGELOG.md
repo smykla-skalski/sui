@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart's "View Chart Data" control stands right under its chart and stays there while its table opens, where a chart in a card stretched by its neighbour pushed it to the card's foot and it jumped up as the table opened.
 - The shell's own rules, the `Rail`'s and `SideNav`'s edges and the side nav's head and foot lines, take the page header band's ink, so the lines that meet where the nav and a `PageHeader` join read as one line.
 - `SideNav`, `Rail` and the shell's Collapse hover on an `ObjectRow`'s hover ground, so the nav and the rows beside it answer the pointer alike, and a pressed item stands a step past it. The dark current plate, in the nav, on a current `ObjectRow` and on a current `PageToc` entry, takes 30% of the accent, up from 24%, so it stays a clear step past a pressed item. A `Rail` badge's halo takes its tile's ground when the tile is hovered, pressed or current, and the badge stands lower, so its halo stays inside the tile.
 - A chart's data control leads with a chevron that turns down while the table shows, as a `Disclosure`'s does, and a refreshing chart's note leads with the refresh mark in the info hue, as a stale one leads with the warning mark.
