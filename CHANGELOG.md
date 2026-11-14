@@ -4,7 +4,6 @@
 
 - A sortable `DataTable` heading is a 28px control whose ground reaches 8px past its words, with a 16px arrow, where it was a 24px chip 4px past them with a 12px arrow that drew 8 by 4px of ink; the heading row keeps its height.
 - A `HeatmapChart`'s four upper steps stand evenly apart, at 27.5, 43.5, 59.5 and 75.5% of the series color, where the top leapt 1.79:1 from steps 1.26:1 apart and two middle steps read as one; on dark the value on the step under the peak is white, where the text ink fell under 4.5:1. L-66 and its audit ask the widest step at most 1.25 times the narrowest.
-- A rail or bottom bar count covers its glyph's last 2px, where it covered 4px and hid more of the glyph than its corner.
 - A bottom bar's tiles stand 8px in from its edges, as the rail's do from its column's, where they stood 4px in and their plate all but met the bar's rule; the bar is 8px taller.
 - A line, scatter or range chart draws each gridline on one whole row or column of pixels, the one its value falls in, where most straddled two and drew as a faint 2px smear.
 - A `DataTableColumn` takes a `sample`, a typical widest value, which its heading holds unseen, so the column has its loaded width while the rows load, fail or are empty, and the table does not move when they arrive, where it shifted its columns up to 80px.

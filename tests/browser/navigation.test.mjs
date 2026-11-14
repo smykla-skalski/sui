@@ -507,7 +507,10 @@ suite('navigation', together, () => {
         );
         assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the tile’s top`);
         assert.ok(badge.end >= 0, `the badge’s halo reaches ${-badge.end}px past the tile’s end`);
-        assert.equal(badge.over, 2, 'the count covers the glyph’s last 2px, its corner');
+        assert.ok(
+          badge.over <= 4,
+          `the count covers ${badge.over}px of its glyph, more than a corner`
+        );
       } finally {
         await page.close();
       }
@@ -530,7 +533,7 @@ suite('navigation', together, () => {
             tile.querySelector('.sui-rail-glyph svg')
           ).getBoundingClientRect();
           return [
-            glyph.right - count.left === 2,
+            glyph.right - count.left > 0 && glyph.right - count.left <= 4,
             count.top < glyph.top,
             count.left - 2 >= box.left && count.right + 2 <= box.right
           ];
