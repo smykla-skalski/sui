@@ -790,12 +790,16 @@ export function axis(
   const measured = maximum / (count - 1) - minimum / (count - 1);
   const rough = measured || Number.MIN_VALUE;
   const power = 10 ** Math.floor(Math.log10(rough));
-  const step =
-    (power > 0
-      ? STEPS.map((multiple) => multiple * power).find(
-          (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
-        )
-      : Number.MIN_VALUE) ?? (whole ? 1 : rough);
+  // A few whole values with no zero to reach read best one tick each, so the axis starts on the
+  // first value, as a short run's does, and never on a rounder tick before it.
+  const each = whole && !includeZero && maximum - minimum <= count + 1;
+  const step = each
+    ? 1
+    : ((power > 0
+        ? STEPS.map((multiple) => multiple * power).find(
+            (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
+          )
+        : Number.MIN_VALUE) ?? (whole ? 1 : rough));
   const tick = (index: number) => {
     const value = index * step;
     if (!Number.isFinite(value)) return Math.sign(value) * Number.MAX_VALUE;

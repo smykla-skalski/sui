@@ -108,6 +108,10 @@ test('ticks fall on 1, 2, 2.5 or 5 times a power of ten', () => {
 test('whole-number data gets whole-number ticks', () => {
   // 0 to 9 would step by 2.5 if the values were fractional.
   assert.deepEqual(axis([0, 9]).ticks, [0, 5, 10]);
+  // Six days take a tick each and start on the first, where a step of two would start on 0.
+  assert.deepEqual(axis([1, 6]).ticks, [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(axis([1, 6], true).ticks, [0, 2, 4, 6]);
+  assert.deepEqual(axis([1, 8]).ticks, [0, 2, 4, 6, 8]);
   assert.deepEqual(axis([0, 9.5]).ticks, [0, 2.5, 5, 7.5, 10]);
   for (const values of [
     [1, 2, 3, 4, 5, 6, 7, 8],

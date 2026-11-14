@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart axis over a few whole values with no zero to reach, as six days, takes a tick on each and starts on the first, so a line no longer starts a step in from the axis
 - Every `DataTable` runs its rules 12px past its words, as a striped one runs its stripes, so its words keep the copy's edge and a first sort heading's ground has its 8px room (it sat flush), and a held column sizes for its 500 row headings, not 600
 - A `FactList` on a phone keeps each value beside its label in a box sized to its facts, where every value dropped under its label, and a fact row that holds a pill keeps its neighbours' pitch, the pill reaching into the row's padding on whole pixels (it stood 7px taller)
 - A chart legend's dot or diamond key is one icon wide, so its mark stands 8 to 10px from its label, as a line's end does (it stood up to 17px off)
