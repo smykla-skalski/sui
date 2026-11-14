@@ -119,6 +119,10 @@ suite('the kitchen sink', together, () => {
           prefix: diff.unifiedDiff('x😀', 'x😃')[0].emphasis,
           suffix: diff.unifiedDiff('😀x', '😃x')[0].emphasis,
           both: both[0].emphasis,
+          words: diff
+            .unifiedDiff('"labels": ["dependencies"]', '"schedule": ["before 6am on monday"]')
+            .map((/** @type {{ emphasis: unknown }} */ line) => line.emphasis),
+          many: diff.unifiedDiff('a,b,c,d', 'w,x,y,z')[0].emphasis,
           marked: diff
             .emphasize([{ text: 'x😀y' }], both[0].emphasis)
             .filter((/** @type {{ word?: boolean }} */ piece) => piece.word)
@@ -144,6 +148,19 @@ suite('the kitchen sink', together, () => {
       assert.deepEqual(result.prefix, [[1, 3]]);
       assert.deepEqual(result.suffix, [[0, 2]]);
       assert.deepEqual(result.both, [[1, 3]]);
+      // Whole changed words are marked and the shared quotes and brackets stay plain; the
+      // words of one change, split only by space, read as one stretch.
+      assert.deepEqual(result.words, [
+        [
+          [1, 7],
+          [12, 24]
+        ],
+        [
+          [1, 9],
+          [14, 34]
+        ]
+      ]);
+      assert.deepEqual(result.many, [[0, 7]], 'four stretches read as one');
       assert.deepEqual(result.marked, ['😀']);
       assert.deepEqual(result.toml, [
         [{ cls: 'tok-head', text: '[owner]' }],

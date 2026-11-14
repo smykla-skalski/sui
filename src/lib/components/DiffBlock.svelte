@@ -21,8 +21,8 @@
   /**
    * A unified diff of two small texts: longest common subsequence over lines, with the
    * deletions of a changed region before the insertions that replace them. Where a deletion
-   * and an insertion pair up, the stretch past their common prefix and suffix is emphasised
-   * on both. Shared first and last lines are kept without entering the quadratic table, and a
+   * and an insertion pair up, the words and marks that differ between them are emphasised on
+   * both, whole words at a time. Shared first and last lines are kept without entering the quadratic table, and a
    * middle too large for it is drawn as all of its old lines removed and its new ones added.
    */
   export function unifiedDiff(before: string, after: string): DiffLine[] {
@@ -105,21 +105,71 @@
 
   const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
+  const WORDISH = /^[\p{L}\p{N}_]/u;
+  const SPACE = /^\s/u;
+  /** The most stretches a paired line marks before its changes read as one stretch. */
+  const MOST_STRETCHES = 3;
+
+  /** A line cut into runs of word graphemes, runs of space, and single other graphemes. */
+  function wordRuns(text: string): string[] {
+    const out: string[] = [];
+    let kind = '';
+    for (const { segment } of GRAPHEMES.segment(text)) {
+      const next = WORDISH.test(segment) ? 'word' : SPACE.test(segment) ? 'space' : 'mark';
+      if (next !== 'mark' && next === kind) out[out.length - 1] += segment;
+      else out.push(segment);
+      kind = next;
+    }
+    return out;
+  }
+
+  /*
+   * A paired line marks the words and marks the other side does not share, by longest common
+   * subsequence over whole words, so a changed word is marked whole and the quotes and brackets
+   * both sides keep stay plain. Changes split only by space read as one stretch, and a line
+   * with more than three stretches marks one from its first change to its last. A line too long
+   * for the table is drawn without marks.
+   */
   function withEmphasis(op: '+' | '-', text: string, other: string | null): DiffLine {
     if (other === null || other === text) return { op, text };
-    const a = [...GRAPHEMES.segment(text)].map((part) => part.segment);
-    const b = [...GRAPHEMES.segment(other)].map((part) => part.segment);
-    const shortest = Math.min(a.length, b.length);
-    let common = 0;
-    while (common < shortest && a[common] === b[common]) common += 1;
-    let suffix = 0;
-    while (suffix < shortest - common && a[a.length - 1 - suffix] === b[b.length - 1 - suffix])
-      suffix += 1;
-    let start = 0;
-    for (let at = 0; at < common; at += 1) start += a[at].length;
-    let end = text.length;
-    for (let at = 0; at < suffix; at += 1) end -= a[a.length - 1 - at].length;
-    return end > start ? { op, text, emphasis: [[start, end]] } : { op, text };
+    const a = wordRuns(text);
+    const b = wordRuns(other);
+    if ((a.length + 1) * (b.length + 1) > TABLE_LIMIT) return { op, text };
+    const table = Array.from({ length: a.length + 1 }, () =>
+      new Array<number>(b.length + 1).fill(0)
+    );
+    for (let i = a.length - 1; i >= 0; i -= 1)
+      for (let j = b.length - 1; j >= 0; j -= 1)
+        table[i][j] =
+          a[i] === b[j] ? table[i + 1][j + 1] + 1 : Math.max(table[i + 1][j], table[i][j + 1]);
+    const shared = new Array<boolean>(a.length).fill(false);
+    for (let i = 0, j = 0; i < a.length && j < b.length;) {
+      if (a[i] === b[j]) {
+        shared[i] = true;
+        i += 1;
+        j += 1;
+      } else if (table[i + 1][j] >= table[i][j + 1]) i += 1;
+      else j += 1;
+    }
+    const stretches: [number, number][] = [];
+    let offset = 0;
+    let gap = false;
+    a.forEach((run, at) => {
+      const end = offset + run.length;
+      if (!shared[at]) {
+        const last = stretches.at(-1);
+        if (last && (last[1] === offset || gap)) last[1] = end;
+        else stretches.push([offset, end]);
+        gap = false;
+      } else if (stretches.length > 0 && SPACE.test(run)) {
+        gap = stretches.at(-1)![1] === offset;
+      } else gap = false;
+      offset = end;
+    });
+    if (stretches.length === 0) return { op, text };
+    const emphasis: DiffEmphasis[] =
+      stretches.length > MOST_STRETCHES ? [[stretches[0][0], stretches.at(-1)![1]]] : stretches;
+    return { op, text, emphasis };
   }
 
   /** Re-cuts token runs so the stretches inside `ranges` are marked, splitting a run at an edge. */
@@ -221,9 +271,9 @@
 A small unified diff, drawn from two texts or from lines prepared elsewhere. It shows an
 excerpt worth reading, never a whole file. Each line wears its tone, and a glyph beside the
 color says the same thing: plus for added, minus for removed, a tilde for a line changed in
-place. The glyph stands in the gutter on a step of the tone. The stretch that actually changed
-inside a paired line is a step deeper again and underlined in the line's ink, marked as
-inserted, deleted or changed.
+place. The glyph stands in the gutter on a step of the tone. The words that actually changed
+inside a paired line, whole words at a time and at most three stretches, are a step deeper
+again and underlined in the line's ink, marked as inserted, deleted or changed.
 
 Line numbers count the window, not the file, and only kept lines wear one: an added or
 removed line has no single number to claim. A change only in the final newline draws an added
@@ -443,6 +493,11 @@ or removed empty line. Two empty sides say `emptyLabel`.
   .add,
   .del {
     font-weight: var(--sui-weight-semibold);
+  }
+
+  /* The head's glyphs are the lines' glyphs, drawn in the code's face beside the sans words. */
+  .sui-diff-block-sources :is(.add, .del) {
+    font-family: var(--sui-mono);
   }
 
   .ln[data-op='+'] .op,
