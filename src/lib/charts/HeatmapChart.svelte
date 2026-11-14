@@ -46,7 +46,7 @@
 
   /* Five steps of the first chart colour. Every cell prints its value, so its ink holds 4.5:1 on
      every step in both themes, and the top step is the colour itself with its value in the
-     surface's ink, so the peak stands clear. The lowest holds 1.5:1 on its ground, so a cell
+     surface's ink, so the peak stands clear. The lowest holds 1.6:1 on its ground, so a cell
      that holds a little never reads as an empty one, and the four above it stand evenly apart, so
      no two neighbours read as one and the peak does not leap. */
   const STEPS = 5;
@@ -269,16 +269,21 @@ column is never narrower than its square cell, and past that the matrix scrolls 
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 27.5%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 33%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 43.5%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 48%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 59.5%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 62%, transparent);
   }
+  /* The dark peak is lighter than the light one, so the step under it stops lower to keep the
+     peak a clear step above it. */
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 75.5%, transparent);
+    --sui-local-heat: light-dark(
+      color-mix(in srgb, var(--sui-chart-1) 77%, transparent),
+      color-mix(in srgb, var(--sui-chart-1) 75%, transparent)
+    );
   }
   .step-4 {
     --sui-local-heat: var(--sui-chart-1);

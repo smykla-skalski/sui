@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
 - DataTable: the caption is set 16px 600 at every width, as a chart's title is, and a refreshing table's words sit on the caption's baseline.
 - AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
 - HeatmapChart: columns widen to an even share of the band in whole pixels, never under a square cell, so the matrix fills its column and scrolls only past its narrowest; cells stand on whole pixels.

@@ -3259,9 +3259,9 @@ function chartInk(root: Document): Finding[] {
     const ground = paintedGround(step.parentElement ?? step);
     const paint = rgba(step instanceof SVGElement ? look.fill : look.backgroundColor);
     const ratio = contrast(over(paint, ground), ground);
-    if (ratio < 1.5)
+    if (ratio < 1.6)
       found.push(
-        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.5`)
+        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.6`)
       );
   }
   for (const top of audited(root, '.sui-chart .legend .step-4')) {
