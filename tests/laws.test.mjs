@@ -2015,8 +2015,8 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
   assert.match(
     styles[path],
-    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\);/,
-    'a 12px inset crowds body-size words and their 16px mark'
+    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\) var\(--sui-space-5\);/,
+    'a 12px inset crowds body-size words and their 16px mark, and the sides keep the error panel rail'
   );
   assert.match(
     styles[path],

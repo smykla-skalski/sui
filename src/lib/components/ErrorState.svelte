@@ -273,8 +273,8 @@ of them.
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
     /* The edge is drawn on the tint, outside the flow, so the sides add its stroke to stand
-       16px inside it, as a form error's words do. */
-    padding: var(--sui-space-3) calc(var(--sui-space-4) + var(--sui-stroke));
+       20px inside it, on the rail an error panel's and a form error's words stand on. */
+    padding: var(--sui-space-3) calc(var(--sui-space-5) + var(--sui-stroke));
     position: relative;
   }
 
@@ -297,11 +297,11 @@ of them.
   }
 
   /* A phone wraps the 44px retry under the words, so the line stands as a small panel: its tint
-     keeps the 16px it holds at its sides above and below too, past the tint's 2px inset and its
+     keeps the 20px it holds at its sides above and below too, past the tint's 2px inset and its
      edge. */
   @media (max-width: 47.9375rem) {
     .over {
-      padding-block: calc(var(--sui-space-4) + var(--sui-space-1) / 2 + var(--sui-stroke));
+      padding-block: calc(var(--sui-space-5) + var(--sui-space-1) / 2 + var(--sui-stroke));
     }
   }
 </style>

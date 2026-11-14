@@ -353,7 +353,7 @@ suite('lists', together, () => {
       }
     });
 
-    test('a failed refresh over its rows keeps 16px inside its tint all round once its retry wraps', async () => {
+    test('a failed refresh over its rows keeps 20px inside its tint all round once its retry wraps', async () => {
       const page = await opened();
       const strip = page
         .locator('#states .specimen', { hasText: 'Refresh failed' })
@@ -383,7 +383,7 @@ suite('lists', together, () => {
         ['at the side', inset.side]
       ])
         assert.ok(
-          Math.abs(Number(value) - 16) < 0.5,
+          Math.abs(Number(value) - 20) < 0.5,
           `the strip keeps ${value}px ${where} inside its tint`
         );
     });
@@ -453,10 +453,10 @@ suite('lists', together, () => {
         );
     });
 
-    test('a failed refresh pads its mark inside its edge as a form error does', async () => {
+    test('every danger wash on the states page starts its mark 20px inside its edge', async () => {
       const page = await opened();
       const insets = await page.evaluate(() =>
-        [...document.querySelectorAll('#states :is(.sui-error-state.over, .sui-form-error)')].map(
+        [...document.querySelectorAll('#states :is(.sui-error-state, .sui-form-error)')].map(
           (root) => {
             const mark = /** @type {Element} */ (root.querySelector('svg'));
             const edge = root.classList.contains('over')
@@ -470,8 +470,8 @@ suite('lists', together, () => {
           }
         )
       );
-      assert.ok(insets.length >= 2, `only ${insets.length} parts`);
-      assert.deepEqual([...new Set(insets)], [16], `marks stand ${insets.join(', ')}px inside`);
+      assert.ok(insets.length >= 4, `only ${insets.length} parts`);
+      assert.deepEqual([...new Set(insets)], [20], `marks stand ${insets.join(', ')}px inside`);
     });
 
     test('every empty and error state on the states page stands under its list heading', async () => {
