@@ -178,7 +178,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
       {#if refreshing && !loading}
         <p class="refreshing" aria-hidden="true">
-          <Icon name="refresh" size="sm" /><span class="refreshing-words">{refreshingLabel}</span>
+          <span class="refreshing-mark"><Icon name="refresh" size="sm" /></span><span
+            class="refreshing-words">{refreshingLabel}</span
+          >
         </p>
       {/if}
     </div>
@@ -372,6 +374,15 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     display: flex;
     gap: var(--sui-space-2);
     margin: 0;
+  }
+
+  /* The mark is taller than the words' trimmed line, so it hangs from a box of no height,
+     centred on the line, and the line stays the caption's height: the table never stands
+     under its neighbour's. */
+  .refreshing-mark {
+    align-items: center;
+    block-size: 0;
+    display: flex;
   }
 
   .refreshing-words {

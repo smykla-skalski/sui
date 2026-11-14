@@ -1117,10 +1117,12 @@ suite('lists', together, () => {
             line?.textContent?.trim(),
             !!line?.checkVisibility(),
             mark ? getComputedStyle(mark).color === info : false,
-            Math.abs(top(line?.querySelector('span')) - top(caption)) <= 0.5
+            Math.abs(top(line?.querySelector('.refreshing-words')) - top(caption)) <= 0.5,
+            line?.parentElement?.getBoundingClientRect().height ===
+              caption?.getBoundingClientRect().height
           ];
         });
-      assert.deepEqual(read, ['Refreshing…', true, true, true]);
+      assert.deepEqual(read, ['Refreshing…', true, true, true, true]);
     });
 
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
