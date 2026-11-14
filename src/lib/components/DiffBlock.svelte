@@ -348,16 +348,16 @@ or removed empty line. Two empty sides say `emptyLabel`.
     gap: inherit;
   }
 
-  /* Nothing to compare still reads as the code ground and not a field: the code's mono on the
-     line numbers' 16px rail, in a box taller than any control (L-37 tops out at 44px). */
   .sui-diff-block-empty {
     align-content: center;
-    block-size: 4rem;
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-mono);
+      var(--sui-sans);
     margin: 0;
-    padding-inline: var(--sui-space-4);
+    padding: var(--sui-space-3);
+    padding-block: calc(var(--sui-space-3) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-3) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     text-box: trim-both cap alphabetic;
   }
 

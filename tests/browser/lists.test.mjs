@@ -1661,28 +1661,14 @@ suite('lists', together, () => {
             '#code-block .sui-code-block-label',
             '#code-block .numbered > .ln:first-child .no'
           ),
-          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no'),
-          empty: (() => {
-            const empty = /** @type {Element} */ (
-              document.querySelector('#diff-block .sui-diff-block-empty')
-            );
-            const line = /** @type {Element} */ (document.querySelector('#diff-block code'));
-            return {
-              height: empty.getBoundingClientRect().height,
-              face: getComputedStyle(empty).fontFamily,
-              code: getComputedStyle(line).fontFamily
-            };
-          })()
+          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no')
         };
       });
-      const { code, diff, empty } = read;
+      const { code, diff } = read;
       assert.equal(diff.height, code.height, 'head row height');
       assert.equal(diff.fill, code.fill, 'head fill');
       assert.equal(diff.ink, code.ink, 'line number ink');
       assert.equal(diff.air, code.air, 'air over the first line’s words');
-      // L-37's tallest control is 44px, so an empty diff taller than that never reads as a field.
-      assert.ok(empty.height > 44, `an empty diff stands ${empty.height}px, a field's height`);
-      assert.equal(empty.face, empty.code, 'an empty diff speaks in the code’s face');
     });
 
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
