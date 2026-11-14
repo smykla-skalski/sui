@@ -385,6 +385,32 @@ suite('the kitchen sink', together, () => {
   );
 
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
+  test(
+    'on a phone the next specimen stands clear of a link list, further off than its rows',
+    long,
+    async () => {
+      const page = await open(390, 'light', {}, 'link-list');
+      try {
+        const { rows, next } = await page.evaluate(() => {
+          const specimens = [...document.querySelectorAll('#link-list .example .specimen')];
+          const links = [...specimens[0].querySelectorAll('a')].map((a) =>
+            a.getBoundingClientRect()
+          );
+          const name = /** @type {Element} */ (
+            specimens[1].firstElementChild
+          ).getBoundingClientRect();
+          return {
+            rows: links[1].top - links[0].bottom,
+            next: name.top - links[links.length - 1].bottom
+          };
+        });
+        assert.ok(next >= rows + 8, `the next name stands ${next}px under links ${rows}px apart`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {

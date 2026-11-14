@@ -780,9 +780,13 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
     assert.ok(Number(step) > 4, `a row gap of space-${step} reads as close as a name`);
   assert.match(
     stripComments(styles['src/routes/kit/Example.svelte']),
-    /row-gap: calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\);/,
+    /row-gap: var\(\s*--specimen-phone-row-gap,\s*calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\)\s*\);/,
     "a phone's rows stand closer than a page's widened name gap"
   );
+  // A page widens a phone's rows only past a list's own 24px rows, never back toward a name gap.
+  for (const path of svelteFiles.filter((path) => path.startsWith('src/routes/sink/')))
+    for (const [, value] of read(path).matchAll(/--specimen-phone-row-gap="([^"]+)"/g))
+      assert.match(value, /var\(--sui-space-8\)/, `${path} sets a phone row gap of ${value}`);
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {

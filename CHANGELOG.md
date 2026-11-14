@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- On a phone the sink's Link List page stands its two Links specimens 40px apart, so the second one's name, 20px under the last link where the links stand 24px apart, no longer reads as one more row of the first list. A grid example takes `--specimen-phone-row-gap`.
 - The sink's Fact Line Narrow Width example draws the 18rem bound its facts wrap in, dashed as the Avatar page draws its own, so the wrap reads as the point of the example.
 - A focused `RelativeTime` stands its ring on its words' edge, so in "Synced 42 minutes ago" the ring stands clear of the d of "Synced", where at 1px off it touched the letter: a space in the sans is 2.5px wide. The hover veil reaches as far as the ring.
 - A `LinkList` note stands 2px further under its link, so 6px of air stand between the link's underline and the note, where the line stood 4px over it and read as part of the note. Law L-24 grants a linked name's description this 10px gap.

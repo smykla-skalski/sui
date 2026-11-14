@@ -277,9 +277,13 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     }
 
     /* Rows close to 24px on a phone, still 8px past the name gap, which a page whose tips need
-       room widens. */
+       room widens. A page whose specimens are lists with rows 24px apart, such as links, sets
+       a wider `--specimen-phone-row-gap`, so the next name never reads as one more row. */
     .specimens[data-layout='grid'] {
-      row-gap: calc(var(--specimen-caption-gap, var(--sui-space-4)) + var(--sui-space-2));
+      row-gap: var(
+        --specimen-phone-row-gap,
+        calc(var(--specimen-caption-gap, var(--sui-space-4)) + var(--sui-space-2))
+      );
     }
   }
 
