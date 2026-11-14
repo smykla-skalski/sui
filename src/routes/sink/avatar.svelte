@@ -146,11 +146,12 @@
   }
 
   /* The bound the name wraps in, drawn so the wrap reads as the point of the example. */
+  /* A dashed line at the end of the measure, so the wrap reads as the point of the example and
+     the row starts under the specimen's name at every width. */
   .narrow {
+    border-inline-end: var(--sui-stroke) dashed var(--sui-border-subtle);
     box-sizing: border-box;
-    border: var(--sui-stroke) dashed var(--sui-border-subtle);
-    border-radius: var(--sui-radius-control);
     inline-size: min(100%, 16rem);
-    padding: var(--sui-space-2);
+    padding-inline-end: var(--sui-space-2);
   }
 </style>

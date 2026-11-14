@@ -504,6 +504,47 @@ suite('the kitchen sink', together, () => {
     );
   });
 
+  // A bound drawn as a whole box stood what it holds 9px in from the specimen's name.
+  test("a drawn narrow bound starts what it holds on the specimen name's edge", long, async () => {
+    for (const section of ['fact-line', 'avatar'])
+      for (const width of [1440, 390]) {
+        const page = await open(width, 'light', {}, section);
+        try {
+          const bound = page.locator(`#${section} .specimen:has(.narrow)`).first();
+          await bound.scrollIntoViewIfNeeded();
+          const { name, words } = await bound.evaluate((node) => {
+            /** @param {Node} root */
+            const firstWords = (root) => {
+              const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+                acceptNode: (text) => (text.textContent?.trim() ? 1 : 3)
+              });
+              const range = document.createRange();
+              range.selectNodeContents(/** @type {Node} */ (walker.nextNode()));
+              return range.getBoundingClientRect().left;
+            };
+            return {
+              name: firstWords(/** @type {Node} */ (node.querySelector('figcaption'))),
+              words: (() => {
+                const narrow = /** @type {Element} */ (node.querySelector('.narrow'));
+                const style = getComputedStyle(narrow);
+                return (
+                  narrow.getBoundingClientRect().left +
+                  parseFloat(style.borderInlineStartWidth) +
+                  parseFloat(style.paddingInlineStart)
+                );
+              })()
+            };
+          });
+          assert.ok(
+            Math.abs(words - name) <= 1,
+            `${section} at ${width}px: the bound's content starts at ${words}, the name at ${name}`
+          );
+        } finally {
+          await page.close();
+        }
+      }
+  });
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
