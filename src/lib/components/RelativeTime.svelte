@@ -147,7 +147,7 @@ tooltip.
 - States: relative (dotted underline, the tip on hover and long press), hover (the secondary ink), `exact` (the whole instant in place, free to wrap), and invalid (raw text without a tip).
 - Keyboard: outside any control it is a tab stop that shows the tip; inside a control, that control's focus shows the tip; Escape closes it.
 - Pointer and touch: the hover area reaches 8px above and below and 6px to each side; a 500ms press shows the tip on touch, with the system's long-press menu and word selection held off.
-- Focus: outside any control it takes focus and wears the 2px ring on its words' edge at each side, and stands 1px further from the words around it, so in a sentence the ring keeps inside the word space, 1px clear of the next word's letters; it never moves focus.
+- Focus: outside any control it takes focus and wears the 2px ring on its words' edge at each side, so in a sentence it keeps inside the word space and clear of the next word's letters; it never moves focus.
 - Responsive: the relative reading never breaks inside, and the exact one wraps where a column is narrow.
 - Accessibility: the whole instant is in its words for a screen reader, and the tip repeats it, so the tip stays out of the accessibility tree.
 - Localization: words, numbers, the hour cycle and the zone follow `locale`, else the reader's locale in the page's `lang`, and dates and the whole instant are read in `timeZone`, else the reader's zone; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
@@ -179,14 +179,12 @@ tooltip.
      margin so nothing moves, and keeps to the words at each side. The dots run 2px over its
      foot, 3px clear of a g or a y. The ring sits on the box, 2px under the dots: a space in
      the sans is 2.5px wide, so a ring further off would draw on the letters of the word before
-     or after the time, and the box stands 1px further from each, so the ring stands clear of
-     them too. */
+     or after the time. */
   .sui-relative-time {
     --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
     --sui-local-ring-offset: 0px;
     display: inline-block;
     margin-block-end: calc(-1 * var(--sui-space-1));
-    margin-inline: 1px;
     padding-block-end: var(--sui-space-1);
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
