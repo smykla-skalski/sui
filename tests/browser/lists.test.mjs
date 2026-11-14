@@ -1868,7 +1868,7 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test("a focused standalone link's ring stands 3px clear of its underline and descenders", async () => {
+    test("a focused standalone link's ring stands clear of its underline, descenders and letters", async () => {
       const page = await opened();
       const link = page.locator('#link-list .sui-link-list a').first();
       await link.focus();
@@ -1888,7 +1888,13 @@ suite('lists', together, () => {
           parseFloat(look.textUnderlineOffset) +
           parseFloat(look.textDecorationThickness);
         const ring = box.bottom + parseFloat(look.outlineOffset);
+        const words = document.createRange();
+        words.selectNodeContents(node);
+        const letters = words.getBoundingClientRect();
         return {
+          sides:
+            Math.min(letters.left - box.left, box.right - letters.right) +
+            parseFloat(look.outlineOffset),
           visible: node.matches(':focus-visible'),
           underline: ring - underline,
           descender: ring - (baseline + glyph.actualBoundingBoxDescent)
@@ -1904,6 +1910,9 @@ suite('lists', together, () => {
         clear.descender >= 3,
         `the ring stands ${clear.descender.toFixed(1)}px off a descender`
       );
+      // A glyph's side bearing adds about a pixel, so 4px off the letters' advance reads as the
+      // room above the cap.
+      assert.ok(clear.sides >= 3.5, `the ring stands ${clear.sides.toFixed(1)}px off the letters`);
     });
 
     test('an English note in a right-to-left link list keeps its own order', async () => {
