@@ -155,7 +155,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading is a 28px control, and its target 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and a hairline at the end edge while more columns are past it, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group in the reader's format and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders and is laid out, even off the screen, because a row cannot skip and a frame that skips cannot measure its overflow; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
@@ -311,10 +311,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     timeline-scope: --sui-data-table-frame;
   }
 
-  /* The line that says the columns scroll takes its room only while they do. The frame's scroll
-     timeline is active only while the frame has somewhere to scroll, and the browser settles it
-     before it paints, so a server-rendered table draws the line from its first frame. Without
-     scroll timelines the line follows the measure script. */
   /* The caption names the table as a chart's title names its plot (L-25), one size at every
      width, so a table and a chart side by side carry one title. */
   .caption:not(.hint) {
@@ -323,6 +319,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
   }
 
+  /* The line that says the columns scroll takes its room only while they do. The frame's scroll
+     timeline is active only while the frame has somewhere to scroll, and the browser settles it
+     before it paints, so a server-rendered table draws the line from its first frame. Without
+     scroll timelines the line follows the measure script. */
   .hint {
     display: none;
   }
@@ -446,6 +446,37 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   .frame:focus-visible {
     outline: none;
+  }
+
+  /* While more columns are past the end, a hairline stands at the frame's end edge past the
+     fade, as the held row headings' hairline stands at the start, so the cut reads as the frame's
+     edge with more behind it, never as a clipped column. It clears a pixel short of the end, as
+     the fade does, and a frame that does not scroll has no timeline and no hairline. */
+  @supports (animation-timeline: scroll()) {
+    .viewport::before {
+      animation: sui-data-table-more var(--sui-ease-linear) both;
+      animation-range: calc(100% - 2px) calc(100% - 1px);
+      animation-timeline: --sui-data-table-frame;
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: var(--sui-layer-inner-plate);
+    }
+  }
+
+  @keyframes sui-data-table-more {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 
   .viewport:has(> .frame:focus-visible)::after {

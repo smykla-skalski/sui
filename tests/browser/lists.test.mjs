@@ -1163,6 +1163,37 @@ suite('lists', together, () => {
       ]);
     });
 
+    test('a table that scrolls draws a hairline at its end edge while more columns are past it, and none at the end', async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      try {
+        await page.setViewportSize({ width: 375, height: 900 });
+        const read = await page
+          .locator('#data-table .specimen', { hasText: /^\s*Row headers, sortable/ })
+          .locator('.viewport')
+          .evaluate(async (viewport) => {
+            const frame = /** @type {HTMLElement} */ (viewport.querySelector('.frame'));
+            const line = () => {
+              const style = getComputedStyle(viewport, '::before');
+              return [style.opacity, style.inlineSize];
+            };
+            const settle = () =>
+              new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            frame.scrollLeft = 0;
+            await settle();
+            const start = line();
+            frame.scrollLeft = frame.scrollWidth;
+            await settle();
+            const end = line();
+            frame.scrollLeft = 0;
+            return { start, end };
+          });
+        assert.deepEqual(read, { start: ['1', '1px'], end: ['0', '1px'] });
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+    });
+
     test("a refreshing table says so on its caption's baseline, led by the refresh mark in the info hue", async () => {
       const page = await opened();
       const read = await page

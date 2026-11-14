@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
 - A chart band with no ground starts its plot, its veil and its state boxes on the title's edge, as its legend and summary do, so the chart reads down one left edge.
 - Rail: a tile in the column gives up its odd pixel and its label box stands an even height, so the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels in the 80px column.
 - A chart band with no ground of its own keeps 8px over and under its plot, where it kept 16px, so the plot stands closer to its words and the legend to its axis title; a tinted band keeps its full room.
