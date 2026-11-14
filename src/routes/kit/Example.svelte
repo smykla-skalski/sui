@@ -164,12 +164,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     background: var(--sui-canvas);
   }
 
+  /* Lines of words side by side on one baseline, such as two fact lines, set a wider
+     `--specimen-column-gap`, so they never read as one line. */
   .specimens {
     align-items: stretch;
+    column-gap: var(--specimen-column-gap, var(--sui-space-6));
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-6);
     min-inline-size: 0;
+    row-gap: var(--sui-space-6);
   }
 
   /* A row specimen is as wide as its words, a fraction of a pixel past a whole one, so each is
