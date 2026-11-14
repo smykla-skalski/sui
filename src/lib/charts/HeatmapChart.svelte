@@ -45,7 +45,7 @@
 
   /* Five steps of the first chart colour. Every cell prints its value, so text ink holds 4.5:1
      on the four lower steps in both themes, and the top step is the colour itself with its value
-     in the surface's ink, so the peak stands clear. The lowest holds 1.3:1 on its ground, so a
+     in the surface's ink, so the peak stands clear. The lowest holds 1.5:1 on its ground, so a
      cell that holds a little never reads as an empty one. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
@@ -254,16 +254,16 @@ container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 20%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 28%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 36%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 42%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 52%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 56%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 70%, transparent);
   }
   .step-4 {
     --sui-local-heat: var(--sui-chart-1);
