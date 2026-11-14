@@ -1868,6 +1868,27 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('a refreshing timeline says so over its kept events, its mark on whole pixels', async () => {
+      const page = await opened();
+      const specimen = page.locator('#timeline .specimen', { hasText: 'Refreshing' }).first();
+      const [words, top, left, events] = await specimen.evaluate((node) => {
+        const line = /** @type {Element} */ (node.querySelector('.sui-timeline-refreshing'));
+        const mark = /** @type {Element} */ (line?.querySelector('svg')).getBoundingClientRect();
+        return [
+          line.textContent?.trim(),
+          mark.top,
+          mark.left,
+          node.querySelectorAll('.sui-timeline-event:not(.placeholder)').length
+        ];
+      });
+      assert.equal(words, 'Refreshing…');
+      assert.ok(
+        Number.isInteger(top) && Number.isInteger(left),
+        `the mark stands at ${left},${top}`
+      );
+      assert.ok(events > 0, 'the refresh keeps its events');
+    });
+
     test("a right-to-left link list starts at its card's inline start, the right edge", async () => {
       const page = await opened();
       const [list, holder] = await page.evaluate(() => {
