@@ -2014,39 +2014,6 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a waiting chart veils its plot’s box and leaves the band’s room round it on the band’s ground', async () => {
-      const page = await openLayout('charts/', 1440);
-      try {
-        await page.emulateMedia({ reducedMotion: 'reduce' });
-        const wait = page.locator('.sui-chart-wait').first();
-        const shot = await wait.screenshot({ scale: 'css' });
-        const pad = await wait.evaluate((band) => parseFloat(getComputedStyle(band).paddingTop));
-        const [room, plot] = await page.evaluate(
-          async ({ url, pad }) => {
-            const image = new Image();
-            image.src = url;
-            await image.decode();
-            const canvas = new OffscreenCanvas(image.width, image.height);
-            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
-              canvas.getContext('2d')
-            );
-            context.drawImage(image, 0, 0);
-            const at = (/** @type {number} */ y) =>
-              [
-                ...context.getImageData(Math.round(image.width / 2), Math.round(y), 1, 1).data
-              ].join();
-            // Between the plot's top and its first grid line, and in the band's room above it.
-            return [at(pad / 2), at(pad + (image.height - 2 * pad) / 8)];
-          },
-          { url: `data:image/png;base64,${shot.toString('base64')}`, pad }
-        );
-        assert.ok(pad > 0, 'the band has no room round its plot');
-        assert.notEqual(room, plot, 'the veil fills the band’s room round the plot');
-      } finally {
-        await page.close();
-      }
-    });
-
     test('a chart’s data control stays where the reader pressed it while its table opens', async () => {
       // The kit page sets charts side by side, where a short chart's card stretches to its
       // neighbour's height.

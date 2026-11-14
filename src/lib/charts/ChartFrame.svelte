@@ -378,20 +378,19 @@
     }
   }
 
-  /* While the data loads, the band keeps its place, size and shape, so nothing moves when the
-     plot arrives, and the plot's own box inside it waits: it takes the placeholder veil, and the
-     light that crosses every placeholder crosses it, while the band's room around it keeps the
-     band's ground, so the wait reads as a plot in its band, never a filled block. Three grid
-     lines at the quarters of the plot stand under the light and draw no mark a reader could
-     take for data (L-64). Only the light moves, by transform, so the compositor runs it. */
+  /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
+     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
+     that crosses every placeholder crosses it. Three grid lines at the quarters of the plot
+     stand under the light, so the wait reads as the chart to come, never a blank block, and they
+     draw no mark a reader could take for data (L-64). Only the light moves, by transform, so the
+     compositor runs it. */
   .sui-chart-wait {
     --sui-local-wait-line: linear-gradient(var(--sui-chart-grid), var(--sui-chart-grid));
     background:
       var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat content-box,
       var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat content-box,
       var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat content-box,
-      linear-gradient(var(--sui-placeholder), var(--sui-placeholder)) content-box,
-      var(--sui-chart-ground);
+      var(--sui-placeholder);
     block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
     box-sizing: border-box;
     overflow: clip;
@@ -404,7 +403,7 @@
       var(--sui-placeholder-runs) both;
     background: var(--sui-placeholder-sheen);
     content: '';
-    inset-block: var(--sui-local-band-pad);
+    inset-block: 0;
     inset-inline: calc(-1 * var(--sui-placeholder-reach));
     position: absolute;
   }
