@@ -18,6 +18,7 @@
 - A `SegmentedControl` or `ThemeSwitch` takes `fill`, which stretches its track over its room, each option a whole-pixel share of it, so a switch at a sidebar's foot ends on the rows' edge. The kit's foot switch fills the whole sidebar.
 - The detail pane's loading Details and More About This Check show each fact's label in words, as the loaded rows do, and only the values wait as bars.
 - A filled `SegmentedControl` stretches in a cell that centres its content, so the kit's folded strip draws its theme switch at the plates' 72px, two glyphs sharing it. `FactList` stats stand 24px apart on a phone too, so each figure reads with its own label.
+- A phone bottom bar stands its tiles 8px under its top and over its foot, not 4px, so the current tile's plate keeps clear of the bar's hairline and the screen's edge.
 - A `Disclosure`'s hint follows the summary's words 12px after them while both fit on one line, rather than standing at a wide row's far end.
 - A `Callout`'s actions on a line of their own start where its words start, past its symbol, rather than under the symbol (L-56).
 - An inline `FactList` ends at its words whichever fact holds a target: the last fact with a link or a time gives back its target's room under its words, where only a last fact did, so a header's actions stand as far under the facts as the header's foot stands under them.
