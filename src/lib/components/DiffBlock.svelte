@@ -348,16 +348,16 @@ or removed empty line. Two empty sides say `emptyLabel`.
     gap: inherit;
   }
 
+  /* Two empty sides still read as a diff and not a field: one row of the body's height, its
+     words in the code's mono and the line numbers' quiet ink, on their 16px start rail. */
   .sui-diff-block-empty {
     align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-muted);
+    block-size: var(--sui-local-code-row);
+    color: var(--sui-code-gutter);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
+      var(--sui-mono);
     margin: 0;
-    padding: var(--sui-space-3);
-    padding-block: calc(var(--sui-space-3) + var(--sui-block-snap-half, 0px))
-      calc(var(--sui-space-3) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
+    padding-inline: var(--sui-space-4);
     text-box: trim-both cap alphabetic;
   }
 
@@ -435,6 +435,14 @@ or removed empty line. Two empty sides say `emptyLabel`.
 
   .ln[data-op='~'] {
     background: var(--sui-diff-chg-bg);
+  }
+
+  /* A minus is a short bar where a plus is a cross, so both glyphs stand at 600: the removed
+     side's mark keeps its ink beside the added side's. */
+  .op > [aria-hidden],
+  .add,
+  .del {
+    font-weight: var(--sui-weight-semibold);
   }
 
   .ln[data-op='+'] .op,

@@ -1661,14 +1661,36 @@ suite('lists', together, () => {
             '#code-block .sui-code-block-label',
             '#code-block .numbered > .ln:first-child .no'
           ),
-          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no')
+          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no'),
+          empty: (() => {
+            const empty = /** @type {Element} */ (
+              document.querySelector('#diff-block .sui-diff-block-empty')
+            );
+            const number = /** @type {Element} */ (document.querySelector('#diff-block .no'));
+            return {
+              height: empty.getBoundingClientRect().height,
+              face: getComputedStyle(empty).fontFamily,
+              ink: getComputedStyle(empty).color,
+              numbers: {
+                face: getComputedStyle(number).fontFamily,
+                ink: getComputedStyle(number).color
+              }
+            };
+          })()
         };
       });
-      const { code, diff } = read;
+      const { code, diff, empty } = read;
       assert.equal(diff.height, code.height, 'head row height');
       assert.equal(diff.fill, code.fill, 'head fill');
       assert.equal(diff.ink, code.ink, 'line number ink');
       assert.equal(diff.air, code.air, 'air over the first line’s words');
+      // Two empty sides draw one row of the head's height in the line numbers' face and ink, so
+      // the block never reads as a field.
+      assert.deepEqual(
+        { height: empty.height, face: empty.face, ink: empty.ink },
+        { height: diff.height, ...empty.numbers },
+        'an empty diff draws one body row'
+      );
     });
 
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
