@@ -452,6 +452,11 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
   );
   assert.match(edge, /currentcolor 0 4px, transparent 4px 8px/, 'its dashes stand on whole pixels');
   assert.match(
+    empty,
+    /\.sui-empty-state\.final \{[^}]*border-color: var\(--sui-border-control\);[^}]*\}\s*\.sui-empty-state\.final::before \{\s*display: none;/,
+    'a final panel, whose room nothing will fill, takes a solid edge of the same weight in place of the dashes'
+  );
+  assert.match(
     edge,
     /--sui-local-r: var\(--sui-radius-control\);/,
     "its corners close on the panel's own radius"

@@ -349,9 +349,11 @@
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
       <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice, once,
-           in the panel's title rather than in a status beside the header's too. -->
+           in the panel's title rather than in a status beside the header's too. The panel is
+           final: this check's content never comes, so its edge is solid. -->
       <div class="zones missing">
         <EmptyState
+          final
           title="This Check Does Not Exist"
           description="Someone deleted it, or the link points at a check that never ran"
         >
@@ -573,7 +575,7 @@
 
   .more-press {
     block-size: var(--sui-control-height-compact);
-    inline-size: 6.125rem;
+    inline-size: 7.1875rem;
     margin-block: 0;
   }
 

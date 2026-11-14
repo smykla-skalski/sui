@@ -10,6 +10,7 @@
     action,
     step,
     live = false,
+    final = false,
     class: className = '',
     ...rest
   }: {
@@ -19,6 +20,8 @@
     description: string;
     /** Announces the state once it appears, for a list that a search or filter has just emptied. */
     live?: boolean;
+    /** Nothing will ever fill this room, as for a record that does not exist, so the edge is solid. */
+    final?: boolean;
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & (
     | {
@@ -63,7 +66,7 @@ the next step, a control or words, stands a panel gap under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
-- States: one drawn state, on the raised ground inside a dashed frame that marks the room its content would fill.
+- States: one drawn state, on the raised ground inside a dashed frame that marks the room its content would fill; with `final` the frame is a solid hairline, because nothing will fill the room, as where a record does not exist.
 - Keyboard: none of its own; the action takes Tab.
 - Pointer and touch: the action keeps its own 34px and 44px targets.
 - Focus: it never takes focus; when a filter empties a list, focus stays on the field the reader typed in.
@@ -75,7 +78,7 @@ the next step, a control or words, stands a panel gap under it.
 - Failure: it is itself the empty state; a failed request is an `ErrorState` and a slow first load is a `Skeleton`; its type takes no empty state without a next step.
 -->
 
-<div {...rest} class={['sui-empty-state', className]}>
+<div {...rest} class={['sui-empty-state', className, { final }]}>
   <div class="sui-empty-state-copy">
     <p class="sui-empty-state-title">{title}</p>
     <p class="sui-empty-state-description">{description}</p>
@@ -155,9 +158,23 @@ the next step, a control or words, stands a panel gap under it.
     position: absolute;
   }
 
+  /* Room that nothing will fill takes a solid hairline of the same weight, so the panel no
+     longer promises content. */
+  .sui-empty-state.final {
+    border-color: var(--sui-border-control);
+  }
+
+  .sui-empty-state.final::before {
+    display: none;
+  }
+
   @media (forced-colors: active) {
     .sui-empty-state {
       border: var(--sui-stroke) dashed CanvasText;
+    }
+
+    .sui-empty-state.final {
+      border-style: solid;
     }
 
     .sui-empty-state::before {
