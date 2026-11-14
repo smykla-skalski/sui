@@ -104,7 +104,7 @@ the next step, a control or words, stands a panel gap under it.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-8) var(--sui-space-5);
+    padding: var(--sui-space-8) var(--sui-space-6);
     position: relative;
   }
 
@@ -205,7 +205,7 @@ the next step, a control or words, stands a panel gap under it.
     gap: var(--sui-space-2);
   }
 
-  /* A phone's short screen takes the room above and below the words down to the sides' 20px. */
+  /* A phone's short screen takes the room around the words down to 20px all round. */
   @media (max-width: 47.9375rem) {
     .sui-empty-state {
       gap: var(--sui-space-4);

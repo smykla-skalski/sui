@@ -1535,6 +1535,35 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('every state panel and danger wash on a wide screen starts its first ink 24px inside its edge', async () => {
+      const page = await opened();
+      const insets = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '#states :is(.sui-empty-state, .sui-error-state, .sui-form-error)'
+          )
+        ].map((root) => {
+          const first = /** @type {Element} */ (
+            root.querySelector('svg') ?? root.querySelector('.sui-empty-state-title')
+          );
+          const edge = root.classList.contains('over')
+            ? getComputedStyle(root, '::before')
+            : getComputedStyle(root);
+          return (
+            first.getBoundingClientRect().left -
+            root.getBoundingClientRect().left -
+            parseFloat(edge.borderLeftWidth)
+          );
+        })
+      );
+      assert.ok(insets.length >= 8, `only ${insets.length} parts`);
+      assert.deepEqual(
+        [...new Set(insets.map(Math.round))],
+        [24],
+        `first ink stands ${insets.join(', ')}px inside`
+      );
+    });
+
     test('a failed refresh over its rows keeps its words 16px inside its tint, as a form error does, above and below', async () => {
       const page = await opened();
       const strip = page

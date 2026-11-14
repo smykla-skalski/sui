@@ -109,8 +109,8 @@ margins of its own; the form that holds it sets the gap above it.
   /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
      hue, as an error panel is, so it owns the top of the form and its words keep their
      contrast. Its words read at body size beside a 16px mark, so it pads 16px above and below
-     them, and 20px at their sides, the rail an error panel's words stand on, so every danger
-     wash on a page starts its mark on one line. */
+     them, and 24px at their sides (20px on a phone), the rail an error panel's words stand on,
+     so every danger wash on a page starts its mark on one line. */
   .sui-form-error {
     background: var(--sui-danger-wash);
     border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
@@ -118,7 +118,13 @@ margins of its own; the form that holds it sets the gap above it.
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
-    padding: var(--sui-space-4) var(--sui-space-5);
+    padding: var(--sui-space-4) var(--sui-space-6);
+  }
+
+  @media (max-width: 47.9375rem) {
+    .sui-form-error {
+      padding-inline: var(--sui-space-5);
+    }
   }
 
   /* Focus moves here by script, after a pointer submit too, where :focus-visible would draw no

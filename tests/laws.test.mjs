@@ -398,7 +398,7 @@ test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn 
   }
 });
 
-test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step under its words', () => {
+test('L-59 a state panel pads 32px by 24px, 20px on a phone, its action a step under its words', () => {
   const space = tokenMap(stripComments(palette));
   const lengths = (/** @type {string | undefined} */ rule, /** @type {string} */ property) =>
     [
@@ -416,7 +416,7 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
     )?.[1];
     assert.deepEqual(
       { padding: lengths(rest, 'padding'), gap: lengths(rest, 'gap') },
-      { padding: [32, 20], gap: [20] },
+      { padding: [32, 24], gap: [20] },
       path
     );
     assert.deepEqual(
@@ -2015,7 +2015,7 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
   assert.match(
     styles[path],
-    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\) var\(--sui-space-5\);/,
+    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\) var\(--sui-space-6\);/,
     'a 12px inset crowds body-size words and their 16px mark, and the sides keep the error panel rail'
   );
   assert.match(
