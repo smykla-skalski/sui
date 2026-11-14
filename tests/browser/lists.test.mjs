@@ -1132,7 +1132,7 @@ suite('lists', together, () => {
       }
     });
 
-    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen', async () => {
+    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen, its row headings 500', async () => {
       const page = await opened();
       const wide = page.viewportSize();
       const read = [];
@@ -1150,7 +1150,10 @@ suite('lists', together, () => {
                 const cell = getComputedStyle(
                   /** @type {Element} */ (table.querySelector('tbody td'))
                 );
-                return [caption.fontSize, caption.fontWeight, cell.fontSize];
+                const row = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('tbody th'))
+                );
+                return [caption.fontSize, caption.fontWeight, cell.fontSize, row.fontWeight];
               })
           );
         }
@@ -1158,8 +1161,8 @@ suite('lists', together, () => {
         if (wide) await page.setViewportSize(wide);
       }
       assert.deepEqual(read, [
-        ['16px', '600', '16px'],
-        ['16px', '600', '15px']
+        ['16px', '600', '16px', '500'],
+        ['16px', '600', '15px', '500']
       ]);
     });
 

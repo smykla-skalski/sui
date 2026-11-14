@@ -628,6 +628,11 @@
 
   .sui-chart-table :global(thead th) {
     border-block-end-color: var(--sui-border-control);
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .sui-chart-table :global(tbody th) {
+    font-weight: var(--sui-weight-medium);
   }
 
   /* Numbers line up at their end, and so do their headings. */

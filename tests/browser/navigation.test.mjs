@@ -2120,7 +2120,8 @@ suite('navigation', together, () => {
                 const head = getComputedStyle(
                   /** @type {Element} */ (box.querySelector('thead th'))
                 );
-                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control}`;
+                const row = box.querySelector('tbody th');
+                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control} ${head.fontWeight} ${row && getComputedStyle(row).fontWeight}`;
               })
             )
           ]
@@ -2132,7 +2133,8 @@ suite('navigation', together, () => {
       });
       assert.equal(runs, 2, 'the line draws one run on each side of its gap');
       assert.deepEqual(aligns, ['start']);
-      assert.deepEqual(tables, ['0 true']);
+      // A DataTable's heading weights: 600 over the columns, 500 down the rows.
+      assert.deepEqual(tables, ['0 true 600 500']);
     });
 
     test(

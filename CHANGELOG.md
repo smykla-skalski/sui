@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
 - EmptyState and ErrorState: the explanation wraps as every message's copy does (`text-wrap: pretty`), and balanced where a chart centres it, as its title is, read through `--sui-state-copy-wrap`, so a centred sentence no longer leaves its first word alone at a line's end.
 - Rail: the column is 81px, 80px of tiles and their room past its 1px edge, so a 64px tile stands 8px from the edge as from the column's start, where it stood 7px from the edge.
 - ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.

@@ -700,9 +700,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
   }
 
+  /* A row heading names its row a step over the values, at 500, so it anchors the row while
+     the column headings at 600 stay the table's loudest words. */
   tbody th {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
   }
 
