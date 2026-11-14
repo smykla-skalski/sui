@@ -175,6 +175,7 @@
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 - A closed `ColorPicker` panel or `ListToolbar` menu no longer keeps the `autofocus` mark it sets on open, so a `Modal` around one opens on its own field again, not on the hidden control.
 - A stacked `Timeline`, under 25rem, stands each event 4px further from the next, so a time over its words reads as one block.
+- A current `SideNav` row's count stands on a veil of the accent ink, not the grey pressed veil, so it reads as a step of the row's accent plate in both themes.
 
 ## 0.4.0
 

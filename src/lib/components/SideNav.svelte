@@ -758,7 +758,10 @@ following a row closes the drawer.
     margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
   }
 
+  /* On the current row's accent plate a grey veil reads as a smudge, so the count takes a veil
+     of the accent ink instead and reads as a step of the plate in both themes. */
   .sui-side-nav-row[aria-current='page'] .sui-side-nav-count {
+    --sui-local-count-ground: color-mix(in srgb, var(--sui-sidebar-active-glyph) 18%, transparent);
     --sui-local-count-ink: var(--sui-sidebar-active-ink);
   }
 
