@@ -20,7 +20,7 @@
     {
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
-        { href: '#repositories', label: 'Repositories', icon: 'repositories' },
+        { href: '#repositories', label: 'Repositories', short: 'Repos', icon: 'repositories' },
         { href: '#queue', label: 'Queue', icon: 'pending', count: 3 }
       ]
     },
@@ -31,7 +31,7 @@
         { href: '#rulesets', label: 'Rulesets', icon: 'shield' },
         {
           href: '#files',
-          label: 'Files synced across every repository',
+          label: 'Synced Files',
           short: 'Files',
           icon: 'file'
         }
@@ -92,7 +92,13 @@
 
 <SkipLink href="#content" />
 
-<AppShell title={names[current]} landmark="none" label="Workspace navigation" {bottomNav}>
+<AppShell
+  title={names[current]}
+  eyebrow="Smykla Skalski"
+  landmark="none"
+  label="Workspace navigation"
+  {bottomNav}
+>
   {#snippet rail()}
     <Rail items={places} {foot} current={place} />
   {/snippet}
@@ -102,7 +108,6 @@
 
   <main id="content" tabindex="-1">
     <PageHeader
-      eyebrow={['Smykla Skalski', 'Workspace']}
       title={names[current]}
       description="Every repository in the workspace, held to the same labels, rulesets and files"
     />
@@ -132,13 +137,20 @@
     outline: none;
   }
 
-  /* The header's band stands flush with the pane's top and sides, and the sections under it
-     keep the band's gutter, so their words line up with the header's. */
-  /* The rows fill the pane, as the header's band does, until a row's status would leave a
-     glance of its name at 80rem. */
+  /* The header's words and the sections keep the column a detail pane keeps, a 72rem pane's,
+     centred in a wider pane, so the place's pages share one start edge. The rows fill that
+     column, as the header's words do, so a row's status ends on the header's end edge and stays
+     within a glance of its name. The band's ground and line still run to the pane's edges. */
+  main {
+    --sui-local-head-inset: max(
+      var(--sui-rhythm-pane-gutter),
+      calc((100% - 72rem) / 2 + var(--sui-rhythm-pane-gutter))
+    );
+  }
+
   .body {
-    max-inline-size: 80rem;
-    padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
+    padding-block: 0 var(--sui-rhythm-pane-gutter);
+    padding-inline: var(--sui-local-head-inset);
   }
 
   .copy {

@@ -13,6 +13,11 @@
     /** For a technical value: an ID, a path, a version or a count. */
     mono?: boolean;
     /**
+     * In `stats`, a dot in this tone's ink before the label, for a count of a state that pills
+     * on the same page show in that tone. The label still says the state.
+     */
+    tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+    /**
      * In `rows`, a control at the row's end that changes this fact, such as a "Change" link
      * whose name also says which fact it changes.
      */
@@ -35,9 +40,10 @@
     facts: readonly Fact[];
     /**
      * `inline` for a few headline facts that wrap one by one, `rows` for a thing's properties,
-     * a label and its value on each row.
+     * a label and its value on each row, `stats` for a few counts that answer the page, each
+     * figure before its label.
      */
-    layout?: 'inline' | 'rows';
+    layout?: 'inline' | 'rows' | 'stats';
     /** Said in place of a value that is absent, so a fact never stands empty. */
     missingLabel?: string;
     class?: HTMLAttributes<HTMLDListElement>['class'];
@@ -53,15 +59,12 @@ Facts about a thing, each a label and its value, such as the branch, the version
 last synced. A setting a reader changes is a form row, not a fact.
 
 `inline` is for two to five headline facts, as under a page title: they flow as words do,
-side by side, 24px apart, three times the 8px between a label and its value, and a line breaks
-between two facts, separated by space alone, so no generated
-comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
+side by side, 24px apart, three times the 8px between a label and its value, and 16px apart on
+a phone or in a page header 36rem wide or narrower, and a line breaks between two facts,
+separated by space alone, so no generated comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
 8px between its words and the next line's, and only a line that holds a target, a link or a
 time that shows its instant, grows to the target's height. The list is trimmed to its first
-cap and its last baseline, so a holder measures its rhythm to the facts' ink. On a phone, or in a
-page header 36rem wide or narrower, where the facts mostly take a line each, each stands on a
-line of its own, its label in a 7rem column and its value 12px after it, so the values line up,
-and a value with less room than that column, as at twice the text size, goes under its label.
+cap and its last baseline, so a holder measures its rhythm to the facts' ink.
 
 `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
 property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
@@ -71,13 +74,21 @@ above the first or under the last, so the list's first and last ink stand at its
 Once the list itself is under 18rem wide, each label stands over its value, one copy gap
 apart, and the action under the value.
 
+`stats` is for two to five counts that answer the page, such as a run's matches and
+differences, as a dashboard's figures are: each figure, a 24px semibold number in tabular
+figures, stands 8px before its label on one baseline, so the counts read before the words
+around them, their digits line up, and the stats take one line. The list keeps each label
+before its figure, so a screen reader says "Match, 12". The stats stand 24px apart at every width,
+three times the 8px inside a stat, so on a phone too each figure reads with its own label, and
+they wrap one by one.
+
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
 - Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime`, a `Pill` or a `Chip`; in `rows`, an optional `action` per fact whose name says which fact it changes.
-- States: plain, linked and mono values, and the missing value, which says `missingLabel` in muted words.
+- States: plain, linked and mono values (a stat's figure keeps the sans, in tabular figures), and the missing value, which says `missingLabel` in muted words.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
 - Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
-- Responsive: inline facts wrap one by one, and on a phone or in a page header 36rem wide or narrower each take a line, the label in a 7rem column, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 18rem.
+- Responsive: inline facts wrap one by one, 16px apart on a phone or in a page header 36rem wide or narrower, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 18rem.
 - Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
 - Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
 - Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
@@ -88,7 +99,9 @@ apart, and the action under the value.
 <dl {...rest} class={['sui-fact-list', layout, className]}>
   {#each facts as fact, index (index)}
     <div class="sui-fact-list-fact">
-      <dt class="sui-fact-list-label">{fact.label}</dt>
+      <dt class="sui-fact-list-label" data-tone={layout === 'stats' ? fact.tone : undefined}>
+        {fact.label}
+      </dt>
       <dd
         class="sui-fact-list-value"
         class:mono={fact.mono && !absent(fact)}
@@ -174,11 +187,13 @@ apart, and the action under the value.
     min-block-size: var(--sui-local-fact-target);
   }
 
-  /* On the list's last line a target's room under its words reaches past the list, as on the
-     first, so the list still ends at its words. */
+  /* The last fact that holds a target gives back its room under its words, so on the list's
+     last line that room reaches past the list, as on the first, and the list still ends at its
+     words whichever fact holds the target; no target follows on a later line for that room to
+     meet. */
   .inline
-    > .sui-fact-list-fact:last-child:has(
-      :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+    > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))):not(
+      :has(~ .sui-fact-list-fact :global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
     ) {
     margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2);
   }
@@ -256,6 +271,12 @@ apart, and the action under the value.
     color: var(--sui-text-muted);
   }
 
+  /* A flowing label wraps inside its fact, so one word wider than the list, as a long localized
+     label at a large text size, breaks rather than running past the list's edge. */
+  .inline .sui-fact-list-label {
+    overflow-wrap: anywhere;
+  }
+
   /* The value outweighs its label, so the pair reads apart without ink alone. */
   .sui-fact-list-value {
     color: var(--sui-text-primary);
@@ -310,8 +331,10 @@ apart, and the action under the value.
   /* A face beside a name stands taller than a value's words, so in a row the identity is as
      tall as its words and the face reaches into the row's padding, centred on the name, and a
      one-line row keeps its neighbours' pitch while a wrapped name or a handle still grows it. */
+  /* Its name takes a value's weight, so a person reads as one more value, not a heading. */
   .rows .sui-fact-list-value:has(> :global(.sui-identity-row)) {
     --sui-identity-overhang: 1;
+    --sui-identity-weight: var(--sui-weight-medium);
     align-items: center;
     display: flex;
     padding-block: 0;
@@ -327,10 +350,77 @@ apart, and the action under the value.
     font-variant-numeric: tabular-nums;
   }
 
+  .stats {
+    column-gap: var(--sui-space-6);
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--sui-space-4);
+  }
+
+  /* The figure stands before its label on one baseline, as "12 Match" reads, so the stats
+     cost a line of the page, not two; the list keeps the label first for a screen reader.
+     Both boxes end on their baselines, so meeting at their ends puts the label on a whole
+     pixel where baseline alignment sets it on a fraction (L-95). */
+  .stats > .sui-fact-list-fact {
+    align-items: end;
+    column-gap: var(--sui-space-2);
+    display: flex;
+    inline-size: var(--sui-inline-snap);
+  }
+
+  /* A toned stat ties its count to the pills that show the same state: a pill's 6px dot in the
+     tone's ink stands 4px before the label, as in a pill, centred on the label's cap band on a
+     whole pixel. */
+  .stats .sui-fact-list-label[data-tone]::before {
+    background: var(--sui-local-stat-tone);
+    block-size: 0.375rem;
+    border-radius: var(--sui-radius-pill);
+    content: '';
+    display: inline-block;
+    inline-size: 0.375rem;
+    margin-inline-end: var(--sui-space-1);
+    vertical-align: round(calc((1cap - 0.375rem) / 2), 1px);
+  }
+
+  .stats .sui-fact-list-label[data-tone='neutral'] {
+    --sui-local-stat-tone: var(--sui-text-muted);
+  }
+
+  .stats .sui-fact-list-label[data-tone='info'] {
+    --sui-local-stat-tone: var(--sui-info);
+  }
+
+  .stats .sui-fact-list-label[data-tone='success'] {
+    --sui-local-stat-tone: var(--sui-success);
+  }
+
+  .stats .sui-fact-list-label[data-tone='warning'] {
+    --sui-local-stat-tone: var(--sui-warning);
+  }
+
+  .stats .sui-fact-list-label[data-tone='danger'] {
+    --sui-local-stat-tone: var(--sui-danger);
+  }
+
+  /* The figure's width rounds up to the pixel, so its label starts on a whole pixel. */
+  .stats .sui-fact-list-value {
+    inline-size: var(--sui-inline-snap);
+    order: -1;
+  }
+
+  /* A stat's figure keeps the sans in tabular figures, whether or not it is mono, since a
+     24px mono figure reads as code, not as a count. */
+  .stats .sui-fact-list-value {
+    font-family: var(--sui-sans);
+    font-size: var(--sui-font-size-stat);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--sui-weight-semibold);
+  }
+
   /* Too narrow for two columns, each label stands over its value and the action under it, in
      reading order, as GOV.UK's summary list does on a phone. Two columns hold down to a narrow
      aside's 18rem (--sui-breakpoint-bar), so a pane's properties keep one line each there. */
-  @container sui-fact-rows (max-width: 18rem) {
+  @container sui-fact-rows not (min-width: 18rem) {
     .rows > .sui-fact-list-fact {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--sui-row-copy-gap);
@@ -352,151 +442,18 @@ apart, and the action under the value.
     }
   }
 
-  /* Inline facts on a phone, or in a page header as narrow as a compact card, mostly take a
-     line each, so there each stands on a line of its own, its label in a 7rem column, wide
-     enough for a headline fact's word or two, a longer word breaking inside it, and its value
-     12px after it, so the values line up and read down as one list. A value with less room than the label's column beside it, as
-     at twice the text size, goes under its label. The lines part by 12px, and a
-     line that holds a target still grows to it, its words on its middle. */
+  /* On a phone, or in a page header as narrow as a compact card, the facts keep flowing as
+     words, two to a line where they fit, 16px apart, so three headline facts take two lines
+     rather than three rows of a finger's height each. */
   @media (max-width: 47.9375rem) {
     .inline > .sui-fact-list-fact {
-      align-items: start;
-      column-gap: var(--sui-space-3);
-      display: flex;
-      flex-wrap: wrap;
-      margin-inline-end: 0;
-    }
-
-    .inline > .sui-fact-list-fact:first-child {
-      margin-block-start: 0;
-    }
-
-    .inline
-      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
-      align-items: center;
-    }
-
-    .inline
-      > .sui-fact-list-fact:first-child:has(
-        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
-      ) {
-      margin-block-start: round(
-        up,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
-    }
-
-    .inline .sui-fact-list-label {
-      flex: none;
-      inline-size: 7rem;
-      overflow-wrap: break-word;
-    }
-
-    /* A plain 7rem floor, as the label's, so a list sized to its content counts it and keeps
-       each value beside its label. */
-    .inline .sui-fact-list-value {
-      flex: 1 1 0;
-      min-inline-size: 7rem;
-    }
-
-    /* A list that holds a target sets every line at the target's height, its words on the
-       middle, so the lines keep one pitch and a target never crowds a plain line. The first
-       and last lines hand back the room past their words, so the list ends at its ink. */
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact {
-      align-items: center;
-      margin-block-start: 0;
-      min-block-size: var(--sui-local-fact-target);
-    }
-
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact:first-child {
-      margin-block-start: round(
-        up,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
-    }
-
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact:last-child {
-      margin-block-end: round(
-        down,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
+      margin-inline-end: var(--sui-space-4);
     }
   }
 
   @container sui-page-header (max-width: 36rem) {
     .inline > .sui-fact-list-fact {
-      align-items: start;
-      column-gap: var(--sui-space-3);
-      display: flex;
-      flex-wrap: wrap;
-      margin-inline-end: 0;
-    }
-
-    .inline > .sui-fact-list-fact:first-child {
-      margin-block-start: 0;
-    }
-
-    .inline
-      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
-      align-items: center;
-    }
-
-    .inline
-      > .sui-fact-list-fact:first-child:has(
-        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
-      ) {
-      margin-block-start: round(
-        up,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
-    }
-
-    .inline .sui-fact-list-label {
-      flex: none;
-      inline-size: 7rem;
-      overflow-wrap: break-word;
-    }
-
-    /* A plain 7rem floor, as the label's, so a list sized to its content counts it and keeps
-       each value beside its label. */
-    .inline .sui-fact-list-value {
-      flex: 1 1 0;
-      min-inline-size: 7rem;
-    }
-
-    /* A list that holds a target sets every line at the target's height, its words on the
-       middle, so the lines keep one pitch and a target never crowds a plain line. The first
-       and last lines hand back the room past their words, so the list ends at its ink. */
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact {
-      align-items: center;
-      margin-block-start: 0;
-      min-block-size: var(--sui-local-fact-target);
-    }
-
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact:first-child {
-      margin-block-start: round(
-        up,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
-    }
-
-    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
-      > .sui-fact-list-fact:last-child {
-      margin-block-end: round(
-        down,
-        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
-        1px
-      );
+      margin-inline-end: var(--sui-space-4);
     }
   }
 </style>

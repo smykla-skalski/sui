@@ -6,6 +6,7 @@
   import {
     AppShell,
     ServiceWorkerStatus,
+    IconButton,
     Select,
     SideNav,
     SkipLink,
@@ -18,7 +19,7 @@
   import { exposeAudit } from '../audit/expose.js';
   import { glyphSnippet } from '../kit/glyphs';
   import { families } from '../kit/sections';
-  import { previewOf, previewOptions, previewUrl, type Preview } from './previews';
+  import { previewOf, previewOptions, previewSource, previewUrl, type Preview } from './previews';
 
   let { children } = $props();
 
@@ -35,7 +36,8 @@
       label: members[0].family,
       items: members.map(({ id, meta }) => ({
         href: everything ? `#${id}` : `${resolve('/(sink)/[id]', { id })}/`,
-        label: meta.title,
+        label: meta.label ?? meta.title,
+        short: meta.short,
         icon: glyphSnippet(id)
       }))
     }))
@@ -96,20 +98,36 @@
 </script>
 
 {#snippet picker()}
-  <Select
-    aria-label="Preview"
-    value={here}
-    options={choices}
-    onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
-  />
+  <div class="preview-picker">
+    <Select
+      aria-label="Preview"
+      value={here}
+      options={choices}
+      onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
+    />
+    <IconButton
+      icon="github"
+      toolbar
+      href={previewSource(here)}
+      label={here
+        ? `Open pull request #${here.slice('/pr-'.length)} on GitHub`
+        : 'Open the repository on GitHub'}
+    />
+  </div>
 {/snippet}
 
 <SkipLink href="#content" />
 
-<AppShell title={page.data.section?.meta.title ?? 'Kitchen Sink'} landmark="none" bind:drawerOpen>
+<AppShell
+  title={page.data.section?.meta.title ?? 'Kitchen Sink'}
+  eyebrow="SUI"
+  landmark="none"
+  bind:drawerOpen
+>
   {#snippet sidebar()}
     <!-- The sidebar stays in view at every width, in the drawer on a phone, so the theme lives
-         once, at its foot. Two choices fit the sidebar's width as a segmented control. -->
+         once, at its foot. Two choices fill the sidebar's width as a segmented control, so the
+         foot ends on the rows' edge, folded or not. -->
     <SideNav
       kicker="SUI"
       title="Kitchen Sink"
@@ -120,7 +138,11 @@
       onnavigate={follow}
       head={deployed ? picker : undefined}
     >
-      {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
+      {#snippet foot(folded: boolean)}<ThemeSwitch
+          system={false}
+          iconOnly={folded}
+          fill
+        />{/snippet}
     </SideNav>
   {/snippet}
 
@@ -128,3 +150,12 @@
 </AppShell>
 
 <ServiceWorkerStatus {worker} />
+
+<style>
+  .preview-picker {
+    align-items: center;
+    display: grid;
+    gap: var(--sui-space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+</style>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { formatCount } from './locale.js';
 
-  let { value }: { value: number | string } = $props();
+  let { value }: { value: number | string | null } = $props();
 </script>
 
 <!--
@@ -11,10 +11,13 @@ figures on a veil. The place it stands in sets its inks through `--sui-local-cou
 stands too close to what is around it, so a current tab or a selected segment recolours the count without
 reshaping it. A number is grouped in the reader's format, so 1284 reads "1,284" in English
 and "1 284" in French; a string is drawn as given. The pill rounds to an even height, so it
-centres on its line at whole pixels (L-95).
+centres on its line at whole pixels (L-95). `null` waits: a placeholder of a two-digit count's
+box with no digits, so the count's seat holds still until its number arrives.
 -->
 
-<span class="sui-count"><span>{typeof value === 'number' ? formatCount(value) : value}</span></span>
+<span class={['sui-count', { waiting: value === null }]}
+  ><span>{typeof value === 'number' ? formatCount(value) : (value ?? '00')}</span></span
+>
 
 <style>
   .sui-count {
@@ -33,6 +36,14 @@ centres on its line at whole pixels (L-95).
     min-inline-size: calc(round(up, 1cap, 2px) + 2 * var(--sui-space-1));
     padding: var(--sui-space-1);
     place-items: center;
+  }
+
+  .waiting {
+    background-color: var(--sui-placeholder);
+  }
+
+  .waiting > span {
+    visibility: hidden;
   }
 
   /* The digits centre in their snapped box, so the spare pixels split above and under them

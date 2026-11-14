@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Popover & Tooltip',
+    short: 'Popover',
     lead: 'A floating box beside its trigger, and a short tip on a control that does something. A task that needs an answer is a Modal.',
     components: ['Popover', 'Tooltip']
   };

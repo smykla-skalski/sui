@@ -46,6 +46,7 @@
     level = 3,
     loading = false,
     placeholders = 3,
+    actors = false,
     locale,
     emptyLabel = word('Timeline.emptyLabel', 'Check back once the first event happens'),
     loadingLabel = word('Timeline.loadingLabel', 'Loading…'),
@@ -69,6 +70,8 @@
     loading?: boolean;
     /** How many placeholder events stand in while the first events load. */
     placeholders?: number;
+    /** The events on their way have actors, so the placeholders' words stand past the avatar's seat, where the loaded words will. */
+    actors?: boolean;
     /** The language the times are written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
     /** The one quiet sentence in the list's place when nothing has happened. */
@@ -95,6 +98,10 @@
 
   const space = mark('space');
 
+  // A clock placeholder is as wide as a time in this locale's hour cycle, in the mono face, so
+  // the words' placeholders start where the loaded words will.
+  const clockWidth = $derived(`${clock.format(new Date(2000, 0, 1, 10, 0, 0)).length}ch`);
+
   const opensDay = (index: number) =>
     days && (index === 0 || dayKey(sorted[index].at) !== dayKey(sorted[index - 1].at));
 </script>
@@ -116,11 +123,11 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
 - Semantics: an `ol` with `role="list"` of one `li` per event; each time is a `time` with a machine-readable `datetime`; a day heading is a real heading at `level`.
 - Content: per event a time, a sentence, and an optional actor (avatar and name), a status pill and an action; the words wrap, a time never does.
-- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy).
+- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, past the avatar's seat with `actors`, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy).
 - Keyboard: Tab reaches a relative time, which shows its whole instant, and each action, in reading order; a clock time is not a tab stop.
 - Pointer and touch: an action keeps its own target; on a phone or a touch screen a wide timeline with actions spaces its events by the 44px target, so targets never meet.
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
-- Responsive: a container query under 25rem of its own width stands each time over its words and drops the pill and action under them, from the words' edge.
+- Responsive: a container query under 25rem of its own width stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
 - Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
 - Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
 - Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
@@ -142,8 +149,17 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     {#if events.length === 0}
       {#each { length: placeholders }, index (index)}
         <li class="sui-timeline-event placeholder" aria-hidden="true">
-          <div class={['sui-timeline-time', time]}><span class="bar"></span></div>
-          <div class="sui-timeline-words"><span class="bar"></span></div>
+          <div class={['sui-timeline-time', time]}>
+            <span class="bar" style:--sui-local-clock-width={clockWidth}></span>
+          </div>
+          {#if actors}
+            <div class="sui-timeline-body">
+              <span class="sui-timeline-face"></span>
+              <div class="sui-timeline-words"><span class="bar"></span></div>
+            </div>
+          {:else}
+            <div class="sui-timeline-words"><span class="bar"></span></div>
+          {/if}
         </li>
       {/each}
     {:else}
@@ -266,7 +282,9 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
      and paints only the words near the screen: the time column stays laid out, so it keeps its
      one width down the list. The avatar and the words' ink reach past the trimmed box, so the
      body pads out by a step and takes the step back, and the clip that skipping brings falls
-     outside every ink. */
+     outside every ink. Until it is first drawn, an event takes one line of words, avatar or
+     not: the avatar's seat hands back the pixel it adds, so a taller guess would shift the row
+     a pixel when it is drawn. */
   .sui-timeline-body {
     align-items: start;
     column-gap: var(--sui-space-2);
@@ -279,10 +297,18 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     padding: var(--sui-space-2);
   }
 
-  /* Until it is first drawn, an event takes one line of words, or the avatar's seat. */
   .sui-timeline-body:has(> .sui-timeline-face) {
-    contain-intrinsic-block-size: auto round(up, 1cap, 2px);
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  /* Where an event has an actor, every event's words stand where the actor's words do, past
+     the 20px avatar's seat, so the words keep one edge down the list. */
+  .sui-timeline:has(.sui-timeline-face) .sui-timeline-body {
+    grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+  }
+
+  .sui-timeline:has(.sui-timeline-face) .sui-timeline-body > .sui-timeline-words {
+    grid-column: -2;
   }
 
   .sui-timeline-words {
@@ -296,12 +322,15 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* Seats as tall as the first line's cap band: what stands in them centres on it and reaches
-     above and below it evenly, without raising the row. */
+     above and below it evenly, without raising the row. The seat rounds to an even height so a
+     20px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
+     event with an avatar keeps the list's pitch. */
   .sui-timeline-face,
   .sui-timeline-side {
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
+    margin-block-end: calc(round(up, 1cap, 1px) - round(up, 1cap, 2px));
   }
 
   .sui-timeline-side {
@@ -352,8 +381,16 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* A bar is already a whole cap tall, so its line takes no room for one. */
-  .placeholder > div {
+  .placeholder :is(.sui-timeline-time, .sui-timeline-words) {
     padding-block-start: 0;
+  }
+
+  /* A placeholder paints no words for the skip to clip, so its body needs no bleed, which the
+     list's clip would cut. */
+  .placeholder > .sui-timeline-body {
+    content-visibility: visible;
+    margin: 0;
+    padding: 0;
   }
 
   .bar {
@@ -366,7 +403,8 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   .clock .bar {
-    inline-size: 8ch;
+    font-family: var(--sui-mono);
+    inline-size: var(--sui-local-clock-width);
   }
 
   .relative .bar {
@@ -411,8 +449,8 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     }
   }
 
-  /* Stacked, the avatar keeps its own column, so the words and what drops under them hang on
-     one edge, and the time and the day span both columns. */
+  /* Stacked, the avatar keeps its own column, so the time, the words and what drops under them
+     hang on one edge, and the day spans both columns. */
   @container sui-timeline (max-width: 25rem) {
     .sui-timeline-event {
       column-gap: var(--sui-space-2);
@@ -422,6 +460,24 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
     .sui-timeline-event:has(> .sui-timeline-body > .sui-timeline-face) {
       grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    /* Stacked, the seat is the event's column and holds only the avatar: each time stands over
+       its words on their edge, so an event reads as one block. */
+    .sui-timeline:has(.sui-timeline-face) > .sui-timeline-event {
+      grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+    }
+
+    .sui-timeline:has(.sui-timeline-face) :is(.sui-timeline-time, .sui-timeline-words) {
+      grid-column: -2;
+    }
+
+    /* Each line of words is a line of its own here, so it reads at the body size, as a phone's
+       text does (L-22), and the avatar's seat centres on that cap; the times keep the meta size. */
+    .sui-timeline-words,
+    .sui-timeline-face {
+      font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+        var(--sui-sans);
     }
 
     .sui-timeline-body {
@@ -441,6 +497,14 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
     .sui-timeline-day {
       margin-block-end: var(--sui-space-1);
+    }
+
+    /* Stacked, an event is a time a copy gap over its words, so the next event stands 4px
+       further off than it does on one line, and each event reads as one block. */
+    .sui-timeline-event + .sui-timeline-event {
+      margin-block-start: calc(
+        var(--sui-local-timeline-target) - round(up, 1cap, 1px) + var(--sui-space-2)
+      );
     }
 
     .sui-timeline-side {

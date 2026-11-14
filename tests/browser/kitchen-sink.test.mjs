@@ -375,6 +375,85 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test(
+    'the sidebar foot theme switch fills the fold row width in whole pixel options, folded or not',
+    long,
+    async () => {
+      const page = await open(1440, 'light');
+      const measure = () =>
+        page.evaluate(() => {
+          const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
+          const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
+          const fieldset = /** @type {Element} */ (
+            nav.querySelector('fieldset.sui-segmented-track')
+          );
+          return {
+            foot: box(/** @type {Element} */ (nav.querySelector('.sui-side-nav-fold'))),
+            track: box(fieldset),
+            options: [...fieldset.querySelectorAll('.sui-segmented-option')].map((option) =>
+              box(option)
+            )
+          };
+        });
+      try {
+        for (const state of ['whole', 'folded']) {
+          if (state === 'folded') {
+            await page.locator('.sui-side-nav-fold').click();
+            await page.waitForFunction(() =>
+              document
+                .querySelector('.sui-side-nav[data-collapsed]')
+                ?.getAnimations({ subtree: true })
+                .every((animation) => !(animation instanceof CSSTransition))
+            );
+          }
+          const { foot, track, options } = await measure();
+          assert.equal(
+            track.left,
+            foot.left,
+            `${state}: the switch starts where the fold row does`
+          );
+          assert.equal(
+            track.right,
+            foot.right,
+            `${state}: the switch ends where the fold row does`
+          );
+          for (const option of options)
+            assert.ok(
+              Number.isInteger(option.left) && Number.isInteger(option.width),
+              `${state}: whole pixels`
+            );
+          assert.ok(
+            Math.abs(options[0].width - options[1].width) <= 1,
+            `${state}: the options share the track`
+          );
+        }
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  // The folded strip holds an icon-only theme switch, whose words stay for a screen reader in a
+  // pixel-wide clip, and the audit must not judge the paint of words no one sees.
+  test('the law audit finds nothing with the sidebar folded', long, async () => {
+    const page = await open(1440, 'light', {}, 'disclosure');
+    try {
+      await page.locator('.sui-side-nav-fold').click();
+      // The foot's scroll-driven shadow runs as long as the page does, so only the fold's
+      // transitions are waited for.
+      await page.waitForFunction(() =>
+        document
+          .querySelector('.sui-side-nav[data-collapsed]')
+          ?.getAnimations({ subtree: true })
+          .every((animation) => !(animation instanceof CSSTransition))
+      );
+      const findings = await audit(page);
+      assert.equal(findings.length, 0, report(findings));
+    } finally {
+      await page.close();
+    }
+  });
+
   test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', long, async () => {
     const page = await open(1440, 'light');
     try {
@@ -703,7 +782,7 @@ suite('the kitchen sink', together, () => {
     assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
   });
 
-  test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
+  test("L-57 a disclosure's hint follows the words on their line only when both fit", async () => {
     const page = await open(375, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
@@ -720,7 +799,7 @@ suite('the kitchen sink', together, () => {
           const b = hint.getBoundingClientRect();
           return {
             lines: tops.size,
-            beside: Math.abs(b.top - a.top) < 0.5,
+            beside: Math.abs(b.top - a.top) < 0.5 && Math.round(b.left - a.right) === 12,
             under: b.top >= a.bottom && Math.abs(b.left - a.left) < 0.5
           };
         })
@@ -729,6 +808,26 @@ suite('the kitchen sink', together, () => {
         { lines: 1, beside: true, under: false },
         { lines: 1, beside: false, under: true }
       ]);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("L-56 a callout's actions on a line of their own start where its words start", async () => {
+    const page = await open(375, 'light', {}, 'callout');
+    try {
+      const offsets = await page.evaluate(() =>
+        [...document.querySelectorAll('#callout .sui-callout')].flatMap((callout) => {
+          const copy = callout.querySelector('.sui-callout-copy');
+          const actions = callout.querySelector('.sui-callout-actions');
+          if (!copy || !actions || !callout.querySelector('.sui-callout-icon')) return [];
+          const words = copy.getBoundingClientRect();
+          const row = actions.getBoundingClientRect();
+          return row.top >= words.bottom ? [Math.round(row.left - words.left)] : [];
+        })
+      );
+      assert.ok(offsets.length > 0, 'no callout wraps its actions at 375px');
+      assert.deepEqual(new Set(offsets), new Set([0]));
     } finally {
       await page.close();
     }

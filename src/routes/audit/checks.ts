@@ -544,6 +544,8 @@ function palette(): Finding[] {
   const rail = t('sidebar-bg');
   if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
     found.push(finding('L-85', null, 'the current row is quieter than a pressed row'));
+  if (deltaE(t('sidebar-place-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
+    found.push(finding('L-85', null, "a rail's place is quieter than a pressed row"));
 
   for (let index = 1; index <= 5; index++)
     found.push(
@@ -556,11 +558,28 @@ function palette(): Finding[] {
 // ---------------------------------------------------------------------------------------
 // Rendered-page laws.
 
+/**
+ * Words kept for a screen reader alone sit in a box clipped to a pixel, as `VisuallyHidden` and
+ * an icon-only control's words do. The nearest box that clips them is that pixel, so no reader
+ * sees their paint.
+ */
+function clippedAway(element: Element): boolean {
+  for (let node: Element | null = element; node; node = node.parentElement) {
+    const look = getComputedStyle(node);
+    if (look.overflow === 'visible' && look.clipPath === 'none') continue;
+    const box = node.getBoundingClientRect();
+    return box.width <= 1 && box.height <= 1;
+  }
+  return false;
+}
+
 function textContrast(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const { element } of textElements(root, PAINT_EXEMPT)) {
-    if (isDisabled(element)) continue;
+    if (isDisabled(element) || clippedAway(element)) continue;
     const style = getComputedStyle(element);
+    // Hidden words hold a box's room, as a waiting count's digits do, and paint nothing.
+    if (style.visibility !== 'visible') continue;
     const ink = rgba(style.color);
     const ground = paintedGround(element);
     const opacity = effectiveOpacity(element);
@@ -1412,6 +1431,26 @@ function geometry(root: Document): Finding[] {
     if (!measured) continue;
     const { inset, top, end, bottom, start } = measured;
     const off = (gap: number) => Math.abs(gap - inset) > 0.5;
+    // A compact callout's band centres between its top and bottom, and its symbol's box, not
+    // the glyph's strokes inside it, opens the line at the inset.
+    if (card.matches('.sui-callout.compact')) {
+      const mark = card.querySelector('.sui-callout-icon')?.getBoundingClientRect();
+      const outer = card.getBoundingClientRect();
+      const opens = !mark
+        ? start.gap
+        : style.direction === 'rtl'
+          ? outer.right - parseFloat(style.borderRightWidth) - mark.right
+          : mark.left - outer.left - parseFloat(style.borderLeftWidth);
+      if (Math.abs(top - bottom) > 0.5 || off(end.gap) || off(opens))
+        found.push(
+          finding(
+            'L-33',
+            card,
+            `a compact callout stands ${round(top)} from the top, ${round(bottom)} from the bottom, ${round(end.gap)} from the end and opens ${round(opens)} from the start`
+          )
+        );
+      continue;
+    }
     const sideOff = (side: { gap: number; reached: boolean }) =>
       side.reached ? off(side.gap) : side.gap < inset - 0.5;
     // A card in a grid or flex row takes the row's height, so a shorter peer holds more room
@@ -2728,13 +2767,28 @@ function symbolTiles(root: Document): Finding[] {
   const rem = parseFloat(getComputedStyle(root.documentElement).fontSize);
   for (const tile of audited(root, '.sui-callout-icon, .sui-toast-mark')) {
     const box = tile.getBoundingClientRect();
-    const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
-    if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
-      found.push(
-        finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)
-      );
+    const bare = tile.closest('.sui-callout.compact');
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
-    if (glyph && Math.abs(glyph.width - 18) > 0.5)
+    // A compact callout's symbol stands bare at 16px, on no tile.
+    if (bare) {
+      if (rgba(getComputedStyle(tile).backgroundColor).a > 0)
+        found.push(finding('L-56', tile, "a compact callout's symbol stands on a tile"));
+      if (glyph && Math.abs(glyph.width - 16) > 0.5)
+        found.push(
+          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 16px`)
+        );
+      if (Math.abs(box.width - 2 * rem) > 0.5)
+        found.push(
+          finding('L-56', tile, `the bare symbol's slot is ${round(box.width)}px, not 2rem`)
+        );
+    } else {
+      const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
+      if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
+        found.push(
+          finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)
+        );
+    }
+    if (!bare && glyph && Math.abs(glyph.width - 18) > 0.5)
       found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));
     // A toast's copy shares a column with the action under it.
     const beside = tile.nextElementSibling;
@@ -2756,8 +2810,8 @@ function symbolTiles(root: Document): Finding[] {
 
 /**
  * A callout's actions (L-56) stand at its inline end, centred on its symbol's tile, and move under
- * the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside its
- * measure of copy (`--sui-callout-measure`).
+ * the copy, from where its words start, past its symbol, only when the callout cannot hold them
+ * beside its measure of copy (`--sui-callout-measure`).
  */
 function calloutActions(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2790,14 +2844,10 @@ function calloutActions(root: Document): Finding[] {
     }
     const rtl = getComputedStyle(inner).direction === 'rtl';
     const words = copy.getBoundingClientRect();
-    const startOff = rtl ? said.right - own.right : own.left - said.left;
+    const startOff = rtl ? words.right - own.right : own.left - words.left;
     if (Math.abs(startOff) > 0.5)
       found.push(
-        finding(
-          'L-56',
-          actions,
-          `wrapped actions start ${round(startOff)}px off the callout's start edge`
-        )
+        finding('L-56', actions, `wrapped actions start ${round(startOff)}px off the words' start`)
       );
     // What the actions need on one line, against what the copy's measure leaves beside it.
     const parts = [...actions.children].filter(shown);

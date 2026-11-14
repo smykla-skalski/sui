@@ -46,9 +46,11 @@ reveals read as one unit. Disclosures that share a `name` open one at a time. Wh
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
-The hint stands at the row's end while the words and the hint fit on one line, and drops
-under the words when they do not, so it never squeezes them onto more lines, as Apple's value
-cells stack their secondary text.
+The hint follows the words 12px after them while the two fit on one line, so it reads as
+their note however wide the row, and drops under the words when they do not, so it never
+squeezes them onto more lines, as Apple's value cells stack their secondary text. A block
+summary keeps the hint beside its words only with 32px to spare after it, so a narrow column,
+as an aside or a phone has, never runs the words and their note edge to edge as one line.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
@@ -56,7 +58,7 @@ cells stack their secondary text.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
-- Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line; words longer than the row wrap and the row grows, with the chevron on the first line.
+- Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line, in a block summary with 32px to spare; words longer than the row wrap and the row grows, with the chevron on the first line.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn and the guide.
 - Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, the indent and the guide are logical, and the hint reads in its own direction.
 - Performance: the content renders closed too, so keep it light; opening fades the content in with a short slide, and only the chevron's turn and the press move otherwise, all removed under reduced motion.
@@ -72,7 +74,7 @@ cells stack their secondary text.
       >{summary}</span
     >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint" dir="auto" aria-hidden="true">{hint}</span>
+      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
       <VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>
     {/if}
   </summary>
@@ -96,13 +98,17 @@ cells stack their secondary text.
     /* A block summary bleeds as a list row does, so the two row veils on one pane share an edge;
        inline help bleeds as a link does. */
     --sui-local-disclosure-bleed: var(--sui-row-pad-default);
+    /* The room the summary stands above its words, for a holder that spaces its zones from ink
+       to ink, as DetailLayout does. */
+    --sui-local-lead-room: var(--sui-local-disclosure-inset);
     margin: 0;
     min-inline-size: 0;
     position: relative;
   }
 
   /* The padding centres one line in the control height. The words and the hint share that
-     line only when both fit, and the hint otherwise wraps to a line of its own under the
+     line, the hint 12px after the words and never at a wide row's far end, only when both fit,
+     and the hint otherwise wraps to a line of its own under the
      words, a copy gap below them as a description stands under its title (L-24), so the
      words never wrap to make room for it. The row bleeds by its padding, so the chevron
      stands at the start edge of the text above and the veil reaches past it. */
@@ -111,7 +117,7 @@ cells stack their secondary text.
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    column-gap: var(--sui-space-4);
+    column-gap: var(--sui-space-3);
     cursor: pointer;
     display: flex;
     flex-wrap: wrap;
@@ -119,7 +125,6 @@ cells stack their secondary text.
        never reads quieter than the fields it opens. */
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    justify-content: space-between;
     list-style: none;
     margin-inline: calc(var(--sui-local-disclosure-bleed) * -1);
     min-block-size: var(--sui-control-height-compact);
@@ -205,8 +210,11 @@ cells stack their secondary text.
     text-box: trim-both cap alphabetic;
   }
 
+  /* The hint's words take their own direction, but its box keeps the summary's, so the room
+     after it stays at the summary's end in a right-to-left page too. */
   .sui-disclosure-hint {
     align-content: center;
+    unicode-bidi: plaintext;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
@@ -216,6 +224,12 @@ cells stack their secondary text.
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* The room counts toward the line the hint wraps on, so it stays beside the words only with
+     that room left after it. Inline help is as wide as its words and keeps none. */
+  :not(.inline) > .sui-disclosure-summary > .sui-disclosure-hint {
+    margin-inline-end: var(--sui-space-8);
   }
 
   /* The content starts at the summary's words, and its first ink stands a copy gap under the

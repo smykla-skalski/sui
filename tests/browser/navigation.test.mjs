@@ -141,17 +141,72 @@ suite('navigation', together, () => {
         await resize(page, 1440);
         const fold = page.locator('.sui-side-nav-fold');
         const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
-        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
+        const name = () =>
+          fold.evaluate((button) =>
+            button.querySelector('.sui-side-nav-label')?.textContent?.trim()
+          );
+        assert.equal(await name(), 'Collapse Navigation');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Expand Navigation');
+        assert.equal(await name(), 'Expand Navigation');
+        assert.equal(
+          await fold
+            .locator('.sui-side-nav-short')
+            .evaluate((word) => word.checkVisibility() && word.textContent),
+          'Expand',
+          'the folded fold control shows no word under its glyph'
+        );
         assert.equal(await mode(), 'collapsed');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
+        assert.equal(await name(), 'Collapse Navigation');
         assert.equal(await mode(), 'full');
         assert.ok(
           await fold.evaluate((button) => document.activeElement === button),
           'folding lost focus'
         );
+      }
+    );
+
+    test(
+      'L-88 folded, the rail and the pages are one column of one-line rows that Tab walks top to bottom',
+      long,
+      async () => {
+        const page = await shell();
+        await resize(page, 1440);
+        const fold = page.locator('.sui-side-nav-fold');
+        await fold.click();
+        try {
+          const column = await page.evaluate(() => {
+            const side = /** @type {HTMLElement} */ (document.querySelector('.sui-shell-side'));
+            const rail = /** @type {HTMLElement} */ (document.querySelector('.sui-rail'));
+            const stops = [...side.querySelectorAll('a[href], button')].filter(
+              (stop) => stop.getClientRects().length > 0
+            );
+            return {
+              side: side.getBoundingClientRect().width,
+              rail: rail.getBoundingClientRect().width,
+              tops: stops.map((stop) => Math.round(stop.getBoundingClientRect().top)),
+              rows: [
+                ...new Set(
+                  [...side.querySelectorAll('.sui-side-nav-rows .sui-side-nav-row')].map((row) =>
+                    Math.round(row.getBoundingClientRect().height)
+                  )
+                )
+              ],
+              lefts: [
+                ...new Set(stops.map((stop) => Math.round(stop.getBoundingClientRect().left)))
+              ]
+            };
+          });
+          // One column: the side is the rail's width and its edge, and no stop stands beside another.
+          assert.ok(column.side - column.rail <= 1, `side ${column.side}px, rail ${column.rail}px`);
+          assert.equal(column.lefts.length, 1, `stops start at ${column.lefts.join(', ')}px`);
+          // A strip label takes one line, so every page keeps one pitch.
+          assert.equal(column.rows.length, 1, `strip rows are ${column.rows.join(', ')}px tall`);
+          const sorted = [...column.tops].sort((a, b) => a - b);
+          assert.deepEqual(column.tops, sorted, 'Tab order leaves the drawn order');
+        } finally {
+          await fold.click();
+        }
       }
     );
 
@@ -260,48 +315,6 @@ suite('navigation', together, () => {
           .map((row) => row.textContent?.trim())
       );
       assert.deepEqual(dropped, [], 'a short row dropped its side');
-    } finally {
-      await page.close();
-    }
-  });
-
-  test('the phone bar’s title waits while the page’s h1 shows under it, then fades in as the h1 passes under the bar', async () => {
-    const page = await openLayout('layouts/app-shell/', 375, { height: 400 });
-    try {
-      const read = () =>
-        page.evaluate(() => {
-          const title = /** @type {Element} */ (document.querySelector('.sui-shell-title'));
-          const heading = /** @type {Element} */ (document.querySelector('.sui-shell-pane h1'));
-          const bar = /** @type {Element} */ (title.closest('.sui-shell-bar'));
-          const edge = bar.getBoundingClientRect().bottom;
-          const box = heading.getBoundingClientRect();
-          return {
-            opacity: Number(getComputedStyle(title).opacity),
-            below: box.top >= edge,
-            under: box.bottom <= edge,
-            top: box.top - edge
-          };
-        });
-      const shown = await read();
-      assert.equal(shown.opacity, 0, 'the bar names the page while its h1 shows');
-      assert.ok(shown.below);
-      // A scroll timeline moves its animation on the next frame.
-      const scroll = (/** @type {number} */ to) =>
-        page.evaluate(async (to) => {
-          scrollTo(0, to);
-          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-        }, to);
-      await scroll(shown.top + 9);
-      const halfway = await read();
-      assert.ok(halfway.opacity > 0 && halfway.opacity < 1, `${halfway.opacity} halfway`);
-      await scroll(shown.top + 200);
-      const passed = await read();
-      assert.ok(passed.under);
-      assert.equal(passed.opacity, 1, 'the bar names the page once its h1 has passed under it');
-      assert.ok(
-        await page.locator('.sui-shell-title').evaluate((title) => title.checkVisibility()),
-        'the title stays in the accessibility tree'
-      );
     } finally {
       await page.close();
     }
@@ -418,13 +431,16 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a rail tile stands 8px in from each side of its column and its 1px edge, its words given 64px and its glyph a whole pixel', async () => {
+  test("a rail tile beside the shell's pages stands 4px in from each side of its 80px column, its words given 72px and its glyph a whole pixel", async () => {
+    // Beside the pages the places share one column with the folded pages, whose two-word labels
+    // need 72px, so the column keeps one plate width.
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       const found = await page.evaluate(() => {
         const rail = /** @type {Element} */ (
           document.querySelector('.sui-rail')
         ).getBoundingClientRect();
+        const column = parseFloat(getComputedStyle(document.documentElement).fontSize) * 5;
         const tile = /** @type {Element} */ (
           document.querySelector('.sui-rail-list .sui-rail-tile')
         );
@@ -435,40 +451,40 @@ suite('navigation', together, () => {
         ).getBoundingClientRect();
         return [
           box.left - rail.left,
-          rail.right - 1 - box.right,
+          rail.left + column - box.right,
           box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd),
           Number.isInteger(glyph.left) && Number.isInteger(glyph.top)
         ];
       });
       assert.deepEqual(
         found,
-        [8, 8, 64, true],
-        "the tile, its words' room and its glyph's whole pixel, the column's edge drawn inside it"
+        [4, 4, 72, true],
+        "the tile, its words' room and its glyph's whole pixel"
       );
     } finally {
       await page.close();
     }
   });
 
-  test('the side nav kicker and the page header eyebrow share one cap line', async () => {
+  test("the side nav kicker shares one cap line with the page header's first words and is set as an eyebrow", async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       // The box tops alone met while the capitals stood a pixel apart, so the type is held too.
       const [nav, header] = await page.evaluate(() =>
-        ['.sui-side-nav-kicker', '.sui-page-header-eyebrow'].map((name) => {
+        ['.sui-side-nav-kicker', '.sui-page-header h1'].map((name) => {
           const element = /** @type {Element} */ (document.querySelector(name));
           const look = getComputedStyle(element);
           return {
             top: element.getBoundingClientRect().top,
-            type: [look.fontSize, look.fontWeight, look.letterSpacing, look.lineHeight].join(' ')
+            type: [look.fontSize, look.fontWeight, look.letterSpacing].join(' ')
           };
         })
       );
       assert.ok(
         Math.abs(nav.top - header.top) <= 0.5,
-        `the kicker stands at ${nav.top}, the eyebrow at ${header.top}`
+        `the kicker stands at ${nav.top}, the title at ${header.top}`
       );
-      assert.equal(nav.type, header.type, 'the kicker is set apart from the eyebrow');
+      assert.equal(nav.type, '12px 600 0.6px', "the kicker is set apart from a page's eyebrow");
     } finally {
       await page.close();
     }
@@ -647,7 +663,7 @@ suite('navigation', together, () => {
     }
   );
 
-  test('a bottom bar’s count rides its glyph’s corner, as the rail’s does, its halo inside the tile', async () => {
+  test('a bottom bar’s count stands 4px clear of its glyph’s corner, as the rail’s does, its halo inside the tile', async () => {
     for (const width of [390, 320]) {
       const page = await openLayout('layouts/app-shell/bottom-nav/', width);
       try {
@@ -663,7 +679,7 @@ suite('navigation', together, () => {
             tile.querySelector('.sui-rail-glyph svg')
           ).getBoundingClientRect();
           return [
-            glyph.right - count.left > 0 && glyph.right - count.left <= 4,
+            Math.round(count.left - glyph.right) === 4,
             count.top < glyph.top,
             count.left - 2 >= box.left && count.right + 2 <= box.right
           ];
@@ -671,7 +687,7 @@ suite('navigation', together, () => {
         assert.deepEqual(
           badge,
           [true, true, true],
-          `at ${width}px: over the corner, above the glyph, inside the tile`
+          `at ${width}px: clear of the corner, above the glyph, inside the tile`
         );
       } finally {
         await page.close();
@@ -718,10 +734,35 @@ suite('navigation', together, () => {
           `tiles are ${bar.tiles.join(', ')}px`
         );
         assert.deepEqual(bar.room, [8, 8, 8, 8], 'the tiles stand 8px in, as the rail’s do');
+        const foot = await page.evaluate(() => {
+          const gap = document.createElement('div');
+          gap.style.blockSize = '300vh';
+          document.querySelector('main')?.append(gap);
+          const places = /** @type {Element} */ (document.querySelector('.sui-shell-places'));
+          const gaps = innerHeight - places.getBoundingClientRect().bottom;
+          gap.remove();
+          return gaps;
+        });
+        assert.ok(Math.abs(foot) <= 1, `over a long page the bar stands ${foot}px off the foot`);
+        // One render site for the pages, so crossing the phone's width keeps the sidebar mounted.
+        await page.evaluate(() => {
+          /** @type {any} */ (window).suiPages = document.querySelector('.sui-side-nav');
+        });
+        await page.setViewportSize({ width: 1100, height: 900 });
+        await page.setViewportSize({ width: 375, height: 900 });
+        assert.ok(
+          await page.evaluate(
+            () => /** @type {any} */ (window).suiPages === document.querySelector('.sui-side-nav')
+          ),
+          'the sidebar mounted afresh as the shell crossed the phone width'
+        );
         const drawer = await openDrawer(page);
-        assert.equal(
-          await drawer.locator('.sui-rail').count(),
-          0,
+        assert.deepEqual(
+          [
+            await drawer.locator('.sui-rail-tile:visible').count(),
+            await drawer.locator('nav.sui-rail[aria-label]').count()
+          ],
+          [0, 0],
           'the drawer carries the rail too'
         );
         assert.equal(await drawer.locator('.sui-side-nav').count(), 1);
@@ -730,6 +771,84 @@ suite('navigation', together, () => {
             .locator('.sui-shell-places')
             .evaluate((places) => /** @type {HTMLElement} */ (places).inert),
           'the bottom bar stays live behind the modal drawer'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test('a phone bar finds a heading the content brings in after it opens', long, async () => {
+    // The list has no h1 of its own; opening a run brings one in, in the bar title's words.
+    const page = await openLayout('layouts/list-detail/', 390);
+    try {
+      await page.locator('a[href="/layouts/list-detail/4182/"]').click();
+      await page.waitForURL(/\/layouts\/list-detail\/4182\/$/);
+      await page.waitForTimeout(400);
+      assert.equal(
+        await page.locator('.sui-shell-title').evaluate((title) => getComputedStyle(title).opacity),
+        '0',
+        'the bar names the run over the run’s own heading'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test(
+    "a phone bar names the page only once the page's own heading has gone under it",
+    long,
+    async () => {
+      const page = await openLayout('layouts/detail-pane/', 390);
+      try {
+        const bar = () =>
+          page.evaluate(() => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {HTMLElement} */ (document.querySelector(selector)).getBoundingClientRect();
+            const [head, place] = [box('.sui-shell-bar'), box('.sui-shell-eyebrow')];
+            return {
+              title: getComputedStyle(
+                /** @type {HTMLElement} */ (document.querySelector('.sui-shell-title'))
+              ).opacity,
+              off: (place.top + place.bottom - head.top - head.bottom) / 2,
+              grid: Number.isInteger(place.top)
+            };
+          });
+        await page.waitForFunction(
+          () =>
+            getComputedStyle(document.querySelector('.sui-shell-title') ?? document.body)
+              .opacity === '0'
+        );
+        const rest = await bar();
+        assert.ok(Math.abs(rest.off) <= 1, `the place stands ${rest.off}px off the bar's middle`);
+        assert.ok(rest.grid, 'the place stands off the pixel grid');
+        // A heading below the screen, as in a shell further down a page, has not gone under the bar.
+        const below = await page.evaluate(async () => {
+          const gap = document.createElement('div');
+          gap.style.blockSize = '200vh';
+          document.querySelector('main')?.prepend(gap);
+          await new Promise((done) => setTimeout(done, 400));
+          const title = getComputedStyle(
+            /** @type {HTMLElement} */ (document.querySelector('.sui-shell-title'))
+          ).opacity;
+          gap.remove();
+          return title;
+        });
+        assert.equal(
+          below,
+          '0',
+          'the bar names the page while its heading is still below the screen'
+        );
+        await page.evaluate(() => scrollTo(0, 400));
+        await page.waitForFunction(
+          () =>
+            getComputedStyle(document.querySelector('.sui-shell-title') ?? document.body)
+              .opacity === '1'
+        );
+        assert.ok((await bar()).off < -1, 'the place does not rise over the title');
+        assert.ok(
+          await page.locator('.sui-shell-title').evaluate((title) => title.checkVisibility()),
+          'the title leaves the accessibility tree'
         );
       } finally {
         await page.close();
@@ -850,6 +969,24 @@ suite('navigation', together, () => {
     assert.ok(
       Math.abs(loaded - loading) <= 2,
       `the properties span ${loaded}px where their placeholders spanned ${loading}px`
+    );
+  });
+
+  test("a section's waiting count holds a two-digit count's box and leaves the heading its title", async () => {
+    const count = async (/** @type {string} */ path, /** @type {string} */ name) => {
+      const page = await openLayout(path, 1440);
+      try {
+        const heading = page.getByRole('heading', { level: 2, name, exact: true });
+        return await heading.locator('.sui-count').boundingBox();
+      } finally {
+        await page.close();
+      }
+    };
+    const loaded = await count('layouts/detail-pane/', 'Repositories 16');
+    const waiting = await count('layouts/detail-pane/loading/', 'Repositories');
+    assert.deepEqual(
+      [waiting?.x, waiting?.y, waiting?.width, waiting?.height],
+      [loaded?.x, loaded?.y, loaded?.width, loaded?.height]
     );
   });
 
@@ -1551,6 +1688,134 @@ suite('navigation', together, () => {
     });
 
     test(
+      'a rail badge past 99 stays in its column and its tile still names the whole count',
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const badge = await page.evaluate(() => {
+            const { lib, mount, flushSync } = /** @type {any} */ (window);
+            const target = document.body.appendChild(document.createElement('div'));
+            mount(lib.Rail, {
+              target,
+              props: { items: [{ href: '#a', label: 'Console', icon: 'server', badge: 1284 }] }
+            });
+            flushSync();
+            const rail = /** @type {Element} */ (target.querySelector('.sui-rail'));
+            const count = /** @type {HTMLElement} */ (target.querySelector('[data-count]'));
+            return {
+              drawn: count.dataset.count,
+              past: count.getBoundingClientRect().right - rail.getBoundingClientRect().right,
+              name: target.querySelector('.sui-rail-tile')?.getAttribute('aria-label')
+            };
+          });
+          assert.equal(badge.drawn, '99+');
+          assert.ok(badge.past <= 0, `the badge runs ${badge.past}px past the rail`);
+          assert.match(String(badge.name), /1,284/);
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test(
+      'a filled segmented control turns into a select before a long option outgrows its share',
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const cut = await page.evaluate(async () => {
+            const { lib, mount, flushSync } = /** @type {any} */ (window);
+            const target = document.body.appendChild(document.createElement('div'));
+            mount(lib.SegmentedControl, {
+              target,
+              props: {
+                label: 'Show',
+                fill: true,
+                value: 'all',
+                options: [
+                  { value: 'all', label: 'All' },
+                  { value: 'repositories', label: 'Repositories' }
+                ]
+              }
+            });
+            flushSync();
+            const root = /** @type {Element} */ (target.querySelector('.sui-segmented'));
+            const widths = [];
+            for (let width = 320; width >= 120; width -= 2) {
+              target.style.inlineSize = `${width}px`;
+              await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+              if (root.classList.contains('short')) continue;
+              const options = root.querySelectorAll(
+                ':scope > .sui-segmented-track .sui-segmented-option'
+              );
+              for (const option of options) {
+                const words = /** @type {Element} */ (option.querySelector('.sui-segmented-label'));
+                if (words.scrollWidth > option.clientWidth) widths.push(width);
+              }
+            }
+            return widths;
+          });
+          assert.deepEqual(cut, [], 'an option overflows its share while the segments still show');
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test('a flowing fact breaks a label wider than its list', long, async () => {
+      const page = await openMount(browser, url, { viewport: { width: 390, height: 844 } });
+      try {
+        const past = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.body.appendChild(document.createElement('div'));
+          target.style.inlineSize = '10rem';
+          mount(lib.FactList, {
+            target,
+            props: { facts: [{ label: 'Synchronisationsverwaltungsoberfläche', value: '3' }] }
+          });
+          flushSync();
+          const label = /** @type {Element} */ (target.querySelector('.sui-fact-list-label'));
+          return label.scrollWidth - target.getBoundingClientRect().width;
+        });
+        assert.ok(past <= 0, `the label runs ${past}px past its list`);
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a rail of the caller’s own markup keeps the shell’s pages beside it', long, async () => {
+      const page = await openMount(browser, url);
+      try {
+        const pages = await page.evaluate(() => {
+          const { lib, mount, flushSync, createRawSnippet } = /** @type {any} */ (window);
+          const target = document.body.appendChild(document.createElement('div'));
+          const markup = (/** @type {string} */ html) =>
+            createRawSnippet(() => ({ render: () => html }));
+          mount(lib.AppShell, {
+            target,
+            props: {
+              title: 'Overview',
+              contained: true,
+              rail: markup('<nav aria-label="Places"><a href="#a">Acme</a></nav>'),
+              sidebar: markup(
+                '<nav class="custom-pages" aria-label="Pages"><a href="#p">Overview</a></nav>'
+              ),
+              children: markup('<p>Content</p>')
+            }
+          });
+          flushSync();
+          return [...document.querySelectorAll('.custom-pages')].map((nav) =>
+            nav.checkVisibility()
+          );
+        });
+        assert.deepEqual(pages, [true], 'the pages are not drawn once beside a custom rail');
+      } finally {
+        await page.close();
+      }
+    });
+
+    test(
       "a plate's new state fades in on a change, and not under reduced motion",
       long,
       async () => {
@@ -2034,9 +2299,11 @@ suite('navigation', together, () => {
               await frame();
               await frame();
             };
+            const shadow = () => getComputedStyle(next, '::before').opacity;
             const rule = () => getComputedStyle(head, '::after');
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
+            const more = shadow();
             const resting = rule().opacity;
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
@@ -2048,6 +2315,7 @@ suite('navigation', together, () => {
               overNext: next.getBoundingClientRect().top - box().bottom,
               gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
               masked: getComputedStyle(tree).maskImage !== 'none',
+              shadows: [more, shadow()],
               resting,
               line: [rule().opacity, rule().backgroundColor, rule().blockSize],
               next: [getComputedStyle(next).borderTopColor, getComputedStyle(next).borderTopWidth],
@@ -2059,6 +2327,11 @@ suite('navigation', together, () => {
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
           assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
+          assert.deepEqual(
+            found.shadows,
+            ['1', '0'],
+            'the foot casts its shadow only while more rows are below'
+          );
           assert.equal(found.resting, '0', 'the head draws a rule with no row under it');
           assert.deepEqual(
             found.line,
@@ -3042,8 +3315,9 @@ suite('navigation', together, () => {
     'a wide list-detail keeps its list in place, marks the run it opens, and Back puts both panes where they stood',
     long,
     async () => {
-      // A short window, so the list and the detail each scroll in their own pane.
-      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 420 });
+      // A short window, so the list and the detail each scroll in their own pane: the run's
+      // aside stands beside its steps at this width, so its detail is about 340px tall.
+      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 300 });
       try {
         const pair = page.locator('.sui-list-detail');
         const list = pair.locator('.sui-list-detail-list');
@@ -3055,7 +3329,7 @@ suite('navigation', together, () => {
             )
           );
         // The row stands whole in the scrolled list, so the press scrolls nothing itself.
-        await list.evaluate((pane) => (pane.scrollTop = 120));
+        await list.evaluate((pane) => (pane.scrollTop = 200));
         await detail.evaluate((pane) => (pane.scrollTop = 40));
         const stood = await stand();
         assert.ok(stood[1] > 0, 'the run detail is too short to scroll');
@@ -3071,7 +3345,7 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
-        assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
+        assert.equal(await list.evaluate((pane) => pane.scrollTop), 200, 'the list lost its place');
         assert.deepEqual(
           await pair
             .locator('[aria-current="page"]')

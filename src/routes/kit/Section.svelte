@@ -3,6 +3,10 @@
    * in `sections.ts`. */
   export type SectionMeta = {
     title: string;
+    /** The sidebar's name, for a title too long for one line there; the page keeps the title. */
+    label?: string;
+    /** The title's words, or the start of one, that fit one line of the folded sidebar. */
+    short?: string;
     /** One or two sentences: what the component is for, and when to reach for another. */
     lead: string;
     /** The library components the section shows, linked to their source. */

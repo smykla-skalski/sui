@@ -8,7 +8,7 @@
     Callout,
     DetailLayout,
     Disclosure,
-    ErrorState,
+    EmptyState,
     FactList,
     Icon,
     IdentityRow,
@@ -38,8 +38,11 @@
   const PAGE = 5;
   // A property row sets its label beside its value, so its placeholders keep that pitch and
   // span what the properties will.
-  const FACT_ROW = '2.375rem';
+  // A repository row is one line of words beside a pill, a pixel of hairline included.
+  const NAME_ROW = '2.8125rem';
   const started = Date.now() - 12.5 * 60_000;
+  // The results are as old as the check's finish, so the stale notice reads its age from there.
+  const finished = started + 48_000;
   const nothing = () => {};
 
   const differs = { state: 'Differs', tone: 'warning' as PillTone };
@@ -66,9 +69,9 @@
   ];
 
   const timeline: TimelineEvent[] = [
-    { at: started, actor: { name: 'Bart' }, text: 'requested the check from the sync page' },
+    { at: started, actor: { name: 'Bart Smykla' }, text: 'requested the check' },
     { at: started + 2_000, text: 'A worker picked it up, attempt 1 of 3' },
-    { at: started + 48_000, text: 'Finished, 16 repositories compared' }
+    { at: finished, text: 'Finished, 16 repositories compared' }
   ];
 
   const related: LinkListItem[] = [
@@ -86,7 +89,7 @@
     {
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
-        { href: '#repositories', label: 'Repositories', icon: 'repositories' },
+        { href: '#repositories', label: 'Repositories', short: 'Repos', icon: 'repositories' },
         { href: '#queue', label: 'Queue', icon: 'pending', count: 3 }
       ]
     },
@@ -106,23 +109,22 @@
 
   const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
 
+  // The workspace is named by the sidebar's head and in Details, so the headline keeps to the run.
   const headline: Fact[] = [
-    { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
     { label: 'Took', value: '48\u00a0seconds' }
   ];
 
   const counts: Fact[] = [
-    { label: 'Match', value: '12', mono: true },
-    { label: 'Differ', value: '3', mono: true },
-    { label: 'Not checked', value: '1', mono: true }
+    { label: 'Match', value: '12', mono: true, tone: 'success' },
+    { label: 'Differ', value: '3', mono: true, tone: 'warning' },
+    { label: 'Not checked', value: '1', mono: true, tone: 'neutral' }
   ];
 
   const details: Fact[] = [
     { label: 'Workspace', value: 'acme', href: '#overview' },
-    { label: 'Trigger', value: 'Manual, from the sync page' },
+    { label: 'Trigger', value: 'Manual' },
     { label: 'Requested by', value: requester },
-    { label: 'Started', value: startedAt },
     { label: 'Attempt', value: '1 of 3' }
   ];
 
@@ -132,6 +134,11 @@
     { label: 'Settings version', value: 'v41', mono: true },
     { label: 'Waited in queue', value: '2\u00a0seconds' }
   ];
+
+  // While the check loads its facts are known by name, so each label stands as it will and only
+  // its value waits.
+  const waiting = (facts: Fact[]): Fact[] =>
+    facts.map((fact, index) => ({ ...fact, value: index % 2 ? shortBar : bar }));
 
   // Each state of the pane has an address of its own: loading, missing, stale, or loaded.
   const view = $derived(page.params.state);
@@ -150,7 +157,20 @@
 </svelte:head>
 
 {#snippet startedAt()}<RelativeTime value={started} />{/snippet}
+{#snippet bar()}<span class="value-wait"></span>{/snippet}
+{#snippet shortBar()}<span class="value-wait short"></span>{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
+{#snippet wait(rows: number, rowHeight: string)}
+  <Skeleton
+    {rows}
+    bars={false}
+    ruled={false}
+    {rowHeight}
+    patience={Infinity}
+    label=""
+    loadedLabel=""
+  />
+{/snippet}
 {#snippet back()}<BackLink href="#queue" label="Queue" />{/snippet}
 
 {#snippet header()}
@@ -165,19 +185,25 @@
   </PageHeader>
 {/snippet}
 
-{#snippet headActions()}
-  <Button tone="signal">Check Again</Button>
+{#snippet headActions(waiting = false)}
+  <!-- A check cannot run again before it has loaded, so the button waits, still in reach. -->
+  <Button tone="signal" aria-disabled={waiting || undefined}>Check Again</Button>
   <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
 {/snippet}
+
+{#snippet waitingActions()}{@render headActions(true)}{/snippet}
 
 {#snippet body()}
   <DetailLayout>
     {#snippet main()}
+      <!-- The warning is about the repositories, so it heads the column that lists them. -->
+      <Callout tone="warning" title="The check skipped 1 repository">
+        {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+        No read access to acme/legacy
+        {#snippet actions()}<Button>Fix Access</Button>{/snippet}
+      </Callout>
       <Section title="Outcome">
-        <p class="lede">
-          3 repositories differ from the saved settings, 12 match and the check skipped 1
-        </p>
-        <FactList facts={counts} />
+        <FactList layout="stats" facts={counts} />
       </Section>
       <Section title="Repositories" count={repositories.length} id="repositories-title">
         {#snippet actions()}
@@ -220,7 +246,7 @@
 
 <SkipLink href="#content" />
 
-<AppShell title="Sync Check #4182" landmark="none" label="Workspace navigation">
+<AppShell title="Sync Check #4182" eyebrow={place} landmark="none" label="Workspace navigation">
   {#snippet rail()}
     <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
   {/snippet}
@@ -230,108 +256,127 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <!-- The actions need no answer, so they stand where they will stay, and bars hold the
-           description and the facts: one line each in a wide header, and one bar per row where
-           the facts stack, a finger's row on a phone. -->
-      <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
-        <!-- The status region is there from the first render, so the state is read once it arrives. -->
-        {#snippet status()}{/snippet}
+      <!-- The actions need no answer, so they stand where they will stay, and bars stand where
+           the description's lines and the facts' lines will: one of each where the description
+           fits a line, and two lines of description over the facts' one line where it wraps. -->
+      <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
+        <!-- The status region is there from the first render with the state it has, a loading
+             word, so the check's own state is read once it arrives. -->
+        {#snippet status()}<Pill tone="neutral">Loading</Pill>{/snippet}
         {#snippet facts()}
-          <div class="from-ink wide">
-            <Skeleton
-              rows={2}
-              bars={false}
-              ruled={false}
-              rowHeight="1.75rem"
-              patience={Infinity}
-              label=""
-              loadedLabel=""
-            />
-          </div>
-          <div class="from-ink narrow">
-            <Skeleton
-              rows={1 + headline.length}
-              bars={false}
-              ruled={false}
-              rowHeight="var(--head-row)"
-              patience={Infinity}
-              label=""
-              loadedLabel=""
-            />
+          <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
+          <div class="from-ink two-lines">
+            {@render wait(2, '1.375rem')}
+            <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
           </div>
         {/snippet}
       </PageHeader>
       <div class="zones">
         <DetailLayout>
           {#snippet main()}
+            <!-- The notice's room is held, so the sections do not drop when it arrives. One
+                 region, the repositories', speaks for the pane, so the others wait without words. -->
+            <div class="notice-room">
+              <div class="notice">
+                <span class="tile" aria-hidden="true"></span>
+                <div class="words">
+                  <div class="beside">
+                    <Skeleton
+                      rows={1}
+                      ruled={false}
+                      rowHeight="var(--notice-row)"
+                      patience={Infinity}
+                      label=""
+                      loadedLabel=""
+                    />
+                  </div>
+                  <!-- In a narrow column the notice's action stands under its words, so a
+                       button's placeholder stands under their bars. -->
+                  <div class="under from-ink">
+                    {@render wait(2, '1.375rem')}
+                    <span class="press"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <Section title="Outcome">
-              <div class="from-ink">
-                <Skeleton
-                  rows={2}
-                  bars={false}
-                  rowHeight="2rem"
-                  patience={Infinity}
-                  label="Loading sync check #4182…"
-                />
+              <!-- Each stat waits as one bar, as wide as its figure and label. -->
+              <div class="counts-wait" aria-hidden="true">
+                {#each ['5.5625rem', '4.4375rem', '7.5rem'] as width (width)}
+                  <span style:inline-size={width}></span>
+                {/each}
               </div>
             </Section>
-            <!-- One region speaks for the pane, so the others wait without words. -->
-            <Section title="Repositories" count={16}>
+            <!-- The Load More line waits under the five rows as its words and its button. -->
+            <Section title="Repositories" count={null}>
               <Skeleton
-                rows={PAGE + 1}
+                rows={PAGE}
                 bars={false}
-                rowHeight="3rem"
+                side
+                rowHeight={NAME_ROW}
                 patience={Infinity}
-                label=""
-                loadedLabel=""
+                label="Loading sync check #4182…"
               />
+              <div class="more">
+                <div class="shown">{@render wait(1, 'round(up, 1cap, 1px)')}</div>
+                <span class="press more-press"></span>
+              </div>
             </Section>
             <Section title="Timeline">
-              <Timeline events={[]} loading loadingLabel="" />
+              <Timeline events={[]} loading actors loadingLabel="" />
             </Section>
           {/snippet}
           {#snippet aside()}
+            <!-- The related links wait on their lines. -->
             <Section title="Details">
-              <div class="from-ink">
-                <Skeleton
-                  rows={5}
-                  bars={false}
-                  rowHeight={FACT_ROW}
-                  patience={Infinity}
-                  label=""
-                  loadedLabel=""
-                />
+              <div aria-hidden="true">
+                <FactList layout="rows" facts={waiting(details)} />
               </div>
             </Section>
+            <Section title="Related">
+              <div class="from-ink links">{@render wait(2, 'var(--link-row)')}</div>
+            </Section>
+            <!-- The closing disclosure's words need no answer, so it stands where it will stay,
+                 and opened early, its four facts wait as rows. -->
+            <Disclosure summary="More About This Check" hint="ID, worker and version">
+              <div aria-hidden="true">
+                <FactList layout="rows" facts={waiting(more)} />
+              </div>
+            </Disclosure>
           {/snippet}
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
+      <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice, once,
+           in the panel's title rather than in a status beside the header's too. -->
       <div class="zones missing">
-        <ErrorState
-          title="Sync Check #4182 Does Not Exist"
-          description="Someone deleted it or it never existed"
+        <EmptyState
+          title="This Check Does Not Exist"
+          description="Someone deleted it, or the link points at a check that never ran"
         >
-          {#snippet action()}<Button href="#queue">Open the Queue</Button>{/snippet}
-        </ErrorState>
+          {#snippet action()}<Button tone="signal" href="#queue">Open the Queue</Button>{/snippet}
+        </EmptyState>
       </div>
     {:else}
       {@render header()}
-      <div class="zones">
+      <div class={['zones', { stale: view === 'stale' }]}>
         {#if view === 'stale'}
-          <ErrorState
-            overContent
-            title="The Check Could Not Refresh"
-            description="Showing what loaded a minute ago"
-            onretry={refresh}
-            busy={refreshing}
-          />
-        {:else}
-          <Callout tone="warning" title="The check skipped 1 repository">
-            {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-            The app lost access to acme/legacy during the check
-            {#snippet actions()}<Button>Fix Access</Button>{/snippet}
+          <!-- Stale words stand behind everything under the header, so the notice spans both
+               columns, and its retry stands at its end as any notice's action does. It is one
+               compact line, so the warning about the check itself still leads. Its action
+               names the data, so it never reads as the header's Check Again. -->
+          <Callout compact>
+            <!-- A history glyph says the data is old; a refresh glyph would read as a second
+                 Reload. The failure leads at a title's weight, so it reads before its reason. -->
+            {#snippet icon()}<Icon name="history" size="sm" />{/snippet}
+            <span class="lead">The refresh failed</span>, so this page shows data from
+            <RelativeTime value={finished} />
+            {#snippet actions()}
+              <Button loading={refreshing} onclick={refresh}>
+                {refreshing ? 'Reloading Data…' : 'Reload Data'}
+              </Button>
+            {/snippet}
           </Callout>
         {/if}
         {@render body()}
@@ -345,65 +390,214 @@
     outline: none;
   }
 
-  /* The header's band stands flush with the pane's top and sides, and the zones under it keep
-     the band's gutter, so their words line up with the header's. */
+  /* A row's status stays within a glance of its name, so on a pane wider than 72rem, as with
+     the sidebar folded, the header's words and the zones keep a 72rem pane's column, centred
+     as the kit's is, and the band's ground and line still run to the pane's edges. */
+  main {
+    --sui-local-head-inset: max(
+      var(--sui-rhythm-pane-gutter),
+      calc((100% - 72rem) / 2 + var(--sui-rhythm-pane-gutter))
+    );
+  }
+
   .zones {
     display: grid;
     gap: var(--sui-rhythm-section-gap);
-    padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
+    padding-block: 0 var(--sui-rhythm-pane-gutter);
+    padding-inline: var(--sui-local-head-inset);
   }
 
-  /* A failure that stands as the whole body keeps a reading measure, so its words and its way
-     out stay together rather than leave a wide empty ground beside them. */
-  .missing > :global(*) {
-    max-inline-size: var(--sui-measure);
+  /* The stale notice speaks for the whole page, so it stands as near the warning under it as
+     the header's band stands over it, and the two notices read as one stack. */
+  .stale {
+    row-gap: var(--sui-rhythm-head-surface);
   }
 
-  /* Proximity: the counts stand one copy gap further below the sentence than its own lines
-     stand apart, so a wrapped sentence still reads as one block (L-24). */
-  .lede {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-primary);
-    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
-      var(--sui-sans);
-    margin: 0;
-    margin-block-end: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap));
-    padding-block: var(--sui-block-snap-room);
-    text-box: trim-both cap alphabetic;
+  /* A missing check's panel takes the main column's width, as a loaded check's warning does
+     where the aside stands beside it (DetailLayout), so the page keeps one edge whether or not
+     the check exists. */
+  .missing {
+    container-type: inline-size;
   }
 
-  /* The sentence and the facts that will load here start at their ink, so the placeholders
-     hand back the room a list row keeps above its first bar. */
+  @container (min-width: 44rem) {
+    .missing > :global(*) {
+      max-inline-size: calc(100% - var(--sui-rhythm-section-gap) - clamp(18rem, 30%, 20rem));
+    }
+  }
+
+  /* The words and the facts that will load here start at their ink, so the placeholders hand
+     back the room a list row keeps above its first bar. */
   .from-ink {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 
-  .narrow {
-    --head-row: 1.75rem;
+  /* The time's 24px target gives back its room under the facts' 11px cap by a half pixel too
+     few, so the loaded facts end a pixel under their words, and the bars do too. */
+  .from-ink.one-line {
+    padding-block-end: 1px;
+  }
 
+  /* A bar is as tall as a stat's figure box, so the stats keep their height when they
+     arrive. */
+  .counts-wait {
+    column-gap: var(--sui-space-6);
+    display: flex;
+  }
+
+  .counts-wait > span {
+    background: var(--sui-placeholder);
+    block-size: 1.125rem;
+    border-radius: var(--sui-radius-pill);
+  }
+
+  /* The description takes a second line in a header under 432px on a phone, where its text is
+     16px. */
+  .two-lines {
     display: none;
   }
 
-  @container sui-page-header (max-width: 36rem) {
-    .wide {
-      display: none;
-    }
+  @media (max-width: 47.9375rem) {
+    @container sui-page-header (max-width: 27rem) {
+      .one-line {
+        display: none;
+      }
 
-    .narrow {
-      display: block;
+      .two-lines {
+        display: block;
+      }
     }
   }
 
-  @media (max-width: 47.9375rem) {
-    .wide {
+  /* The warning's action wraps under its words in a column under about 25rem, where its words
+     no longer fit their 14rem measure beside it (Callout), so the notice's room follows. */
+  .notice-room {
+    container: notice / inline-size;
+  }
+
+  .notice {
+    --notice-row: 3.75rem;
+
+    block-size: var(--notice-row);
+    border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-divider);
+    box-sizing: border-box;
+    display: flex;
+    gap: var(--sui-space-3);
+    padding: var(--sui-space-4);
+  }
+
+  /* The symbol's tile stands where the callout's will, past its edge and inset, and the bars
+     start where its words will. */
+  .tile {
+    background: var(--sui-placeholder);
+    block-size: var(--sui-symbol-tile);
+    border-radius: var(--sui-radius-control);
+    flex: none;
+    inline-size: var(--sui-symbol-tile);
+    margin-block-start: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+    margin-inline-start: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+  }
+
+  .words {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .beside {
+    margin-block: calc(-1 * var(--sui-space-4));
+  }
+
+  .under {
+    display: none;
+  }
+
+  /* The action's placeholder ends where the callout's button will, its inset from the foot. */
+  .press {
+    background: var(--sui-placeholder);
+    block-size: var(--sui-tier-quiet);
+    border-radius: var(--sui-radius-control);
+    display: block;
+    inline-size: 6rem;
+    margin-block: auto calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+  }
+
+  /* A waiting value is a bar as tall as its words' caps, rounded to the cell's even height, so
+     it centres on whole pixels where the words will stand. */
+  .value-wait {
+    background: var(--sui-placeholder);
+    block-size: round(up, 1cap, 2px);
+    border-radius: var(--sui-radius-pill);
+    display: block;
+    inline-size: 4.5rem;
+  }
+
+  .value-wait.short {
+    inline-size: 3.25rem;
+  }
+
+  /* A related link's line is its target and a 4px gap: 28px, or 45px on a touch screen. The
+     last link ends at its words, and the last placeholder line keeps half its room under its
+     bar, so the section ends where the loaded one will. */
+  .links {
+    --link-row: 1.75rem;
+
+    margin-block-end: 1px;
+  }
+
+  .lead {
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
+     description; the facts end at their words, so the target's room under them is not kept. */
+  .fact-lines {
+    margin-block: calc(var(--sui-space-6) + 1px) 1px;
+  }
+
+  /* The Load More line stands under the last row's hairline, its words at the start and its
+     button at the end, 12px under the line, as the loaded line does. The rows above it end at
+     their last row's foot, where a list that hands back its padding would end 12px sooner. */
+  .more {
+    align-items: center;
+    border-block-start: var(--sui-row-hairline) solid var(--sui-border-divider);
+    display: flex;
+    justify-content: space-between;
+    margin-block-start: var(--sui-space-3);
+    padding-block-start: var(--sui-space-3);
+  }
+
+  .shown {
+    inline-size: 15.25rem;
+  }
+
+  .more-press {
+    block-size: var(--sui-control-height-compact);
+    inline-size: 6.125rem;
+    margin-block: 0;
+  }
+
+  @container notice (max-width: 25.0625rem) {
+    .notice {
+      --notice-row: 6.25rem;
+    }
+
+    .beside {
       display: none;
     }
 
-    .narrow {
-      --head-row: var(--sui-touch-target);
+    .under {
+      block-size: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  }
 
-      display: block;
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .links {
+      --link-row: calc(var(--sui-touch-target) + 1px);
+
+      margin-block-end: calc(-1 * var(--sui-space-1));
     }
   }
 

@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [
     sveltekit({
       preprocess: vitePreprocess(),
-      adapter: adapter(),
+      // The preview host answers every missing address, a removed preview's too, with this page.
+      adapter: adapter({ fallback: '404.html' }),
       // PR previews share one host, each under its own /pr-<number> prefix.
       paths: { base: (process.env.BASE_PATH ?? '') as '' | `/${string}` },
       // The sink's tabs and links point at demo anchors that no section renders.

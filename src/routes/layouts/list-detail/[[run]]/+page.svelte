@@ -113,7 +113,7 @@
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
         { href: runsHref, label: 'Runs', icon: 'pending' },
-        { href: '#repositories', label: 'Repositories', icon: 'repositories' }
+        { href: '#repositories', label: 'Repositories', short: 'Repos', icon: 'repositories' }
       ]
     }
   ];
@@ -189,7 +189,12 @@
 
 <SkipLink href="#content" />
 
-<AppShell title={run ? name(run) : 'Runs'} landmark="none" label="Workspace navigation">
+<AppShell
+  title={run ? name(run) : 'Runs'}
+  eyebrow={place}
+  landmark="none"
+  label="Workspace navigation"
+>
   {#snippet rail()}
     <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
   {/snippet}

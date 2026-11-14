@@ -42,7 +42,8 @@ Both lines are trimmed to their ink and stand 8px apart, so the words, not their
 centre on the avatar. A name that wraps keeps the avatar centred on its own lines, never on
 the handle under them. A holder whose rows keep a pitch of their own, such as a `FactList` of
 rows, sets `--sui-identity-overhang: 1`: the row is then as tall as its words, and the avatar
-reaches past its edges into the holder's padding, still centred on the name.
+reaches past its edges into the holder's padding, still centred on the name. A holder may set
+`--sui-identity-weight` too, as a `FactList` of rows gives the name a value's 500.
 
 - Semantics: a `span` of text; the avatar is hidden, so the name is read once and the handle after it, joined by `handleName`.
 - Content: a name, an optional handle and an optional picture.
@@ -146,8 +147,8 @@ reaches past its edges into the holder's padding, still centred on the name.
      into one block in a narrow column (L-24). */
   .sui-identity-name {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-note)
-      var(--sui-sans);
+    font: var(--sui-identity-weight, var(--sui-weight-semibold)) var(--sui-font-size-body) /
+      var(--sui-leading-note) var(--sui-sans);
   }
 
   .sui-identity-handle {
