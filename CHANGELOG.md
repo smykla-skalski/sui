@@ -4,7 +4,6 @@
 
 - A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
 - A chart band with no ground starts its plot, its veil and its state boxes on the title's edge, as its legend and summary do, so the chart reads down one left edge.
-- Rail: a tile in the column gives up its odd pixel and its label box stands an even height, so the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels in the 80px column.
 - A chart band with no ground of its own keeps 8px over and under its plot, where it kept 16px, so the plot stands closer to its words and the legend to its axis title; a tinted band keeps its full room.
 - AppShell: a page header's foot stands on the sidebar's ground, so its translucent rule paints the same ink as the sidebar's edge where the two meet, where it painted a step lighter over the header's band.
 - HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
