@@ -338,6 +338,25 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test('a fact line moves a short fact to the next line whole, and each fact ends on a whole pixel', async () => {
+      const page = await opened();
+      const facts = await page.evaluate(() =>
+        [...document.querySelectorAll('#fact-line .sui-fact-line > *')].map((fact) => {
+          const box = fact.getBoundingClientRect();
+          return {
+            fact: /** @type {string} */ (fact.textContent),
+            lines: Math.round(box.height / parseFloat(getComputedStyle(fact).lineHeight)),
+            whole: Number.isInteger(box.left) && Number.isInteger(box.right)
+          };
+        })
+      );
+      assert.ok(facts.length > 4, 'the page shows its fact lines');
+      for (const { fact, lines, whole } of facts) {
+        assert.equal(lines, 1, `"${fact}" breaks across lines`);
+        assert.ok(whole, `"${fact}" ends on a fraction of a pixel, so its dot draws lighter`);
+      }
+    });
+
     test('each directional glyph stands over its mirror, centred in its row beside its label, on the icon page', async () => {
       const page = await opened();
       const lines = await page.evaluate(() =>

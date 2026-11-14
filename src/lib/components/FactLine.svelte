@@ -37,7 +37,7 @@ option) keeps its own typed separator instead.
 - Keyboard: none of its own; a fact may hold a link or a time.
 - Pointer and touch: none of its own.
 - Focus: none of its own.
-- Responsive: the line wraps after a dot, never before one, and a fact longer than the line, such as a long ID or address, breaks inside itself, so it never runs past its container.
+- Responsive: the line wraps after a dot, never before one, and a fact moves to the next line whole; only a fact longer than the line, such as a long ID or address, breaks inside itself, so it never runs past its container.
 - Accessibility: the dot is read as the comma of `marks.comma`, its alternative text, so the facts are heard apart without a symbol read aloud. In a name built from content, such as a link holding the line, Chrome puts a space before that comma.
 - Localization: the spoken join is `marks.comma`; the dot and its spacing are logical and hold right to left.
 - Performance: no script beyond the spoken join.
@@ -57,12 +57,36 @@ option) keeps its own typed separator instead.
     overflow-wrap: anywhere;
   }
 
-  /* The dot ends the fact before it, with a break after it, so a wrapped line never starts with
-     a dot, and its margins are the only space beside it (L-103). */
+  /* Each fact is one box, so a short fact moves to the next line whole rather than leaving its
+     last word alone there, and only a fact longer than the line breaks inside itself. Its width
+     rounds up to the pixel, so its end, and the dot drawn from it, stand on a whole pixel. */
+  .sui-fact-line > :global(*) {
+    display: inline-block;
+    inline-size: var(--sui-inline-snap);
+    max-inline-size: 100%;
+  }
+
+  /* The dot ends the fact before it, so a wrapped line never starts with a dot. Its room is the
+     spoken join in the flow, unseen, and the seen dot stands that room's margin in from the
+     fact's snapped end, so every dot lands on the same fraction of a pixel and draws at one
+     weight (L-95), and its margins are the only space beside it (L-103). */
+  .sui-fact-line > :global(:not(:last-child)) {
+    position: relative;
+  }
+
   .sui-fact-line > :global(:not(:last-child))::after {
-    color: var(--sui-text-muted);
-    content: '·\200B' / var(--sui-fact-join);
+    color: transparent;
+    content: '·' / var(--sui-fact-join);
     font-weight: var(--sui-weight-regular);
     margin-inline: var(--sui-sep-space);
+  }
+
+  .sui-fact-line > :global(:not(:last-child))::before {
+    color: var(--sui-text-muted);
+    content: '·' / '';
+    font-weight: var(--sui-weight-regular);
+    inset-block-end: 0;
+    inset-inline-end: var(--sui-sep-space);
+    position: absolute;
   }
 </style>
