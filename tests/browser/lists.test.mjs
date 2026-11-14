@@ -1097,28 +1097,6 @@ suite('lists', together, () => {
       }
     );
 
-    test('a refreshing table says so on screen, led by the refresh mark in the info hue', async () => {
-      const page = await opened();
-      const read = await page
-        .locator('#data-table .specimen', { hasText: /^\s*Refreshing/ })
-        .locator('.sui-data-table')
-        .evaluate((table) => {
-          const line = table.querySelector('.refreshing');
-          const probe = document.createElement('i');
-          probe.style.color = 'var(--sui-info)';
-          table.append(probe);
-          const info = getComputedStyle(probe).color;
-          probe.remove();
-          const mark = line?.querySelector('svg');
-          return [
-            line?.textContent?.trim(),
-            !!line?.checkVisibility(),
-            mark ? getComputedStyle(mark).color === info : false
-          ];
-        });
-      assert.deepEqual(read, ['Refreshing…', true, true]);
-    });
-
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
     test(
       'a table that scrolls wraps a long value to a few lines, not a word a line, read from the top of its row',

@@ -149,7 +149,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy, and `refreshingLabel` under the caption after the refresh mark), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
@@ -181,11 +181,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       <span class="problem-words">{error}</span>
       {@render retry()}
     </div>
-  {/if}
-  {#if refreshing && !loading}
-    <p class="refreshing" aria-hidden="true">
-      <Icon name="refresh" size="sm" /><span class="refreshing-words">{refreshingLabel}</span>
-    </p>
   {/if}
   <VisuallyHidden role="status">{status}</VisuallyHidden>
   <div class="viewport">
@@ -360,30 +355,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     gap: var(--sui-space-2);
   }
 
-  /* Rows on their way say so where a failure would, led by the refresh mark in the info hue,
-     as a refreshing chart's note is; the status region says it to a screen reader. */
-  .refreshing {
-    align-items: center;
-    color: var(--sui-info);
-    display: flex;
-    gap: var(--sui-space-2);
-    margin: 0;
-  }
-
   /* The mark carries the failure, so the words read in the primary ink, as an error panel's
      title does. */
   .problem-words {
-    color: var(--sui-text-primary);
-  }
-
-  .refreshing-words {
-    color: var(--sui-text-secondary);
-  }
-
-  .problem-words,
-  .refreshing-words {
     align-content: center;
     block-size: var(--sui-block-snap);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;

@@ -5,7 +5,6 @@
 - `Rail` tiles stand 8px in from the column's sides, where they stood 4px in and their plate all but met the edge; the tile gives up its own inline padding, so its words keep their 55px.
 - A `HeatmapChart`'s lowest step holds 1.5:1 on its ground, its steps at 28, 42, 56 and 70% of the series color, where the lowest at 1.3:1 all but vanished on a dark card; L-66 and its audit ask 1.5:1.
 - The app shell demo lays its rows to the header band's gutter up to 80rem, where they stopped at 60rem and left a wide pane's end bare.
-- A refreshing `DataTable` says `refreshingLabel` under its caption, led by the refresh mark in the info hue, as a refreshing chart does, where only a screen reader heard it and the rows looked current.
 - A failed or empty chart draws its error or empty state in the plot's own box, inset by the band's room and as tall as the plot, as its loading veil does, where the panel ran the chart's full width at its own height.
 - A `SegmentedControl` that has turned into its select takes the width of its words and chevron, and in a `SettingRow` too narrow for that beside the reset, as with text at twice its size, the reset goes above it, where the select was squeezed past its row's end. A `Select`'s box never shrinks under its insets and chevron room, so the field never draws past it.
 - A chart's table of values takes a `DataTable`'s cells: 12px by 16px, its outer columns flush with the chart's title, and its head ruled in the control ink, where 8px cells set its first words 8px in and every rule in one ink.
