@@ -217,7 +217,8 @@
     {@render children?.()}
     <details bind:open ontoggle={() => ontableopenchange?.(open)}>
       <summary
-        ><span class="chevron"><Icon name="chevron-right" size="sm" /></span><span>{dataLabel}</span
+        ><span class="chevron"><Icon name="chevron-right" size="base" /></span><span
+          >{dataLabel}</span
         ></summary
       >
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
@@ -471,8 +472,9 @@
     user-select: none;
   }
 
-  /* The chevron leads the words as a disclosure's does, and turns down when the table shows
-     (L-57). The mirrored chevron points to the left, so it turns the other way. */
+  /* The chevron leads the words at a disclosure's size, the tier of a glyph beside a control's
+     words (L-68), and turns down when the table shows (L-57). The mirrored chevron points to
+     the left, so it turns the other way. */
   .chevron {
     display: flex;
     margin-inline-end: var(--sui-space-1);
