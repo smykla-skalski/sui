@@ -35,7 +35,8 @@ standings and controls, is an `ObjectList`, and the way back is `BackLink`.
 The list hangs from the heading above it, with no bullets, so its words stand on the
 heading's edge. Each link stands one target's height plus 4px under the one before, so their
 grown hit areas never meet, and on a phone one 44px target under it, the areas edge to edge,
-so the list keeps a row's pitch; a note stands one copy gap under its link.
+so the list keeps a row's pitch; a note stands a copy gap and
+2px under its link, so the link's underline keeps air under it.
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone; each item is a native link, described by its note.
 - Content: a label per link, an optional one-line note that wraps when long, and whether it leaves the product.
@@ -85,10 +86,12 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
     row-gap: calc(var(--sui-local-link-target) - round(up, 1cap, 2px) + var(--sui-space-1));
   }
 
+  /* A link's underline stands under its words, in the copy gap a plain label leaves clear, so
+     its note stands 2px further down to keep the gap's air under the line. */
   .sui-link-list-item {
     display: grid;
     min-inline-size: 0;
-    row-gap: var(--sui-row-copy-gap);
+    row-gap: calc(var(--sui-row-copy-gap) + 2px);
   }
 
   .sui-link-list-link,

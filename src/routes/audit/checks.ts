@@ -950,7 +950,12 @@ function copyRhythm(root: Document): Finding[] {
     // from a title; one right under the name is the row's only copy line, 8px off it.
     const step =
       second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why');
-    const want = titled || step ? 12 : 8;
+    // A linked name's underline stands in the copy gap a plain name leaves clear, so its
+    // description stands 2px further off.
+    const underlined = [...first.querySelectorAll('a')].some((link) =>
+      getComputedStyle(link).textDecorationLine.includes('underline')
+    );
+    const want = titled || step ? 12 : underlined ? 10 : 8;
     // Words a gap of 16px or more parts belong to another block, but a title's own note is its
     // second line at any distance.
     const note = titled && [...second.classList].some((name) => name.endsWith('-note'));

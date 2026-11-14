@@ -1915,6 +1915,34 @@ suite('lists', together, () => {
       assert.ok(clear.sides >= 3.5, `the ring stands ${clear.sides.toFixed(1)}px off the letters`);
     });
 
+    test("a link list's note stands 6px under its link's underline", async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#link-list .sui-link-list-item')]
+          .filter((item) => item.querySelector('.sui-link-list-note'))
+          .map((item) => {
+            const link = /** @type {HTMLElement} */ (item.querySelector('a'));
+            const look = getComputedStyle(link);
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = look.font;
+            const baseline =
+              link.getBoundingClientRect().bottom - context.measureText('g').fontBoundingBoxDescent;
+            const underline =
+              baseline +
+              parseFloat(look.textUnderlineOffset) +
+              parseFloat(look.textDecorationThickness);
+            // The note's box is trimmed to its cap, so its top is its first ink.
+            const note = /** @type {Element} */ (item.querySelector('.sui-link-list-note'));
+            return note.getBoundingClientRect().top - underline;
+          })
+      );
+      assert.ok(gaps.length > 0, 'the page shows a note');
+      for (const gap of gaps)
+        assert.ok(gap >= 6, `the note stands ${gap.toFixed(1)}px under the line`);
+    });
+
     test('an English note in a right-to-left link list keeps its own order', async () => {
       const page = await opened();
       const [first, last] = await page.evaluate(() => {

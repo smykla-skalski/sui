@@ -364,6 +364,26 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  test(
+    "L-24 the audit finds a linked name's note a plain copy gap under its underline",
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'link-list');
+      try {
+        await page.evaluate(() => {
+          const item = document.querySelector('.sui-link-list-item:has(.sui-link-list-note)');
+          /** @type {HTMLElement} */ (item).style.rowGap = 'var(--sui-row-copy-gap)';
+        });
+        const findings = (await audit(page)).filter(
+          ({ law, detail }) => law === 'L-24' && detail.includes('not 10px')
+        );
+        assert.ok(findings.length > 0, 'a note 8px under an underlined link is a finding');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
