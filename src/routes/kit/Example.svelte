@@ -164,12 +164,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     background: var(--sui-canvas);
   }
 
+  /* Lines of words side by side on one baseline, such as two fact lines, set a wider
+     `--specimen-column-gap`, so they never read as one line. */
   .specimens {
     align-items: stretch;
+    column-gap: var(--specimen-column-gap, var(--sui-space-6));
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-6);
     min-inline-size: 0;
+    row-gap: var(--sui-space-6);
   }
 
   /* A row specimen is as wide as its words, a fraction of a pixel past a whole one, so each is
@@ -208,8 +211,9 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      may set a closer `--specimen-row-gap` that still keeps that order. A grid of fixed columns
      narrower than its frame, kept wide to end on one line with its neighbours, sets
      `--specimen-justify` to `space-between`, so its outer columns stand one inset from each
-     edge. A grid of specimens whose hover reaches past their column, such as disclosures, sets
-     a wider `--specimen-column-gap`, so two lit rows never meet. */
+     edge. A grid of specimens whose hover or rules reach past their column, such as disclosures
+     or tables, sets a wider `--specimen-column-gap`, so two lit rows or two tables' rules never
+     meet. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     column-gap: var(--specimen-column-gap, var(--sui-space-6));
@@ -273,9 +277,13 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     }
 
     /* Rows close to 24px on a phone, still 8px past the name gap, which a page whose tips need
-       room widens. */
+       room widens. A page whose specimens are lists with rows 24px apart, such as links, sets
+       a wider `--specimen-phone-row-gap`, so the next name never reads as one more row. */
     .specimens[data-layout='grid'] {
-      row-gap: calc(var(--specimen-caption-gap, var(--sui-space-4)) + var(--sui-space-2));
+      row-gap: var(
+        --specimen-phone-row-gap,
+        calc(var(--specimen-caption-gap, var(--sui-space-4)) + var(--sui-space-2))
+      );
     }
   }
 

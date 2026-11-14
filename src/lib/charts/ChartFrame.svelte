@@ -449,6 +449,7 @@
      stands in the middle of the box as the plot it stands for would. */
   .plot-band.standing > :global(*) {
     --sui-font-size-state-title: var(--sui-font-size-chart-state-title);
+    --sui-state-copy-wrap: balance;
     --sui-font-size-body: var(--sui-font-size-meta);
     align-content: center;
     justify-items: center;
@@ -627,6 +628,11 @@
 
   .sui-chart-table :global(thead th) {
     border-block-end-color: var(--sui-border-control);
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .sui-chart-table :global(tbody th) {
+    font-weight: var(--sui-weight-medium);
   }
 
   /* Numbers line up at their end, and so do their headings. */

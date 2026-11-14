@@ -179,7 +179,9 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
   const leading = /var\(--sui-(leading-[a-z-]+|row-copy-leading)\)/;
   assert.deepEqual(
     violations(({ property, value }) => {
-      if (property === 'line-height' && !leading.test(value) && value !== 'inherit')
+      // A box set inside its parent's line (RelativeTime) takes that line less a whole step.
+      const inset = /^calc\(1lh - var\(--sui-space-\d\)\)$/.test(value);
+      if (property === 'line-height' && !leading.test(value) && value !== 'inherit' && !inset)
         return 'leading off the scale';
       if (property === 'font' && value !== 'inherit' && !/\/\s*var\(/.test(value))
         return 'font without its leading';
@@ -780,9 +782,13 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
     assert.ok(Number(step) > 4, `a row gap of space-${step} reads as close as a name`);
   assert.match(
     stripComments(styles['src/routes/kit/Example.svelte']),
-    /row-gap: calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\);/,
+    /row-gap: var\(\s*--specimen-phone-row-gap,\s*calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\)\s*\);/,
     "a phone's rows stand closer than a page's widened name gap"
   );
+  // A page widens a phone's rows only past a list's own 24px rows, never back toward a name gap.
+  for (const path of svelteFiles.filter((path) => path.startsWith('src/routes/sink/')))
+    for (const [, value] of read(path).matchAll(/--specimen-phone-row-gap="([^"]+)"/g))
+      assert.match(value, /var\(--sui-space-8\)/, `${path} sets a phone row gap of ${value}`);
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
@@ -1966,6 +1972,21 @@ test('L-9 an invalid choice card keeps its empty dot neutral', () => {
     styles['src/lib/components/ChoiceCards.svelte'],
     /\.invalid[^{}]*\.sui-choice-card-dot \{[^}]*--sui-danger/
   );
+});
+
+test('L-55 a right-to-left specimen mirrors its name with it, so the name heads its content', () => {
+  const pages = svelteFiles.filter((path) => path.startsWith('src/routes/sink/'));
+  let mirrored = 0;
+  for (const path of pages)
+    for (const [, open, body] of read(path).matchAll(/<Specimen\b([^>]*)>([\s\S]*?)<\/Specimen>/g))
+      if (/\bdir="rtl"/.test(open)) mirrored++;
+      else
+        assert.doesNotMatch(
+          body,
+          /\bdir="rtl"/,
+          `${path} names a right-to-left specimen from the left`
+        );
+  assert.ok(mirrored >= 5);
 });
 
 test('L-55 a choice card takes the field radius, not a surface card radius', () => {

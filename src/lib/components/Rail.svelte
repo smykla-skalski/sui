@@ -73,7 +73,7 @@
 
 <!--
 @component
-The outermost navigation: an 80px column of tiles, one per place, such as a workspace or a
+The outermost navigation: an 81px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place.
 
@@ -191,19 +191,20 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     align-items: center;
     background: var(--sui-sidebar-bg);
     block-size: 100%;
-    /* The edge is drawn inside the column, not beside its room, so the tiles keep an even 64px
-       and a glyph centres on a whole pixel, where a border left 63px and a half-pixel glyph. */
+    /* The edge is drawn inside the column, past the tiles' 80px, so each tile keeps an even 64px
+       with 8px on each side and a glyph centres on a whole pixel. */
     box-shadow: inset var(--sui-local-rail-edge) 0 var(--sui-sidebar-border);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-2);
-    /* The column is 80px at the default text size and widens with a reader's larger text, so
-       a label keeps its words on a line instead of breaking letter by letter. */
-    inline-size: var(--sui-rail-width);
+    /* The column is 80px past its edge at the default text size and widens with a reader's
+       larger text, so a label keeps its words on a line instead of breaking letter by letter. */
+    inline-size: calc(var(--sui-rail-width) + var(--sui-stroke));
     overflow: hidden auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
+    padding-inline-end: var(--sui-stroke);
     scrollbar-width: thin;
   }
 
@@ -238,6 +239,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     inline-size: auto;
     min-inline-size: 0;
     padding-block: 0;
+    padding-inline-end: 0;
   }
 
   .host .sui-rail-top {
@@ -379,10 +381,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     translate: 0 1px;
   }
 
+  /* The ring stands inside the tile, as on a side nav row, so it keeps the tile's 8px from the
+     rail's edge and the sidebar's two columns draw one ring. */
   .sui-rail-tile:focus-visible {
     color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
-    outline-offset: var(--sui-focus-ring-offset);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   /* The plate under the current tile marks the state with the tile's ink and glyph, so it
@@ -558,6 +562,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
        the column draws none, as it draws no shadow. */
     .sui-rail:not(.host) {
       border-inline-end: var(--sui-stroke) solid CanvasText;
+      padding-inline-end: 0;
     }
 
     .sui-rail-tile[aria-current],

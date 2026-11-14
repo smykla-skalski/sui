@@ -37,7 +37,7 @@ option) keeps its own typed separator instead.
 - Keyboard: none of its own; a fact may hold a link or a time.
 - Pointer and touch: none of its own.
 - Focus: none of its own.
-- Responsive: the line wraps after a dot, never before one, and a fact longer than the line, such as a long ID or address, breaks inside itself, so it never runs past its container.
+- Responsive: the line wraps after a dot, never before one, and a fact moves to the next line whole; only a fact longer than the line, such as a long ID or address, breaks inside itself, so it never runs past its container.
 - Accessibility: the dot is read as the comma of `marks.comma`, its alternative text, so the facts are heard apart without a symbol read aloud. In a name built from content, such as a link holding the line, Chrome puts a space before that comma.
 - Localization: the spoken join is `marks.comma`; the dot and its spacing are logical and hold right to left.
 - Performance: no script beyond the spoken join.
@@ -57,12 +57,53 @@ option) keeps its own typed separator instead.
     overflow-wrap: anywhere;
   }
 
-  /* The dot ends the fact before it, with a break after it, so a wrapped line never starts with
-     a dot, and its margins are the only space beside it (L-103). */
+  /* Each fact is one box, so a short fact moves to the next line whole rather than leaving its
+     last word alone there, and only a fact longer than the line breaks inside itself. Its width
+     rounds up to the pixel and its last line keeps to its end edge, so the dot after its last
+     word ends on a whole pixel. A fact that breaks sits on the line by its first line, as text
+     does, so a parent that trims its lines to the cap height still holds the fact's lines. */
+  .sui-fact-line > :global(*) {
+    baseline-source: first;
+    display: inline-block;
+    inline-size: var(--sui-inline-snap);
+    max-inline-size: 100%;
+    text-align-last: end;
+  }
+
+  /* The dot ends the fact before it, so a wrapped line never starts with a dot. It is drawn, a
+     2px circle on whole pixels on the middle of the words' x-height, where a typed dot's ink
+     fell on any fraction of a pixel and drew lighter or darker by where the words ended (L-95).
+     Its glyph stays only for the spoken join, clipped unseen, and its margins are the only
+     space beside it (L-103). On a screen of one pixel per pixel a 2px circle blurs to a quarter
+     less ink, so it is drawn square there, which reads as the same dot. The light ink holds
+     5.5:1 and the dark muted ink 9:1, so on dark the dot takes 70% of it and reads as firmly as
+     on light, near 5:1, rather than as the loudest mark on the line. */
   .sui-fact-line > :global(:not(:last-child))::after {
-    color: var(--sui-text-muted);
-    content: '·\200B' / var(--sui-fact-join);
-    font-weight: var(--sui-weight-regular);
+    background: light-dark(
+      var(--sui-text-muted),
+      color-mix(in srgb, var(--sui-text-muted) 70%, transparent)
+    );
+    block-size: var(--sui-stroke-bold);
+    border-radius: var(--sui-radius-pill);
+    color: transparent;
+    content: '·' / var(--sui-fact-join);
+    display: inline-block;
+    inline-size: var(--sui-stroke-bold);
     margin-inline: var(--sui-sep-space);
+    overflow: hidden;
+    vertical-align: round(calc(0.5ex - var(--sui-stroke)), 1px);
+  }
+
+  @media (resolution < 2x) {
+    .sui-fact-line > :global(:not(:last-child))::after {
+      border-radius: 0;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .sui-fact-line > :global(:not(:last-child))::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
   }
 </style>

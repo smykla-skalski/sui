@@ -387,6 +387,50 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a one-figure count is a circle, and a longer one a pill as tall', async () => {
+    const page = await openLayout('tabs/', 1440);
+    try {
+      const counts = await page.evaluate(() =>
+        [...document.querySelectorAll('.sui-count')].map((count) => {
+          const box = count.getBoundingClientRect();
+          return [/** @type {string} */ (count.textContent).length, box.width, box.height];
+        })
+      );
+      assert.ok(
+        counts.some(([figures]) => figures === 1) && counts.some(([figures]) => figures > 1)
+      );
+      for (const [figures, width, height] of counts)
+        assert.ok(
+          figures === 1 ? width === height : width > height,
+          `${figures}: ${width}x${height}`
+        );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a focused rail tile draws its ring inside it, as a side nav row does', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      await page.keyboard.press('Tab');
+      const ring = async (/** @type {string} */ selector) => {
+        await page.locator(selector).first().focus();
+        return page
+          .locator(selector)
+          .first()
+          .evaluate((node) => {
+            const look = getComputedStyle(node);
+            return [node.matches(':focus-visible'), look.outlineOffset, look.outlineColor];
+          });
+      };
+      const row = await ring('.sui-side-nav-row:not([aria-current])');
+      assert.deepEqual(await ring('.sui-rail-tile:not([aria-current])'), row);
+      assert.deepEqual(await ring('.sui-rail-tile[aria-current]'), row);
+    } finally {
+      await page.close();
+    }
+  });
+
   test("a rail tile beside the shell's pages stands 4px in from each side of its 80px column, its words given 72px and its glyph a whole pixel", async () => {
     // Beside the pages the places share one column with the folded pages, whose two-word labels
     // need 72px, so the column keeps one plate width.
@@ -2393,7 +2437,8 @@ suite('navigation', together, () => {
                 const head = getComputedStyle(
                   /** @type {Element} */ (box.querySelector('thead th'))
                 );
-                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control}`;
+                const row = box.querySelector('tbody th');
+                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control} ${head.fontWeight} ${row && getComputedStyle(row).fontWeight}`;
               })
             )
           ]
@@ -2405,7 +2450,8 @@ suite('navigation', together, () => {
       });
       assert.equal(runs, 2, 'the line draws one run on each side of its gap');
       assert.deepEqual(aligns, ['start']);
-      assert.deepEqual(tables, ['0 true']);
+      // A DataTable's heading weights: 600 over the columns, 500 down the rows.
+      assert.deepEqual(tables, ['0 true 600 500']);
     });
 
     test(
@@ -2755,6 +2801,39 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a state’s explanation wraps as message copy does, balanced where a chart centres it', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const wraps = await page.evaluate(() => {
+          const wrap = (/** @type {Element} */ element) => getComputedStyle(element).textWrapStyle;
+          const centred = [
+            ...document.querySelectorAll(
+              '.plot-band.standing :is(.sui-empty-state-description, .sui-error-state-description)'
+            )
+          ].map(wrap);
+          return { centred };
+        });
+        assert.deepEqual(wraps.centred, ['balance', 'balance']);
+      } finally {
+        await page.close();
+      }
+      const states = await openLayout('states/', 1440);
+      try {
+        const wraps = await states.evaluate(() => [
+          ...new Set(
+            [
+              ...document.querySelectorAll(
+                '#states :is(.sui-empty-state-description, .sui-error-state-description)'
+              )
+            ].map((element) => getComputedStyle(element).textWrapStyle)
+          )
+        ]);
+        assert.deepEqual(wraps, ['pretty'], 'a state on its own wraps as message copy');
+      } finally {
+        await states.close();
+      }
+    });
+
     test('a failed chart’s mark leads its title on one centred line, 8px before it, on whole pixels', async () => {
       for (const width of [1440, 390]) {
         const page = await openLayout('charts/', width);
@@ -2779,6 +2858,34 @@ suite('navigation', together, () => {
         } finally {
           await page.close();
         }
+      }
+    });
+
+    test('a chart legend’s keys each stand their drawn mark 8 to 11px from their label, a point as a line', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const gaps = await page.evaluate(() =>
+          [...document.querySelectorAll('.sui-chart .legend:not(.sui-visually-hidden) li')].flatMap(
+            (item) => {
+              const key = item.querySelector('svg.key');
+              const words = [...item.childNodes].find(
+                (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+              );
+              if (!key || !words) return [];
+              const ink = Math.max(
+                ...[...key.children].map((part) => part.getBoundingClientRect().right)
+              );
+              const range = document.createRange();
+              range.selectNodeContents(words);
+              return [{ label: words.textContent, gap: range.getBoundingClientRect().left - ink }];
+            }
+          )
+        );
+        assert.ok(gaps.length >= 4, `${gaps.length} keys`);
+        for (const { label, gap } of gaps)
+          assert.ok(gap >= 8 && gap <= 11, `${label}: ${gap}px from its key's ink`);
+      } finally {
+        await page.close();
       }
     });
 

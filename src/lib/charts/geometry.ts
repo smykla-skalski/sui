@@ -424,14 +424,16 @@ export function xyLayout(input: {
   // Turned a quarter left, the y title's ascent points to the start, so it reaches 0 there.
   const titleX = em(yTitle?.ascent ?? 0);
   const titleEnd = yTitle ? plus(em(yTitle.ascent + yTitle.descent), titleGap) : px(0);
+  // A mark on the start edge keeps the tick gap from the y ticks' words to its own ink, so a
+  // first marker never stands closer to a number than the axis does.
+  const edge = px(Math.max(0, ...marks.filter((mark) => mark.x === 0).map((mark) => mark.across)));
   const left = named(
     '--sui-local-plot-start',
     most(
-      plus(titleEnd, tickGap, em(largest(yInk.map((ink) => ink.advance + ink.left)))),
+      plus(titleEnd, tickGap, em(largest(yInk.map((ink) => ink.advance + ink.left))), edge),
       ...xInk
         .filter((_, index) => xTicks[index].at === 0)
-        .map((ink) => em(-inkSpan(ink, 0, 'middle')[0])),
-      ...marks.filter((mark) => mark.x === 0).map((mark) => px(mark.across))
+        .map((ink) => em(-inkSpan(ink, 0, 'middle')[0]))
     )
   );
   const right = named(
@@ -493,7 +495,7 @@ export function xyLayout(input: {
     right,
     top: shift,
     bottom: plus(px(grid), shift),
-    tickEnd: minus(left, tickGap),
+    tickEnd: minus(left, plus(tickGap, edge)),
     yTitle: { x: titleX, y: plus(px(grid / 2), shift) },
     xTickBaseline: plus(xTickBaseline, shift),
     xTitleBaseline: plus(xTitleBaseline, shift),
@@ -790,12 +792,16 @@ export function axis(
   const measured = maximum / (count - 1) - minimum / (count - 1);
   const rough = measured || Number.MIN_VALUE;
   const power = 10 ** Math.floor(Math.log10(rough));
-  const step =
-    (power > 0
-      ? STEPS.map((multiple) => multiple * power).find(
-          (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
-        )
-      : Number.MIN_VALUE) ?? (whole ? 1 : rough);
+  // A few whole values with no zero to reach read best one tick each, so the axis starts on the
+  // first value, as a short run's does, and never on a rounder tick before it.
+  const each = whole && !includeZero && maximum - minimum <= count + 1;
+  const step = each
+    ? 1
+    : ((power > 0
+        ? STEPS.map((multiple) => multiple * power).find(
+            (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
+          )
+        : Number.MIN_VALUE) ?? (whole ? 1 : rough));
   const tick = (index: number) => {
     const value = index * step;
     if (!Number.isFinite(value)) return Math.sign(value) * Number.MAX_VALUE;

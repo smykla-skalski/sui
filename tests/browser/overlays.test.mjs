@@ -758,29 +758,54 @@ suite('overlays', together, () => {
 
     // The dots are the box's ground, so a parent that stretches the box would draw them past
     // the words.
-    test('a relative time draws its dots under its words only, its box 2px past them at each side', async () => {
+    test('a relative time draws its dots under its words only, its ring 2px past them at each side', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
           (time) => {
             const words = document.createRange();
             const text = [...time.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
             if (text) words.selectNodeContents(text);
+            const look = getComputedStyle(time);
             return [
               parseFloat(getComputedStyle(time, '::before').width),
               words.getBoundingClientRect().width,
-              time.getBoundingClientRect().width
+              time.getBoundingClientRect().width,
+              parseFloat(
+                look.getPropertyValue('--sui-local-ring-offset') ||
+                  look.getPropertyValue('--sui-focus-ring-offset')
+              ) + parseFloat(look.getPropertyValue('--sui-focus-ring-width'))
             ];
           }
         )
       );
       assert.ok(widths.length > 0);
-      for (const [dots, words, box] of widths) {
+      for (const [dots, words, box, ring] of widths) {
         assert.ok(Math.abs(dots - words) <= 0.5, `dots run ${dots}px under ${words}px of words`);
-        // The focus ring follows the box, so it clears the first and last letters by 2px more.
-        assert.ok(
-          Math.abs(box - words - 4) <= 0.5,
-          `the box reaches ${box - words}px past its words`
-        );
+        // In a sentence a space is 2.5px, so a ring that reaches further draws on the letters
+        // of the word before or after the time, as on the d of "Synced 42 minutes ago".
+        const reach = (box - words) / 2 + ring;
+        assert.ok(reach <= 2.5, `the ring reaches ${reach}px past its words`);
+      }
+    });
+
+    // A box as tall as its line stood its ring 5px over the figures, tall and thin around them.
+    test("a relative time's ring stands 2px inside its line's top, on a whole pixel", async () => {
+      const boxes = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
+          (time) => {
+            const look = getComputedStyle(time);
+            const line = parseFloat(
+              getComputedStyle(/** @type {Element} */ (time.parentElement)).lineHeight
+            );
+            const { top, height } = time.getBoundingClientRect();
+            return { top, words: height - parseFloat(look.paddingBlockEnd), line };
+          }
+        )
+      );
+      assert.ok(boxes.length > 0);
+      for (const { top, words, line } of boxes) {
+        assert.equal(words, line - 4, `the ring spans ${words}px of a ${line}px line`);
+        assert.ok(Number.isInteger(top), `the ring's top stands at ${top}px`);
       }
     });
 

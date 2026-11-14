@@ -3,15 +3,18 @@
 
   let {
     label,
+    dir,
     children
   }: {
     /** The state or variant in words, such as "Disabled". */
     label?: string | Snippet;
+    /** A right-to-left specimen mirrors its name with it, so the name heads the content's start. */
+    dir?: 'ltr' | 'rtl';
     children: Snippet;
   } = $props();
 </script>
 
-<figure class="specimen">
+<figure class="specimen" {dir}>
   {#if label}
     <figcaption>
       {#if typeof label === 'function'}{@render label()}{:else}{label}{/if}

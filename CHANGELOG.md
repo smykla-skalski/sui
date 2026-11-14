@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- A `FactLine` dot draws alike in both themes, near 5:1 on its ground: on a 1x screen it is square, where a 2px circle blurred the light dot to 3.3:1, and on dark it takes 70% of the muted ink, where it drew 6.8:1 and was the loudest mark on the line.
+- A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
+- The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.
+- The sink's Timeline page sets its Times and Days examples two to a line, each half of the stage, so on a desktop each timeline keeps the time column its note describes, where a 320px column stood each time over its words.
+- On a phone the sink's Link List page stands its two Links specimens 40px apart, so the second one's name, 20px under the last link where the links stand 24px apart, no longer reads as one more row of the first list. A grid example takes `--specimen-phone-row-gap`.
+- The sink's Fact Line Narrow Width example draws the 18rem bound its facts wrap in, dashed as the Avatar page draws its own, so the wrap reads as the point of the example.
+- A focused `RelativeTime` stands its ring on its words' edge, so in "Synced 42 minutes ago" the ring stands clear of the d of "Synced", where at 1px off it touched the letter: a space in the sans is 2.5px wide. The hover veil reaches as far as the ring.
+- A `LinkList` note stands 2px further under its link, so 6px of air stand between the link's underline and the note, where the line stood 4px over it and read as part of the note. Law L-24 grants a linked name's description this 10px gap.
+- A `Timeline` actor's avatar is 24px, with its initials at the 11px step, where it was 20px with 9px initials; its words stand past the wider seat and the list keeps its pitch.
+- The sink's Fact Line Narrow Width example sets its facts in the same ink and size as the others, in an 18rem column where each fact stays whole on a phone, and its two Facts lines stand 48px apart, so they never read as one line with a dot missing. A row of specimens takes `--specimen-column-gap` as a grid does.
+- A `Timeline` under a card's width (36rem) drops each pill and action under its words, on their edge, while each time keeps its column, so a 32rem list gives its words 344px where they had 232px and wrapped to four lines.
+- A focused `RelativeTime` stands its ring 1px off its words at each side, so in a sentence such as "Synced 42 minutes ago" the ring keeps inside the word space and no longer draws on the word before it; the ring stands 2px under the dots, and the hover veil reaches as far as the ring.
+- A focused standalone `Link`, as in a `LinkList` or a `FactList` value, stands its ring 4px further below its words and 2px further out at each side, so the ring clears the underline and the descenders by 5px, where it stood 1px off, and the first and last letters by 4px, where it stood 2px off; a link in running copy keeps the plain ring.
+- `LinkList`: each label and note keeps its own direction, so an English note in a right-to-left list, such as "3 repositories differ", keeps its number first.
+- `Timeline`: a refresh over loaded events shows the refresh mark and `refreshingLabel` (Refreshing…) 12px over them, as a table's caption line does, and says it in the status, where the busy list looked loaded.
+- `Link`: an external link's arrow is 12px with 7px of ink, near the text's cap height, where its 4px of ink read as a stray mark; its line keeps its height.
+- `FactLine` moves a short fact to the next line whole, where its last word could stand alone there, and draws its dot as a 2px circle on whole pixels on the words' x-height, right after the last word, so every dot has one weight (two typed dots on one line could differ 3.76:1 against 2.50:1). A fact that breaks inside itself sits on the line by its first line, so a row that trims its lines to the cap height, such as an `ObjectRow` summary at twice the text size, still holds it.
+- A fact row's pill whose words wrap grows its row, where it ran over the row under it, and a stacked pill stands one copy gap under its label.
+- A line or scatter chart whose first point has a marker stands it 8px clear of the y ticks' words, the gap they keep from a plot with none.
+- A mono fact value, such as a path, wraps after its separators before it breaks inside a word.
+- A count beside a tab, a segment or a side nav row is as wide as it is tall, so one figure stands in an 18px circle, where it was a 16x18 oval
+- A `DataTable` on a phone runs its rules 8px past its words, its cells' side pad, so its frame ends 8px short of a card's edge and never doubles it
+- Inline facts part 12px, a step past the 8px between a wrapped value and its label, so each pair reads as one (they stood 6px apart)
+- Rail: a focused tile draws its ring inside it, as a side nav row does, so the ring keeps the tile's 8px from the rail's edge
+- A chart axis over a few whole values with no zero to reach, as six days, takes a tick on each and starts on the first, so a line no longer starts a step in from the axis
+- Every `DataTable` runs its rules 12px past its words, as a striped one runs its stripes, so its words keep the copy's edge and a first sort heading's ground has its 8px room (it sat flush), and a held column sizes for its 500 row headings, not 600
+- A chart legend's dot or diamond key is one icon wide, so its mark stands 8 to 10px from its label, as a line's end does (it stood up to 17px off)
+- DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
+- EmptyState and ErrorState: the explanation wraps as every message's copy does (`text-wrap: pretty`), and balanced where a chart centres it, as its title is, read through `--sui-state-copy-wrap`, so a centred sentence no longer leaves its first word alone at a line's end.
+- Rail: on its own, with no pages beside it, the column is 81px, 80px of tiles and their room past its 1px edge, so a 64px tile stands 8px from the edge as from the column's start, where it stood 7px from the edge.
 - AppShell: a `rail` of the caller's own markup keeps the pages beside it, where only `Rail` drew them; a phone's bottom bar sticks to the foot of the view again; and the bar finds a page heading that the content brings in or renames after it opens.
 - Rail: with `bottomNav`, the drawer's pages keep one render site, so crossing the phone width no longer mounts the sidebar afresh. A badge past 99 draws "99+" so it stays in the column, as does a folded `SideNav` count; the names still say the whole number.
 - FactList: a flowing label breaks a word wider than its list instead of running past it.

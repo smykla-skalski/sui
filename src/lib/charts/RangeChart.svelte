@@ -58,6 +58,8 @@
   /* Row labels longer than this are cut on the axis and stay whole in the table. */
   const LABEL_MOST = 18;
   const MARKER = 10;
+  // A key's diamond is a line chart's key marker, so it fills its 12-unit box as a dot does.
+  const KEY_MARKER = 8;
   const END = 5;
   /* An interval's line is 4px thick. */
   const RANGE = 4;
@@ -224,8 +226,8 @@ cut on the axis without splitting a character and stay whole in the table under 
     </li>
     {#if validData.some((item) => item.marker !== undefined)}
       <li>
-        <svg class="key" viewBox="0 0 24 12" aria-hidden="true">
-          <path d={markerPath('diamond', 12, 6, MARKER)} class="marker" />
+        <svg class="key point" viewBox="6 0 12 12" aria-hidden="true">
+          <path d={markerPath('diamond', 12, 6, KEY_MARKER)} class="marker" />
         </svg>{markerLabel}
       </li>
     {/if}
@@ -323,5 +325,9 @@ cut on the axis without splitting a character and stay whole in the table under 
     flex: none;
     inline-size: calc(2 * var(--sui-icon-sm));
     overflow: visible;
+  }
+  /* The marker's key is one icon wide, so its diamond keeps the gap the range's end keeps. */
+  .key.point {
+    inline-size: var(--sui-icon-sm);
   }
 </style>

@@ -338,6 +338,62 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test('a fact line moves a short fact to the next line whole, and each fact and its words end on a whole pixel', async () => {
+      const page = await opened();
+      const facts = await page.evaluate(() =>
+        [...document.querySelectorAll('#fact-line .sui-fact-line > *')].map((fact) => {
+          const box = fact.getBoundingClientRect();
+          return {
+            fact: /** @type {string} */ (fact.textContent),
+            lines: Math.round(box.height / parseFloat(getComputedStyle(fact).lineHeight)),
+            whole: Number.isInteger(box.left) && Number.isInteger(box.right),
+            // The dot follows a fact's last word, so a plain fact's words end on a whole pixel.
+            ends:
+              fact.children.length > 0 ||
+              Number.isInteger(
+                (() => {
+                  const words = document.createRange();
+                  words.selectNodeContents(fact);
+                  return /** @type {DOMRect} */ ([...words.getClientRects()].at(-1)).right;
+                })()
+              )
+          };
+        })
+      );
+      assert.ok(facts.length > 4, 'the page shows its fact lines');
+      for (const { fact, lines, whole, ends } of facts) {
+        assert.equal(lines, 1, `"${fact}" breaks across lines`);
+        assert.ok(
+          whole && ends,
+          `"${fact}" ends on a fraction of a pixel, so its dot draws lighter`
+        );
+      }
+    });
+
+    test("an external link's arrow draws at least 7px of ink, and its line keeps its height", async () => {
+      const page = await opened();
+      const links = await page.evaluate(() =>
+        [...document.querySelectorAll('#link-list .sui-link-list a:has(.sui-link-external)')].map(
+          (link) => {
+            const ink = /** @type {SVGPathElement} */ (
+              link.querySelector('.sui-link-external path')
+            ).getBoundingClientRect();
+            const plain = /** @type {Element} */ (
+              [...document.querySelectorAll('#link-list .sui-link-list a')].find(
+                (other) => !other.querySelector('.sui-link-external')
+              )
+            ).getBoundingClientRect();
+            return [ink.width, ink.height, link.getBoundingClientRect().height, plain.height];
+          }
+        )
+      );
+      assert.ok(links.length > 0, 'the page shows an external link');
+      for (const [width, height, line, plain] of links) {
+        assert.ok(width >= 7 && height >= 7, `the arrow's ink is ${width}x${height}`);
+        assert.equal(line, plain, 'the arrow makes its line taller');
+      }
+    });
+
     test('each directional glyph stands over its mirror, centred in its row beside its label, on the icon page', async () => {
       const page = await opened();
       const lines = await page.evaluate(() =>
@@ -1132,7 +1188,7 @@ suite('lists', together, () => {
       }
     });
 
-    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen', async () => {
+    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen, its row headings 500', async () => {
       const page = await opened();
       const wide = page.viewportSize();
       const read = [];
@@ -1150,7 +1206,10 @@ suite('lists', together, () => {
                 const cell = getComputedStyle(
                   /** @type {Element} */ (table.querySelector('tbody td'))
                 );
-                return [caption.fontSize, caption.fontWeight, cell.fontSize];
+                const row = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('tbody th'))
+                );
+                return [caption.fontSize, caption.fontWeight, cell.fontSize, row.fontWeight];
               })
           );
         }
@@ -1158,8 +1217,8 @@ suite('lists', together, () => {
         if (wide) await page.setViewportSize(wide);
       }
       assert.deepEqual(read, [
-        ['16px', '600', '16px'],
-        ['16px', '600', '15px']
+        ['16px', '600', '16px', '500'],
+        ['16px', '600', '15px', '500']
       ]);
     });
 
@@ -1348,6 +1407,84 @@ suite('lists', together, () => {
                 one.bottom <= other.top + 0.5,
                 `${one.label} reaches into ${other.label} on the next line`
               );
+      }
+    );
+    test(
+      'a table on a phone runs its rules 8px past its words, its cells’ side pad',
+      long,
+      async () => {
+        const page = await opened();
+        const reach = await page
+          .locator('#data-table .sui-data-table')
+          .first()
+          .evaluate((table) => {
+            const cell = /** @type {Element} */ (table.querySelector('tbody tr > :first-child'));
+            const row = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+            return (
+              cell.getBoundingClientRect().left +
+              parseFloat(getComputedStyle(cell).paddingLeft) -
+              row.left
+            );
+          });
+        assert.equal(reach, 8);
+      }
+    );
+
+    test(
+      'short facts in a box sized to them keep each value beside its label on a phone',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page
+          .locator('#fact-list .sui-fact-list.inline')
+          .filter({ hasText: 'Not set' });
+        await list.scrollIntoViewIfNeeded();
+        const offsets = await list.evaluate((dl) =>
+          [...dl.children].map((fact) => {
+            const label = /** @type {Element} */ (fact.querySelector('dt')).getBoundingClientRect();
+            const value = /** @type {Element} */ (fact.querySelector('dd')).getBoundingClientRect();
+            return Math.round(value.top - label.top);
+          })
+        );
+        assert.deepEqual(offsets, [0, 0, 0], 'a value drops under its label');
+      }
+    );
+
+    test(
+      'a long path wraps after its separators on a phone, not inside its words',
+      long,
+      async () => {
+        const page = await opened();
+        const value = page
+          .locator('#fact-list .sui-fact-list-fact')
+          .filter({ hasText: 'release-candidate' })
+          .locator('dd');
+        await value.scrollIntoViewIfNeeded();
+        const ends = await value.evaluate((dd) => {
+          const walker = document.createTreeWalker(dd, NodeFilter.SHOW_TEXT);
+          /** @type {{ text: string | undefined, top: number }[]} */
+          const glyphs = [];
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            for (let index = 0; index < (node.textContent ?? '').length; index++) {
+              const range = document.createRange();
+              range.setStart(node, index);
+              range.setEnd(node, index + 1);
+              glyphs.push({
+                text: node.textContent?.[index],
+                top: range.getBoundingClientRect().top
+              });
+            }
+          }
+          return glyphs
+            .filter((glyph, index) => glyphs[index + 1]?.top > glyph.top)
+            .map((glyph) => glyph.text);
+        });
+        assert.ok(ends.length > 0, 'the path fits one line, so it proves nothing');
+        assert.deepEqual(
+          ends.filter((end) => !'/:=-'.includes(end ?? '')),
+          [],
+          `the path breaks inside a word, its lines end ${ends.join(' ')}`
+        );
       }
     );
   });
@@ -1731,6 +1868,190 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test("a focused standalone link's ring stands clear of its underline, descenders and letters", async () => {
+      const page = await opened();
+      const link = page.locator('#link-list .sui-link-list a').first();
+      await link.focus();
+      const clear = await link.evaluate((node) => {
+        const look = getComputedStyle(node);
+        const box = node.getBoundingClientRect();
+        // The content box ends at the font's descent, under any padding the focus adds.
+        const restBottom = box.bottom - parseFloat(look.paddingBlockEnd);
+        const context = /** @type {CanvasRenderingContext2D} */ (
+          document.createElement('canvas').getContext('2d')
+        );
+        context.font = look.font;
+        const glyph = context.measureText('g');
+        const baseline = restBottom - glyph.fontBoundingBoxDescent;
+        const underline =
+          baseline +
+          parseFloat(look.textUnderlineOffset) +
+          parseFloat(look.textDecorationThickness);
+        const ring = box.bottom + parseFloat(look.outlineOffset);
+        const words = document.createRange();
+        words.selectNodeContents(node);
+        const letters = words.getBoundingClientRect();
+        return {
+          sides:
+            Math.min(letters.left - box.left, box.right - letters.right) +
+            parseFloat(look.outlineOffset),
+          visible: node.matches(':focus-visible'),
+          underline: ring - underline,
+          descender: ring - (baseline + glyph.actualBoundingBoxDescent)
+        };
+      });
+      await link.blur();
+      assert.ok(clear.visible, 'the link shows its focus ring');
+      assert.ok(
+        clear.underline >= 3,
+        `the ring stands ${clear.underline.toFixed(1)}px off the underline`
+      );
+      assert.ok(
+        clear.descender >= 3,
+        `the ring stands ${clear.descender.toFixed(1)}px off a descender`
+      );
+      // A glyph's side bearing adds about a pixel, so 4px off the letters' advance reads as the
+      // room above the cap.
+      assert.ok(clear.sides >= 3.5, `the ring stands ${clear.sides.toFixed(1)}px off the letters`);
+    });
+
+    test("a link list's note stands 6px under its link's underline", async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#link-list .sui-link-list-item')]
+          .filter((item) => item.querySelector('.sui-link-list-note'))
+          .map((item) => {
+            const link = /** @type {HTMLElement} */ (item.querySelector('a'));
+            const look = getComputedStyle(link);
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = look.font;
+            const baseline =
+              link.getBoundingClientRect().bottom - context.measureText('g').fontBoundingBoxDescent;
+            const underline =
+              baseline +
+              parseFloat(look.textUnderlineOffset) +
+              parseFloat(look.textDecorationThickness);
+            // The note's box is trimmed to its cap, so its top is its first ink.
+            const note = /** @type {Element} */ (item.querySelector('.sui-link-list-note'));
+            return note.getBoundingClientRect().top - underline;
+          })
+      );
+      assert.ok(gaps.length > 0, 'the page shows a note');
+      for (const gap of gaps)
+        assert.ok(gap >= 6, `the note stands ${gap.toFixed(1)}px under the line`);
+    });
+
+    test('an English note in a right-to-left link list keeps its own order', async () => {
+      const page = await opened();
+      const [first, last] = await page.evaluate(() => {
+        const note = /** @type {Element} */ (
+          [...document.querySelectorAll('#link-list [dir="rtl"] .sui-link-list-note')].find(
+            (node) => node.textContent?.startsWith('3 repositories')
+          )
+        );
+        const walker = document.createTreeWalker(note, NodeFilter.SHOW_TEXT);
+        const text = /** @type {Text} */ (walker.nextNode());
+        const glyph = (/** @type {number} */ index) => {
+          const range = document.createRange();
+          range.setStart(text, index);
+          range.setEnd(text, index + 1);
+          return range.getBoundingClientRect().left;
+        };
+        return [glyph(0), glyph(text.length - 1)];
+      });
+      assert.ok(first < last, 'the number moved to the end of "3 repositories differ"');
+    });
+
+    test("a timeline's actor avatar is 24px, its initials at the 11px floor for words", async () => {
+      const page = await opened();
+      const faces = await page.evaluate(() =>
+        [...document.querySelectorAll('#timeline .sui-timeline-face .sui-avatar')].map((avatar) => {
+          const box = avatar.getBoundingClientRect();
+          return [box.width, box.height, parseFloat(getComputedStyle(avatar).fontSize)];
+        })
+      );
+      assert.ok(faces.length > 0, 'the page shows an actor');
+      for (const [width, height, letters] of faces) {
+        assert.deepEqual([width, height], [24, 24], 'the avatar is not 24px');
+        assert.ok(letters >= 11, `the initials are ${letters}px`);
+      }
+    });
+
+    test("under a card's width a timeline drops its pill and action under the words, on their edge", async () => {
+      const page = await opened();
+      // A timeline lays out only the words near the screen.
+      await page.locator('#timeline .measure').scrollIntoViewIfNeeded();
+      await page.waitForFunction(() =>
+        [...document.querySelectorAll('#timeline .measure .sui-timeline-words')].every((words) =>
+          words.checkVisibility({ contentVisibilityAuto: true })
+        )
+      );
+      const events = await page.evaluate(() =>
+        [...document.querySelectorAll('#timeline .measure .sui-timeline-event')]
+          .filter((event) => event.querySelector('.sui-timeline-side'))
+          .map((event) => {
+            const box = (/** @type {string} */ part) =>
+              /** @type {Element} */ (event.querySelector(part)).getBoundingClientRect();
+            const [time, words, side] = [
+              box('.sui-timeline-time'),
+              box('.sui-timeline-words'),
+              box('.sui-timeline-side')
+            ];
+            return {
+              time: time.top,
+              words: [words.left, words.top, words.bottom],
+              side: [side.left, side.top]
+            };
+          })
+      );
+      assert.ok(events.length > 0, 'the 32rem timeline shows a pill or an action');
+      for (const { time, words, side } of events) {
+        assert.equal(time, words[1], 'the time stands beside its words');
+        assert.ok(side[1] >= words[2], 'the pill and action stand beside the words');
+        assert.ok(Math.abs(side[0] - words[0]) <= 0.5, "the pill and action leave the words' edge");
+      }
+    });
+
+    test('a refreshing timeline says so over its kept events, its mark on whole pixels', async () => {
+      const page = await opened();
+      const specimen = page.locator('#timeline .specimen', { hasText: 'Refreshing' }).first();
+      const [words, top, left, events] = await specimen.evaluate((node) => {
+        const line = /** @type {Element} */ (node.querySelector('.sui-timeline-refreshing'));
+        const mark = /** @type {Element} */ (line?.querySelector('svg')).getBoundingClientRect();
+        return [
+          line.textContent?.trim(),
+          mark.top,
+          mark.left,
+          node.querySelectorAll('.sui-timeline-event:not(.placeholder)').length
+        ];
+      });
+      assert.equal(words, 'Refreshing…');
+      assert.ok(
+        Number.isInteger(top) && Number.isInteger(left),
+        `the mark stands at ${left},${top}`
+      );
+      assert.ok(events > 0, 'the refresh keeps its events');
+    });
+
+    test("a right-to-left link list starts at its card's inline start, the right edge", async () => {
+      const page = await opened();
+      const [list, holder] = await page.evaluate(() => {
+        const list = /** @type {Element} */ (
+          document.querySelector('#link-list [dir="rtl"] .sui-link-list')
+        );
+        const card = /** @type {Element} */ (
+          /** @type {Element} */ (list.closest('.specimen')).parentElement
+        );
+        return [
+          list.getBoundingClientRect().right,
+          card.getBoundingClientRect().right - parseFloat(getComputedStyle(card).paddingInlineEnd)
+        ];
+      });
+      assert.equal(list, holder);
+    });
+
     test('a failed refresh over its rows keeps its words 16px inside its tint, as a form error does, above and below', async () => {
       const page = await opened();
       const strip = page
@@ -2094,6 +2415,62 @@ suite('lists', together, () => {
     );
 
     test(
+      'facts part 12px, a step past the 8px between a wrapped value and its label',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page
+          .locator('#fact-list .sui-fact-list.inline')
+          .filter({ hasText: 'Message' });
+        await list.scrollIntoViewIfNeeded();
+        const gaps = await list.evaluate((dl) => {
+          const box = (/** @type {Element} */ fact, /** @type {string} */ part) =>
+            /** @type {Element} */ (fact.querySelector(part)).getBoundingClientRect();
+          const facts = [...dl.children];
+          return facts
+            .slice(0, -1)
+            .map((fact, index) => [
+              Math.round(box(fact, 'dd').top - box(fact, 'dt').bottom),
+              Math.round(box(facts[index + 1], 'dt').top - box(fact, 'dd').bottom)
+            ]);
+        });
+        assert.ok(gaps.length > 0);
+        for (const gap of gaps)
+          assert.deepEqual(gap, [8, 12], 'a value to its label, then to the next fact');
+      }
+    );
+
+    test(
+      'a row that holds a pill keeps its neighbours’ pitch, the pill on whole pixels',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page.locator('#fact-list .sui-fact-list.rows').first();
+        await list.scrollIntoViewIfNeeded();
+        const rows = await list.evaluate((dl) =>
+          [...dl.children].slice(1, -1).map((row) => {
+            const pill = row.querySelector('.sui-pill')?.getBoundingClientRect();
+            return {
+              height: row.getBoundingClientRect().height,
+              pill: pill && Number.isInteger(pill.top) && Number.isInteger(pill.bottom),
+              lines: row.querySelector('dd')?.getClientRects().length
+            };
+          })
+        );
+        const plain = rows.filter((row) => row.pill === undefined).map((row) => row.height);
+        const pilled = rows.filter((row) => row.pill !== undefined);
+        assert.ok(pilled.length > 0, 'the rows hold no pill to test');
+        for (const row of pilled) {
+          assert.ok(row.pill, 'a pill stands on a fraction of a pixel');
+          assert.ok(
+            Math.abs(row.height - Math.min(...plain)) <= 1,
+            `a pill's row is ${row.height}px beside ${plain}px rows`
+          );
+        }
+      }
+    );
+
+    test(
       'U5 a sortable heading sorts the rows and says so with aria-sort, and the order and an open code panel stay through a reload',
       long,
       async () => {
@@ -2192,8 +2569,29 @@ suite('lists', together, () => {
       assert.deepEqual(found, [28, 16, 8, true, 16]);
     });
 
+    test('tables side by side keep their rules apart', long, async () => {
+      const page = await opened();
+      const frames = await page
+        .locator('#data-table .example')
+        .filter({ hasText: 'Empty, loading, refreshing and failed' })
+        .locator('.sui-data-table > .viewport')
+        .evaluateAll((viewports) =>
+          viewports.map((viewport) => viewport.getBoundingClientRect().toJSON())
+        );
+      const gaps = frames.flatMap((left) =>
+        frames
+          .filter(
+            (right) =>
+              right.top < left.bottom && right.bottom > left.top && right.left > left.right - 1
+          )
+          .map((right) => right.left - left.right)
+      );
+      assert.ok(gaps.length > 0, 'no two tables share a row');
+      for (const gap of gaps) assert.ok(gap >= 24, `two tables' rules ${gap}px apart`);
+    });
+
     test(
-      "a striped table keeps the plain table's text edge, and its stripes reach past it",
+      "every table's rules and stripes reach 12px past its words, and a first sort heading's ground 8px",
       long,
       async () => {
         const page = await opened();
@@ -2208,9 +2606,12 @@ suite('lists', together, () => {
               );
               const box = cell.getBoundingClientRect();
               const stripe = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+              const sort = table.querySelector('thead th:first-child > .sort');
+              const label = sort?.querySelector('span')?.getBoundingClientRect();
               return {
                 words: box.left + parseFloat(getComputedStyle(cell).paddingLeft),
-                stripe: stripe.left
+                stripe: stripe.left,
+                ground: sort && label ? label.left - sort.getBoundingClientRect().left : 8
               };
             })
           );
@@ -2218,7 +2619,13 @@ suite('lists', together, () => {
           Math.abs(striped.words - plain.words) < 0.5,
           `${striped.words} vs ${plain.words}`
         );
-        assert.ok(Math.abs(striped.words - striped.stripe - 12) < 0.5, 'the stripe hugs the words');
+        for (const table of [plain, striped]) {
+          assert.ok(Math.abs(table.words - table.stripe - 12) < 0.5, 'a row hugs its words');
+          assert.ok(
+            Math.abs(table.ground - 8) < 0.5,
+            `a sort ground ${table.ground}px before its words`
+          );
+        }
       }
     );
 

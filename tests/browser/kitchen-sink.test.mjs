@@ -364,6 +364,146 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  test(
+    "L-24 the audit finds a linked name's note a plain copy gap under its underline",
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'link-list');
+      try {
+        await page.evaluate(() => {
+          const item = document.querySelector('.sui-link-list-item:has(.sui-link-list-note)');
+          /** @type {HTMLElement} */ (item).style.rowGap = 'var(--sui-row-copy-gap)';
+        });
+        const findings = (await audit(page)).filter(
+          ({ law, detail }) => law === 'L-24' && detail.includes('not 10px')
+        );
+        assert.ok(findings.length > 0, 'a note 8px under an underlined link is a finding');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'on a phone the next specimen stands clear of a link list, further off than its rows',
+    long,
+    async () => {
+      const page = await open(390, 'light', {}, 'link-list');
+      try {
+        const { rows, next } = await page.evaluate(() => {
+          const specimens = [...document.querySelectorAll('#link-list .example .specimen')];
+          const links = [...specimens[0].querySelectorAll('a')].map((a) =>
+            a.getBoundingClientRect()
+          );
+          const name = /** @type {Element} */ (
+            specimens[1].firstElementChild
+          ).getBoundingClientRect();
+          return {
+            rows: links[1].top - links[0].bottom,
+            next: name.top - links[links.length - 1].bottom
+          };
+        });
+        assert.ok(next >= rows + 8, `the next name stands ${next}px under links ${rows}px apart`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'a desktop shows the Times and Days timelines wide enough to keep their time column',
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'timeline');
+      try {
+        const widths = await page.evaluate(() =>
+          [...document.querySelectorAll('#timeline .example')]
+            .filter((example) =>
+              /^(Times|Days)$/.test(example.querySelector('h3')?.textContent ?? '')
+            )
+            .flatMap((example) => [...example.querySelectorAll('.sui-timeline')])
+            .map((timeline) => timeline.getBoundingClientRect().width)
+        );
+        assert.equal(widths.length, 4);
+        // Under 25rem a timeline stands each time over its words, which the Times note denies.
+        for (const width of widths)
+          assert.ok(width > 400, `a ${width}px timeline drops its time column`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  // Measured in drawn pixels: a 2px circle on a 1x screen blurs to a quarter less ink, which
+  // left the light dot at 3.3:1 and the dark one at 6.8:1.
+  test('a fact dot draws alike in both themes, 4.5:1 or more on its ground', long, async () => {
+    /** @type {number[]} */
+    const ratios = [];
+    for (const theme of ['light', 'dark']) {
+      const page = await open(1440, theme, {}, 'fact-line');
+      try {
+        const fact = page.locator('#fact-line .sui-fact-line > :first-child').first();
+        await fact.scrollIntoViewIfNeeded();
+        const spot = await fact.evaluate((node) => {
+          const box = node.getBoundingClientRect();
+          let ground = /** @type {Element} */ (node.parentElement);
+          while (getComputedStyle(ground).backgroundColor === 'rgba(0, 0, 0, 0)')
+            ground = /** @type {Element} */ (ground.parentElement);
+          return {
+            x: box.right - parseFloat(getComputedStyle(node, '::after').marginInlineEnd) - 2,
+            y: box.top,
+            height: box.height,
+            ground: getComputedStyle(ground).backgroundColor
+          };
+        });
+        const shot = await page.screenshot({
+          clip: {
+            x: Math.floor(spot.x) - 1,
+            y: Math.floor(spot.y),
+            width: 4,
+            height: Math.ceil(spot.height)
+          }
+        });
+        ratios.push(
+          await page.evaluate(
+            async ({ png, ground }) => {
+              const image = new Image();
+              image.src = `data:image/png;base64,${png}`;
+              await image.decode();
+              const canvas = document.createElement('canvas');
+              canvas.width = image.width;
+              canvas.height = image.height;
+              const context = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
+              context.drawImage(image, 0, 0);
+              const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+              const lum = (/** @type {number[]} */ c) =>
+                c
+                  .map((v) => v / 255)
+                  .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+                  .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+              const back = lum((ground.match(/\d+/g) ?? []).map(Number));
+              let best = 1;
+              for (let i = 0; i < data.length; i += 4) {
+                const l = lum([data[i], data[i + 1], data[i + 2]]);
+                best = Math.max(best, (Math.max(l, back) + 0.05) / (Math.min(l, back) + 0.05));
+              }
+              return best;
+            },
+            { png: shot.toString('base64'), ground: spot.ground }
+          )
+        );
+      } finally {
+        await page.close();
+      }
+    }
+    const [light, dark] = ratios;
+    for (const ratio of ratios) assert.ok(ratio >= 4.5, `a dot draws ${ratio.toFixed(2)}:1`);
+    assert.ok(
+      Math.abs(light - dark) <= 1,
+      `the dot draws ${light.toFixed(2)}:1 on light, ${dark.toFixed(2)}:1 on dark`
+    );
+  });
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });

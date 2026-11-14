@@ -36,6 +36,7 @@
   import DayHeading, { dayKey } from './DayHeading.svelte';
   import Pill from './Pill.svelte';
   import RelativeTime from './RelativeTime.svelte';
+  import Icon from '../icons/Icon.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
@@ -50,6 +51,7 @@
     locale,
     emptyLabel = word('Timeline.emptyLabel', 'Check back once the first event happens'),
     loadingLabel = word('Timeline.loadingLabel', 'Loading…'),
+    refreshingLabel = word('Timeline.refreshingLabel', 'Refreshing…'),
     class: className = '',
     ...rest
   }: {
@@ -78,6 +80,8 @@
     emptyLabel?: string;
     /** Announced while events load. */
     loadingLabel?: string;
+    /** Shown and said while `loading` keeps the loaded events, as a refresh. */
+    refreshingLabel?: string;
     class?: HTMLOlAttributes['class'];
   } & Omit<HTMLOlAttributes, 'children'> = $props();
 
@@ -123,20 +127,30 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
 - Semantics: an `ol` with `role="list"` of one `li` per event; each time is a `time` with a machine-readable `datetime`; a day heading is a real heading at `level`.
 - Content: per event a time, a sentence, and an optional actor (avatar and name), a status pill and an action; the words wrap, a time never does.
-- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, past the avatar's seat with `actors`, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy).
+- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, past the avatar's seat with `actors`, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy, and `refreshingLabel` stands over them after the refresh mark, as on a table's caption line).
 - Keyboard: Tab reaches a relative time, which shows its whole instant, and each action, in reading order; a clock time is not a tab stop.
 - Pointer and touch: an action keeps its own target; on a phone or a touch screen a wide timeline with actions spaces its events by the 44px target, so targets never meet.
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
-- Responsive: a container query under 25rem of its own width stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
-- Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
-- Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
+- Responsive: under a card's width (36rem) the pill and action drop under the words, on their edge, while each time keeps its column, and under 25rem it stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
+- Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`, or `refreshingLabel` over kept events; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
+- Localization: `emptyLabel`, `loadingLabel` and `refreshingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
 - Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
 - Analytics: none of its own; actions and `LoadMore` report their own outcomes.
 - Failure: a time that is not a date is shown as given and sorts last; a failed load is an `ErrorState` in the list's place, and a failed refresh an `ErrorState overContent` over the kept events.
 -->
 
 <!-- Before the list, so a LoadMore after it is the list's own next sibling. -->
-<VisuallyHidden role="status">{loading ? loadingLabel : ''}</VisuallyHidden>
+<VisuallyHidden role="status"
+  >{loading ? (events.length > 0 ? refreshingLabel : loadingLabel) : ''}</VisuallyHidden
+>
+<!-- A refresh keeps the events, so the line over them says the list is busy, as a table's does. -->
+{#if loading && events.length > 0}
+  <p class="sui-timeline-refreshing" aria-hidden="true">
+    <span class="sui-timeline-refreshing-mark"><Icon name="refresh" size="sm" /></span><span
+      class="sui-timeline-refreshing-words">{refreshingLabel}</span
+    >
+  </p>
+{/if}
 {#if events.length === 0 && !loading}
   <p class={['sui-timeline-empty', className]}>{emptyLabel}</p>
 {:else}
@@ -186,7 +200,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
                   name={event.actor.name}
                   src={event.actor.src}
                   shape={event.actor.shape}
-                  size={20}
+                  size={24}
                   alt=""
                 /></span
               >
@@ -211,6 +225,35 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
 <style>
   /* One grid for every event, so the times share a column down the whole list, across days. */
+  /* The refresh line reads as a table's: the refresh mark in the info hue 8px before the words
+     in the secondary ink, 12px over the events. The mark hangs from a box of no height, centred
+     on the words, so the line keeps their height. */
+  .sui-timeline-refreshing {
+    align-items: center;
+    color: var(--sui-info);
+    display: flex;
+    gap: var(--sui-space-2);
+    margin: 0 0 var(--sui-space-3);
+  }
+
+  .sui-timeline-refreshing-mark {
+    align-items: center;
+    block-size: 0;
+    display: flex;
+  }
+
+  /* Trimmed to its cap band, as a table's refresh words are, so the mark centres on whole
+     pixels (L-94, L-95). */
+  .sui-timeline-refreshing-words {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
   .sui-timeline {
     --sui-local-timeline-target: var(--sui-field-target-min);
     column-gap: var(--sui-space-6);
@@ -302,9 +345,9 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* Where an event has an actor, every event's words stand where the actor's words do, past
-     the 20px avatar's seat, so the words keep one edge down the list. */
+     the 24px avatar's seat, so the words keep one edge down the list. */
   .sui-timeline:has(.sui-timeline-face) .sui-timeline-body {
-    grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+    grid-template-columns: var(--sui-space-6) minmax(0, 1fr);
   }
 
   .sui-timeline:has(.sui-timeline-face) .sui-timeline-body > .sui-timeline-words {
@@ -323,7 +366,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
   /* Seats as tall as the first line's cap band: what stands in them centres on it and reaches
      above and below it evenly, without raising the row. The seat rounds to an even height so a
-     20px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
+     24px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
      event with an avatar keeps the list's pitch. */
   .sui-timeline-face,
   .sui-timeline-side {
@@ -449,6 +492,30 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     }
   }
 
+  /* Under a card's width a pill and an action beside the words leave them too narrow a column,
+     so they drop under the words, a copy gap down and on the words' edge, while each time keeps
+     its column beside them. */
+  @container sui-timeline (25rem < width <= 36rem) {
+    .sui-timeline:has(> li > .sui-timeline-side) {
+      grid-template-columns: max-content minmax(0, 1fr);
+    }
+
+    .sui-timeline-event {
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-timeline-side {
+      block-size: auto;
+      flex-wrap: wrap;
+      grid-column: 2;
+      justify-content: flex-start;
+    }
+
+    .sui-timeline:has(.sui-timeline-face) .sui-timeline-side {
+      margin-inline-start: calc(var(--sui-space-6) + var(--sui-space-2));
+    }
+  }
+
   /* Stacked, the avatar keeps its own column, so the time, the words and what drops under them
      hang on one edge, and the day spans both columns. */
   @container sui-timeline (max-width: 25rem) {
@@ -465,7 +532,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     /* Stacked, the seat is the event's column and holds only the avatar: each time stands over
        its words on their edge, so an event reads as one block. */
     .sui-timeline:has(.sui-timeline-face) > .sui-timeline-event {
-      grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+      grid-template-columns: var(--sui-space-6) minmax(0, 1fr);
     }
 
     .sui-timeline:has(.sui-timeline-face) :is(.sui-timeline-time, .sui-timeline-words) {

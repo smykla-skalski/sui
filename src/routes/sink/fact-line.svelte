@@ -14,7 +14,11 @@
   const synced = new Date(Date.now() - 42.5 * 60_000).toISOString();
 </script>
 
-<Example title="Facts" note="The dot stands 9 px from each fact and is read as a comma">
+<Example
+  title="Facts"
+  note="The dot stands 9 px from each fact and is read as a comma"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
+>
   <Specimen label="Words">
     <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
   </Specimen>
@@ -39,10 +43,13 @@
 </Example>
 
 <style>
+  /* The bound the facts wrap in, drawn as the avatar page draws its own, so the wrap reads as
+     the point of the example. Its words keep the 18rem measure inside the frame. */
   .narrow {
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    max-inline-size: 16rem;
+    box-sizing: border-box;
+    border: var(--sui-stroke) dashed var(--sui-border-subtle);
+    border-radius: var(--sui-radius-control);
+    inline-size: min(100%, calc(18rem + 2 * (var(--sui-space-2) + var(--sui-stroke))));
+    padding: var(--sui-space-2);
   }
 </style>

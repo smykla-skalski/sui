@@ -35,7 +35,8 @@ standings and controls, is an `ObjectList`, and the way back is `BackLink`.
 The list hangs from the heading above it, with no bullets, so its words stand on the
 heading's edge. Each link stands one target's height plus 4px under the one before, so their
 grown hit areas never meet, and on a phone one 44px target under it, the areas edge to edge,
-so the list keeps a row's pitch; a note stands one copy gap under its link.
+so the list keeps a row's pitch; a note stands a copy gap and
+2px under its link, so the link's underline keeps air under it.
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone; each item is a native link, described by its note.
 - Content: a label per link, an optional one-line note that wraps when long, and whether it leaves the product.
@@ -45,7 +46,7 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
 - Focus: nothing here moves focus.
 - Responsive: a long label or note wraps at its own edge; on a phone or a touch screen the links step one 44px touch target apart, a row's hairline between them, so they read as rows.
 - Accessibility: a screen reader hears a list with its count; each note is the link's description, and an external link says "(opens another site)" after it; name the list with `aria-labelledby` when the page holds more than one.
-- Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page.
+- Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page, and each label and note keeps its own direction (`bdi`), so an English note such as "3 repositories differ" keeps its number first there.
 - Performance: one link per item, with no script.
 - Analytics: none of its own; each link is a plain `a`, so the page's navigation tracking hears it.
 - Failure: with no links it draws nothing, so leave its heading out too or say so in one quiet sentence.
@@ -60,11 +61,12 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
             href={link.href}
             external={link.external}
             standalone
-            aria-describedby={link.note ? `${id}-${index}` : undefined}>{link.label}</Link
+            aria-describedby={link.note ? `${id}-${index}` : undefined}
+            ><bdi>{link.label}</bdi></Link
           ></span
         >
         {#if link.note}
-          <span class="sui-link-list-note" id="{id}-{index}">{link.note}</span>
+          <span class="sui-link-list-note" id="{id}-{index}"><bdi>{link.note}</bdi></span>
         {/if}
       </li>
     {/each}
@@ -84,10 +86,12 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
     row-gap: calc(var(--sui-local-link-target) - round(up, 1cap, 2px) + var(--sui-space-1));
   }
 
+  /* A link's underline stands under its words, in the copy gap a plain label leaves clear, so
+     its note stands 2px further down to keep the gap's air under the line. */
   .sui-link-list-item {
     display: grid;
     min-inline-size: 0;
-    row-gap: var(--sui-row-copy-gap);
+    row-gap: calc(var(--sui-row-copy-gap) + 2px);
   }
 
   .sui-link-list-link,

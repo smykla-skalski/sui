@@ -305,6 +305,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .sui-data-table {
+    --sui-local-table-bleed: var(--sui-space-3);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
@@ -527,12 +528,19 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     align-content: start;
   }
 
+  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
+     table's rules and stripes run 12px past its words, 8px on a phone, and its words keep the
+     edge of the copy around it. */
+  .sui-data-table > .viewport {
+    margin-inline: calc(-1 * var(--sui-local-table-bleed));
+  }
+
   :is(th, td):first-child {
-    padding-inline-start: 0;
+    padding-inline-start: var(--sui-local-table-bleed);
   }
 
   :is(th, td):last-child {
-    padding-inline-end: 0;
+    padding-inline-end: var(--sui-local-table-bleed);
   }
 
   /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
@@ -558,7 +566,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .held thead th:first-child .sample {
-    font-weight: var(--sui-weight-semibold);
+    font-weight: var(--sui-weight-medium);
   }
 
   .numeric .sample {
@@ -603,18 +611,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   [data-align='end'] .sort {
     flex-direction: row-reverse;
     margin-inline-start: auto;
-  }
-
-  /* An outer heading meets the scroller's edge, which would cut a ground or ring reaching past
-     it (L-96), so there the button starts or ends with its words. */
-  .sui-data-table:not(.striped) th:first-child > .sort {
-    margin-inline-start: 0;
-    padding-inline-start: 0;
-  }
-
-  .sui-data-table:not(.striped) th:last-child > .sort {
-    margin-inline-end: 0;
-    padding-inline-end: 0;
   }
 
   .sort::before {
@@ -680,29 +676,17 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     background: var(--sui-local-stripe);
   }
 
-  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
-     striped table's words keep a plain table's edge. */
-  .striped > .viewport {
-    margin-inline: calc(-1 * var(--sui-space-3));
-  }
-
-  .striped :is(th, td):first-child {
-    padding-inline-start: var(--sui-space-3);
-  }
-
-  .striped :is(th, td):last-child {
-    padding-inline-end: var(--sui-space-3);
-  }
-
   td {
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
   }
 
+  /* A row heading names its row a step over the values, at 500, so it anchors the row while
+     the column headings at 600 stay the table's loudest words. */
   tbody th {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
   }
 
@@ -818,6 +802,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      does, so more of a wide table shows before the frame scrolls. A long value keeps the full
      measure, so its row stays a few lines tall. */
   @media (max-width: 47.9375rem) {
+    /* The reach past the words is a cell's side pad, so a frame in a phone card's 16px inset
+       ends 8px short of the card's edge and never doubles it. */
+    .sui-data-table {
+      --sui-local-table-bleed: var(--sui-space-2);
+    }
+
     table {
       --sui-local-held-measure: 6rem;
     }

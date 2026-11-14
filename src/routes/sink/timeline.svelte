@@ -110,7 +110,7 @@
 <Example
   title="Times"
   note="Clock times in mono line up in one column, and relative times show the whole instant in a tip"
-  layout="grid"
+  layout="pairs"
 >
   <Specimen label="Clock, oldest first">
     <Timeline events={log} order="oldest" aria-label="Check 4182" />
@@ -174,7 +174,7 @@
 <Example
   title="Days"
   note="Grouped, each local day takes a heading; ungrouped events from several days carry their date"
-  layout="grid"
+  layout="pairs"
 >
   <Specimen label="Grouped by day">
     <Timeline events={history} days level={4} aria-label="Workspace history" />
@@ -227,10 +227,8 @@
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
-  <Specimen label="Actor, status & action">
-    <div dir="rtl">
-      <Timeline events={people} order="oldest" aria-label="Check 4182" />
-    </div>
+  <Specimen label="Actor, status & action" dir="rtl">
+    <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
 </Example>
 

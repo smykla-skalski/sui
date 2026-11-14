@@ -114,6 +114,11 @@ they wrap one by one.
           {@render fact.value()}
         {:else if fact.href !== undefined}
           <Link href={fact.href} standalone>{fact.value}</Link>
+        {:else if fact.mono && typeof fact.value === 'string'}
+          <!-- A path or a reference wraps after a separator, as a mono chip's does, and breaks
+               inside a part only where the part alone is too wide. -->
+          {#each fact.value.split(/(?<=[/:=-])/) as part, index (index)}{#if index > 0}<wbr
+              />{/if}{part}{/each}
         {:else}
           {fact.value}
         {/if}
@@ -146,7 +151,8 @@ they wrap one by one.
 
   /* Its words stand at the top of their snapped box, so a fact's baseline is one cap below its
      top: every fact starts on a whole pixel, and a line of plain facts parts from the one above
-     by the copy's leading, its words 8px from that line's. The first line's trim takes that
+     by 12px of room, a step past the 8px that parts a wrapped value from its label, so each
+     pair reads as one and the next as another. The first line's trim takes that
      room off the top. */
   .inline > .sui-fact-list-fact {
     align-items: baseline;
@@ -154,7 +160,7 @@ they wrap one by one.
     column-gap: var(--sui-space-2);
     display: inline-flex;
     flex-wrap: wrap;
-    margin-block-start: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
+    margin-block-start: var(--sui-space-3);
     margin-inline-end: var(--sui-space-6);
     max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
@@ -305,6 +311,23 @@ they wrap one by one.
     padding-block: 0;
   }
 
+  /* In a row a one-line pill reaches into the row's padding on its middle, as a face does, so
+     the row keeps its neighbours' pitch, while a pill whose words wrap grows the row by its
+     extra lines. It stands on the label's cap box, not its baseline, so the pill lands on whole
+     pixels (L-95). */
+  .rows .sui-fact-list-value:has(> :global(.sui-pill)) {
+    --sui-local-fact-mark: var(--sui-local-pill-tier, var(--sui-tier-mark));
+  }
+
+  .rows .sui-fact-list-value:has(> :global(.sui-chip)) {
+    --sui-local-fact-mark: var(--sui-control-height-chip);
+  }
+
+  .rows .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
+    align-self: start;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-local-fact-mark)) / 2);
+  }
+
   /* A face beside a name stands taller than a value's words, so in a row the identity is as
      tall as its words and the face reaches into the row's padding, centred on the name, and a
      one-line row keeps its neighbours' pitch while a wrapped name or a handle still grows it. */
@@ -405,6 +428,11 @@ they wrap one by one.
 
     .sui-fact-list-action {
       justify-self: start;
+    }
+
+    /* Stacked, a pill is a box one copy gap under its label, with no row padding to reach into. */
+    .rows .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
+      margin-block: 0;
     }
   }
 

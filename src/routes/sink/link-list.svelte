@@ -40,6 +40,7 @@
   title="Links"
   note="Links stand on the heading’s edge with no bullets, one target plus 4 px apart, and one that leaves the product says so"
   layout="grid"
+  --specimen-phone-row-gap="calc(var(--sui-space-8) + var(--sui-space-2))"
 >
   <Specimen label="Plain">
     <LinkList links={related} aria-label="Related" />
@@ -76,11 +77,13 @@
   </Specimen>
 </Example>
 
-<Example title="Right to Left" note="The list starts at the inline start and the arrow mirrors">
-  <Specimen label="With notes & an external link">
-    <div dir="rtl">
-      <LinkList links={noted} aria-label="Related" />
-    </div>
+<Example
+  title="Right to Left"
+  note="The list starts at the inline start and the arrow mirrors"
+  layout="stack"
+>
+  <Specimen label="With notes & an external link" dir="rtl">
+    <LinkList links={noted} aria-label="Related" />
   </Specimen>
 </Example>
 
