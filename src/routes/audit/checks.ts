@@ -511,7 +511,12 @@ function palette(): Finding[] {
     )
   );
 
-  for (const ink of ['sidebar-text', 'sidebar-text-secondary', 'sidebar-text-muted'])
+  for (const ink of [
+    'sidebar-text',
+    'sidebar-text-secondary',
+    'sidebar-text-muted',
+    'sidebar-text-rest'
+  ])
     found.push(...atLeast('L-85', `${ink} on sidebar-bg`, c(ink, 'sidebar-bg'), 4.5));
   found.push(
     ...atLeast(
@@ -525,8 +530,8 @@ function palette(): Finding[] {
     ...atLeast('L-85', 'sidebar-focus on sidebar-bg', c('sidebar-focus', 'sidebar-bg'), 3),
     ...atLeast(
       'L-85',
-      'sidebar-active-ink against sidebar-text-muted',
-      contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
+      'sidebar-active-ink against sidebar-text-rest',
+      contrast(t('sidebar-active-ink'), t('sidebar-text-rest')),
       2
     ),
     ...atLeast(
@@ -922,12 +927,10 @@ function copyRhythm(root: Document): Finding[] {
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
-    // A state's step in words stands apart from the explanation over it, as words do from a title,
-    // and so does a setting row's status or problem under its description; one right under the name is
-    // the row's only copy line, 8px off it.
+    // A setting row's status or problem stands apart from the description over it, as words do
+    // from a title; one right under the name is the row's only copy line, 8px off it.
     const step =
-      [...second.classList].some((name) => name.endsWith('-state-step')) ||
-      (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
+      second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why');
     const want = titled || step ? 12 : 8;
     // Words a gap of 16px or more parts belong to another block, but a title's own note is its
     // second line at any distance.
@@ -2168,9 +2171,10 @@ function specimens(root: Document): Finding[] {
 }
 
 /**
- * Rows that wrap (L-90): every new line starts at the row's start edge, so a lone item that an
- * auto margin pushes over never floats away from what it belongs to. A row aligned to its end or
- * centre on purpose keeps every line there, and is left alone.
+ * Rows that wrap (L-90): every new line starts at the row's start edge, or on the words' edge
+ * when the first item hangs a mark before them, so a lone item that an auto margin pushes over
+ * never floats away from what it belongs to. A row aligned to its end or centre on purpose keeps
+ * every line there, and is left alone.
  */
 function wrapping(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2191,6 +2195,7 @@ function wrapping(root: Document): Finding[] {
     const start = rtl
       ? box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
       : box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+    const hang = wordsEdge(items[0], rtl);
     let bottom = items[0].getBoundingClientRect().bottom;
     for (const item of items.slice(1)) {
       const own = item.getBoundingClientRect();
@@ -2200,7 +2205,7 @@ function wrapping(root: Document): Finding[] {
       }
       bottom = own.bottom;
       const edge = rtl ? own.right : own.left;
-      if (Math.abs(edge - start) > 1)
+      if (Math.abs(edge - start) > 1 && (hang === null || Math.abs(edge - hang) > 1))
         found.push(
           finding(
             'L-90',
@@ -2211,6 +2216,23 @@ function wrapping(root: Document): Finding[] {
     }
   }
   return found;
+}
+
+/** Where an item's first words start, when a mark hangs before them, else null. */
+function wordsEdge(item: Element, rtl: boolean): number | null {
+  const walker = item.ownerDocument.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const text = walker.currentNode;
+    if (!text.textContent?.trim()) continue;
+    const range = item.ownerDocument.createRange();
+    range.selectNodeContents(text);
+    const words = range.getBoundingClientRect();
+    const own = item.getBoundingClientRect();
+    const edge = rtl ? words.right : words.left;
+    const hung = rtl ? own.right - edge : edge - own.left;
+    return hung > 1 && item.querySelector('svg') ? edge : null;
+  }
+  return null;
 }
 
 /**
@@ -2433,6 +2455,25 @@ function fieldRecesses(root: Document): Finding[] {
       found.push(finding('L-9', field, 'its recess is no darker than its frame'));
   }
   return found;
+}
+
+/**
+ * A current row's plate is where a keyboard reader's ring lands (L-6), so the ring holds 3:1 on
+ * the plate as painted over whatever ground the list stands on. A row the pointer rests on
+ * without focus wears its hover plate, which no ring stands on, since a focused row keeps its
+ * resting plate.
+ */
+function ringsOnPlates(root: Document): Finding[] {
+  return audited(root, '.sui-object-row.current, .sui-page-toc-link[aria-current]').flatMap(
+    (row) => {
+      if (row.matches(':hover') && !row.matches(':focus-visible, :has(:focus-visible)')) return [];
+      const ground = paintedGround(row);
+      const ratio = contrast(over(token('--sui-focus', row), ground), ground);
+      return ratio < 3
+        ? [finding('L-6', row, `the focus ring holds ${round(ratio)}:1 on the current plate`)]
+        : [];
+    }
+  );
 }
 
 /**
@@ -3081,9 +3122,9 @@ export function cutSides(element: Element, reach: number): string[] {
 }
 
 /**
- * Code lines (L-65): every line of a code or diff block is one height. A diff block's first
- * and last lines meet its edges, so their tones run to them; a code block keeps one even air
- * above its first line and under its last, and its copy control centres on the first line.
+ * Code lines (L-65): every line of a code or diff block is one height, and the block keeps one
+ * even air above its first line and under its last; a code block's copy control centres on the
+ * first line.
  */
 function codeLines(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -3097,19 +3138,36 @@ function codeLines(root: Document): Finding[] {
     const lines = [...block.querySelectorAll('code > *')].filter(shown);
     const scroller = lines[0]?.closest('pre');
     if (!scroller) continue;
-    const heights = new Set(lines.map((line) => round(line.getBoundingClientRect().height)));
+    const code = block.matches('.sui-code-block');
+    // A numbered code block and a diff give their air to their first and last lines' cells, so a
+    // gutter's divider and an edge line's tone run the body's whole height; a line is weighed
+    // without that padding.
+    const span = (line: Element) => {
+      const cells = line.childElementCount ? [...line.children] : [line];
+      const boxes = cells.map((cell) => {
+        const box = cell.getBoundingClientRect();
+        const look = getComputedStyle(cell);
+        return {
+          top: box.top + parseFloat(look.paddingTop),
+          bottom: box.bottom - parseFloat(look.paddingBottom)
+        };
+      });
+      return {
+        top: Math.min(...boxes.map((box) => box.top)),
+        bottom: Math.max(...boxes.map((box) => box.bottom))
+      };
+    };
+    const spans = lines.map(span);
+    const heights = new Set(spans.map(({ top, bottom }) => round(bottom - top)));
     if (heights.size > 1)
       found.push(finding('L-65', block, `its lines are ${[...heights].join(', ')}px tall`));
     const edge = scroller.getBoundingClientRect();
-    const first = lines[0].getBoundingClientRect();
+    const first = { height: spans[0].bottom - spans[0].top, ...spans[0] };
     const gaps = [
       first.top - edge.top - scroller.clientTop,
-      edge.bottom -
-        lines.at(-1)!.getBoundingClientRect().bottom -
-        parseFloat(getComputedStyle(scroller).borderBottomWidth)
+      edge.bottom - spans.at(-1)!.bottom - parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
-    const code = block.matches('.sui-code-block');
-    const air = code ? (row - first.height) / 2 : 0;
+    const air = (row - first.height) / 2;
     if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
       found.push(
         finding(
@@ -3121,10 +3179,22 @@ function codeLines(root: Document): Finding[] {
     const copy = block.querySelector(':scope > .sui-code-block-copy .sui-copy-button');
     if (!code || !copy || block.matches('.labelled')) continue;
     const box = copy.getBoundingClientRect();
-    const off = (box.top + box.bottom) / 2 - (first.top + first.bottom) / 2;
+    // On a phone the control heads the block in a row of its own, so it centres on that row.
+    const seat = (copy.closest('.sui-code-block-copy') as Element).getBoundingClientRect();
+    const own = seat.bottom <= edge.top + 0.5;
+    // At a large text size or with a long language name the control wraps under the name, so the
+    // row holds two lines and the control's middle is no longer the row's.
+    const name = block.querySelector(':scope > .sui-code-block-copy .sui-code-block-lang');
+    if (own && name && name.getBoundingClientRect().bottom <= box.top + 0.5) continue;
+    const target = own ? seat : first;
+    const off = (box.top + box.bottom) / 2 - (target.top + target.bottom) / 2;
     if (Math.abs(off) > 0.5)
       found.push(
-        finding('L-65', block, `its copy control sits ${round(off)}px off its first line`)
+        finding(
+          'L-65',
+          block,
+          `its copy control sits ${round(off)}px off ${own ? 'the middle of its row' : 'its first line'}`
+        )
       );
   }
   return found;
@@ -3189,9 +3259,9 @@ function chartInk(root: Document): Finding[] {
     const ground = paintedGround(step.parentElement ?? step);
     const paint = rgba(step instanceof SVGElement ? look.fill : look.backgroundColor);
     const ratio = contrast(over(paint, ground), ground);
-    if (ratio < 1.3)
+    if (ratio < 1.6)
       found.push(
-        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.3`)
+        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.6`)
       );
   }
   for (const top of audited(root, '.sui-chart .legend .step-4')) {
@@ -3203,6 +3273,20 @@ function chartInk(root: Document): Finding[] {
     if (ratio < 1.5)
       found.push(
         finding('L-66', top, `the top heat step stands ${round(ratio)}:1 from the next, under 1.5`)
+      );
+    const steps = [1, 2, 3, 4].map((at) => {
+      const [low, high] = [at - 1, at].map((step) =>
+        top.closest('.legend')?.querySelector(`.step-${step}`)
+      );
+      return low && high ? contrast(paint(high), paint(low)) : NaN;
+    });
+    if (Math.max(...steps) > 1.25 * Math.min(...steps))
+      found.push(
+        finding(
+          'L-66',
+          top,
+          `the heat steps stand ${steps.map((value) => round(value)).join(', ')}:1 apart, the widest over 1.25 times the narrowest`
+        )
       );
   }
   return found;
@@ -3259,7 +3343,8 @@ function rings(root: Document): Finding[] {
 
 // A "Load more" row is the last row of the list before it: its button controls that list, and
 // the hairline the list draws stands as far under the last row's words as the row's own content
-// stands under the hairline.
+// stands under the hairline. A whole list's end note holds the button's height and stands in its
+// place, so there its box, not its ink, is what stands under the hairline.
 function loadMoreRows(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const row of audited(root, '.sui-load-more')) {
@@ -3281,9 +3366,11 @@ function loadMoreRows(root: Document): Finding[] {
         : (inkLines(element)?.bottom ?? [])
     );
     const note = row.querySelector('.sui-load-more-text');
-    const tops = [button?.getBoundingClientRect().top, note && inkLines(note)?.top].filter(
-      (top): top is number => typeof top === 'number'
-    );
+    const end = row.querySelector('.sui-load-more-end')?.getBoundingClientRect().top;
+    const tops = [
+      button?.getBoundingClientRect().top ?? end,
+      note && !end && inkLines(note)?.top
+    ].filter((top): top is number => typeof top === 'number');
     if (words.length === 0 || tops.length === 0) continue;
     const line = list.getBoundingClientRect().bottom;
     const above = line - parseFloat(hairline.blockSize) - Math.max(...words);
@@ -3433,6 +3520,37 @@ function boundaryLines(root: Document): Finding[] {
         )
       );
     }
+  return found;
+}
+
+/**
+ * Skipped paint (L-36): a box that paints only near the screen (`content-visibility: auto`)
+ * clips to its padding box, so a line or mark its own pseudo-element draws past that box, such
+ * as a row's hairline in a transparent border, never shows. The run draws every part, so such a
+ * box is known by the intrinsic size it keeps for while it is skipped.
+ */
+function skippedClips(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const element of root.querySelectorAll('*')) {
+    if (getComputedStyle(element).containIntrinsicHeight === 'none' || !shown(element)) continue;
+    for (const pseudo of ['::before', '::after']) {
+      const look = getComputedStyle(element, pseudo);
+      if (look.content === 'none' || look.display === 'none' || look.position !== 'absolute')
+        continue;
+      const paints =
+        rgba(look.backgroundColor).a > 0 ||
+        look.backgroundImage !== 'none' ||
+        parseFloat(look.borderTopWidth) + parseFloat(look.borderBottomWidth) > 0;
+      if (!paints) continue;
+      const out = (['top', 'right', 'bottom', 'left'] as const).filter(
+        (side) => parseFloat(look[side]) < -0.5
+      );
+      if (out.length > 0)
+        found.push(
+          finding('L-36', element, `its ${pseudo} reaches past the paint clip at ${out.join(', ')}`)
+        );
+    }
+  }
   return found;
 }
 
@@ -3803,6 +3921,7 @@ register(
   unsavedVeils,
   fieldRecesses,
   currentMarks,
+  ringsOnPlates,
   changedEdges,
   tonedControls,
   dialogInsets,
@@ -3822,6 +3941,7 @@ register(
   boundaryLines,
   detailPanes,
   rowGrounds,
+  skippedClips,
   nestedFrames,
   failureExits,
   unitSpaces,

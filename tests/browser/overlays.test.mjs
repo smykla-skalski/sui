@@ -758,20 +758,64 @@ suite('overlays', together, () => {
 
     // The dots are the box's ground, so a parent that stretches the box would draw them past
     // the words.
-    test('a relative time draws its dots under its words only', async () => {
+    test('a relative time draws its dots under its words only, its box 2px past them at each side', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
           (time) => {
             const words = document.createRange();
             const text = [...time.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
             if (text) words.selectNodeContents(text);
-            return [time.getBoundingClientRect().width, words.getBoundingClientRect().width];
+            return [
+              parseFloat(getComputedStyle(time, '::before').width),
+              words.getBoundingClientRect().width,
+              time.getBoundingClientRect().width
+            ];
           }
         )
       );
       assert.ok(widths.length > 0);
-      for (const [box, words] of widths)
-        assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
+      for (const [dots, words, box] of widths) {
+        assert.ok(Math.abs(dots - words) <= 0.5, `dots run ${dots}px under ${words}px of words`);
+        // The focus ring follows the box, so it clears the first and last letters by 2px more.
+        assert.ok(
+          Math.abs(box - words - 4) <= 0.5,
+          `the box reaches ${box - words}px past its words`
+        );
+      }
+    });
+
+    // An English 12-hour clock writes 9:26, not 09:26.
+    test('a whole instant pads its hour only where the language does', async () => {
+      const whole = await page
+        .locator('#relative-time time.sui-relative-time.exact')
+        .first()
+        .textContent();
+      assert.match(whole ?? '', /(?<!\d)9:26:53/);
+    });
+
+    // The dots are a row drawn at the box's foot, which a descender does not skip as a native
+    // underline would, so the foot stands clear of the deepest glyph.
+    test("a relative time's dots stand 3px clear of its descenders", async () => {
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
+          (time) => {
+            const probe = document.createElement('span');
+            probe.style.cssText = 'display: inline-block; inline-size: 0; block-size: 0';
+            time.append(probe);
+            const baseline = probe.getBoundingClientRect().top;
+            probe.remove();
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = getComputedStyle(time).font;
+            const descent = context.measureText('gjpqy').actualBoundingBoxDescent;
+            const dots = time.getBoundingClientRect().bottom - 1;
+            return dots - (baseline + descent);
+          }
+        )
+      );
+      assert.ok(gaps.length > 0);
+      for (const gap of gaps) assert.ok(gap >= 2.5, `the dots stand ${gap}px under a descender`);
     });
 
     test('an open popover copy keeps the floating gap off its trigger', async () => {
@@ -982,6 +1026,13 @@ suite('overlays', together, () => {
       const whole = page.locator('#clipped-label .sui-clipped-label', { hasText: /^Platform$/ });
       assert.equal(await whole.getAttribute('tabindex'), null, 'a label that fits took a tab stop');
       // A key press first, so the focus that follows counts as keyboard focus.
+      /** @param {Element} node */
+      const wordsTop = (node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return range.getBoundingClientRect().top;
+      };
+      const before = await label.evaluate(wordsTop);
       await page.keyboard.press('Shift');
       await label.focus();
       await oneTip();
@@ -991,6 +1042,23 @@ suite('overlays', together, () => {
         )
       );
       assert.deepEqual(tips, [await label.textContent()]);
+      // The box is trimmed to the cap and the baseline, so the ring is set past the font's
+      // ascent and descent there, never across an l or a p, and the words do not move.
+      const { foot, head, top } = await label.evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const box = node.getBoundingClientRect();
+        const words = range.getBoundingClientRect();
+        const offset = parseFloat(getComputedStyle(node).outlineOffset);
+        return {
+          foot: box.bottom + offset - words.bottom,
+          head: words.top - (box.top - offset),
+          top: words.top
+        };
+      });
+      assert.ok(foot >= 0, `the ring runs ${(-foot).toFixed(1)}px inside the descenders`);
+      assert.ok(head >= 0, `the ring runs ${(-head).toFixed(1)}px inside the ascenders`);
+      assert.equal(top, before, 'the words moved when the label took focus');
     });
 
     test('AC2 a time outside any control takes a tab stop and shows its whole instant', async () => {

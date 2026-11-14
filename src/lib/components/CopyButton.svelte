@@ -89,22 +89,22 @@ what it copies in `label`, such as "Copy Link", because a page of buttons all ca
 tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
-reader who cannot see the label change still hears it. The labels share one box, so the
-button does not change width when it answers; a `bare` one is as wide as its resting and
-copied words, and widens to the failure's words only while they show.
+reader who cannot see the label change still hears it. The labels share one box as wide as
+the resting and copied words, so a copy that lands does not change its width, and it widens
+to the failure's words only while they show.
 
-It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
+It is 28px tall with 13px words on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
-- Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil), failed (danger ink on its tint, over any veil) and disabled (0.6 opacity).
+- Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longer of the first two, and as the failure's words while they show.
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, 2px off the edge while an outcome holds it, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil, with a success edge when framed), failed (danger ink on its tint, over any veil, with a danger edge when framed) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
-- Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
+- Pointer and touch: 28px tall with 13px words, or 34px with 14px words with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
-- Responsive: one line as wide as its longest label, and it never wraps.
+- Responsive: one line as wide as its resting or copied words, or its failure's while they show, and it never wraps.
 - Accessibility: the visible words are the name, each outcome is spoken through the status, and its ink holds 4.5:1 on its own ground.
-- Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits whichever is longest.
+- Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits the longer of the resting and copied words, and the failure's while they show.
 - Performance: one button and one status per instance, with two timers that clear on unmount; only colours, the inset shadow and the 1px sink move.
 - Analytics: `oncopied` hears each copy that landed and `oncopyfailed` each refused write.
 - Failure: a refused write says "Try Again" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
@@ -158,6 +158,13 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The quiet 28px tier sets its words at the 13px caption size, as the names it sits beside
+     in a code block's head do; the control tier and a chip inside a field keep the control's
+     14px, as the words beside them are. */
+  .sui-copy-button:not(.toolbar, .bare) {
+    font-size: var(--sui-font-size-caption);
   }
 
   .toolbar {
@@ -247,6 +254,33 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     --sui-local-copy-outcome: var(--sui-danger-tint);
   }
 
+  /* A framed button edges its outcome in the outcome's ink, through a hover and inside the
+     focus ring, so a keyboard copy shows its result without trading the ring away. */
+  .sui-copy-button:not(.bare)[data-copied] {
+    border-color: var(--sui-success);
+  }
+
+  .sui-copy-button:not(.bare)[data-failed] {
+    border-color: var(--sui-danger);
+  }
+
+  /* The outcome takes the edge the ring would share, so the ring draws its whole width a gap
+     outside it, as a filled button's does, and the two inks never fuse into one band. */
+  .sui-copy-button:not(.bare):is([data-copied], [data-failed]):focus-visible {
+    outline-offset: var(--sui-focus-ring-offset);
+    outline-width: var(--sui-focus-ring-width);
+  }
+
+  @media (hover: hover) {
+    .sui-copy-button:not(.bare)[data-copied]:hover {
+      border-color: var(--sui-success);
+    }
+
+    .sui-copy-button:not(.bare)[data-failed]:hover {
+      border-color: var(--sui-danger);
+    }
+  }
+
   .sui-copy-button[data-copied] .sui-copy-button-labels {
     color: var(--sui-success);
   }
@@ -272,10 +306,11 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     visibility: hidden;
   }
 
-  /* Inside a field the chip keeps the width its resting and copied words need, so the value
-     keeps its room. The rarer failure takes no room while it is hidden, and widens the chip
-     while it shows, since its words wrapped into that width stand taller than the field. */
-  .bare .sui-copy-button-labels > .off:last-child {
+  /* A button keeps the width its resting and copied words need, so a copy that lands never
+     moves it and no padding waits around a short label. The rarer failure takes no room while
+     it is hidden and widens the button while it shows; a chip in a field would otherwise wrap
+     its words taller than the field. */
+  .sui-copy-button-labels > .off:last-child {
     contain: size;
   }
 

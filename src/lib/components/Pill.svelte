@@ -88,7 +88,7 @@ outcome tones always come with their word, so color never carries the state alon
 
 <span {...rest} class={['sui-pill', className]} data-tone={tone}>
   {#if icon !== undefined}
-    <Icon name={icon} size="xs" strokeWidth={2} />
+    <Icon name={icon} size="xs" />
   {/if}
   {#if live}
     <!-- A new dot restarts the pulse. -->

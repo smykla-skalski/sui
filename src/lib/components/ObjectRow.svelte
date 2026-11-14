@@ -28,6 +28,7 @@
 @component
 One row of an `ObjectList`. It pads 12px and draws a 1px hairline inset by that padding, which
 the hovered row hides along with the one above it, so the hover ground never sits on a line.
+Its grounds stop a pixel under its top, so two plates that meet keep a seam of the page.
 
 With `href` the whole row is a link through a layer under the content, so a control inside it,
 such as an `IconButton`, a `RelativeTime` or a switch, stays pressable and never navigates. A
@@ -36,14 +37,14 @@ opens something.
 
 A `current` row is the one whose item is open beside the list. It stands on the plate that
 marks where the reader is, the sidebar's accent tint, so it never looks hovered, hides its hairline
-and the one above as a hovered row does, and keeps the plate under the pointer.
+and the one above as a hovered row does, and under the pointer takes more of the accent.
 
 - Semantics: an `li`; with `href`, an `a` under the content, named by the main content through `aria-labelledby`, with `aria-current="page"` on a `current` row.
 - Content: `main`, the name and what the row says about it, and an optional `side` of standings, values and controls.
-- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover leaves alone).
+- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover deepens to more of the accent).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
-- Focus: the ring is drawn inside the row, so a list that clips never cuts it.
+- Focus: the ring is drawn 1px inside the row's ground on every side, so a list that clips never cuts it and it never meets a neighbour's hover or current plate.
 - Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
@@ -90,8 +91,13 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     margin-inline: calc(-1 * var(--sui-row-pad-default));
     min-inline-size: 0;
     /* The bottom carries the hairline's pixel on top of the padding, so the ink stands
-       12px off the line below it as off the line above. */
-    padding: var(--sui-row-pad-default) var(--sui-row-pad-default)
+       12px off the line below it as off the line above. The top's first pixel is a clear
+       border the grounds stop at, so two plates that meet, the open row's and a hovered one's,
+       keep a seam of the page between them; the hairline stays inside the padding, where the
+       clip that skipping brings never cuts it (L-36). */
+    background-clip: padding-box;
+    border-block-start: var(--sui-stroke) solid transparent;
+    padding: calc(var(--sui-row-pad-default) - var(--sui-stroke)) var(--sui-row-pad-default)
       calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
     position: relative;
     transition:
@@ -114,7 +120,8 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   .sui-object-row-hit {
     border-radius: inherit;
     color: inherit;
-    inset: 0;
+    /* Over the clear pixel too, so the whole row stays the link's target. */
+    inset: calc(-1 * var(--sui-stroke)) 0 0;
     position: absolute;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -123,6 +130,19 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 
   .sui-object-row-hit:focus-visible {
     outline: none;
+  }
+
+  /* The ring stands a pixel inside the row's ground on every side, so it never meets a hovered
+     or current neighbour's plate. An outline counts from the border box, whose clear top pixel
+     would put the ring flush on the ground's top, so it is drawn on a box laid over the ground:
+     the hit reaches over the clear pixel, and the box starts two pixels under the hit's top. */
+  .sui-object-row-hit:focus-visible::after {
+    border-radius: inherit;
+    content: '';
+    inset: calc(2 * var(--sui-stroke)) var(--sui-stroke) var(--sui-stroke);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: calc(-1 * var(--sui-focus-ring-width));
+    position: absolute;
   }
 
   .sui-object-row-main,
@@ -159,17 +179,24 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   }
 
   /* The plate that marks where the reader is, the sidebar's accent tint (L-85): 18% of the
-     accent on light and 24% on dark, so the open row and the open page read as one cue and a
+     accent on light and 30% on dark, so the open row and the open page read as one cue and a
      hovered row, on a grey ground, never looks current. A row's words keep their ink when it
      turns current. Like a hover ground it has round corners, so neither its own line nor the
      one above crosses its edge. On that deeper ground the muted ink falls under 4.5:1, so the
-     row's quiet words take the secondary ink. */
+     row's quiet words take the secondary ink, leaning halfway toward the primary so they
+     still hold 4.5:1 and Lc 60 on the hover plate below, on an inset ground too. The lean is mixed on the row from the inks it
+     inherits and handed to its parts, so the ink never reads itself. */
   .current {
-    --sui-text-muted: var(--sui-text-secondary);
+    --sui-local-quiet: color-mix(in srgb, var(--sui-text-secondary) 50%, var(--sui-text-primary));
     background-color: light-dark(
       color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
-      color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
+      color-mix(in srgb, var(--sui-brand-action) 30%, transparent)
     );
+  }
+
+  .current > * {
+    --sui-text-muted: var(--sui-local-quiet);
+    --sui-text-secondary: var(--sui-local-quiet);
   }
 
   .sui-object-row.current:not(:last-child)::after,
@@ -178,8 +205,23 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   }
 
   @media (hover: hover) {
-    .sui-object-row:not(.current):has(> .sui-object-row-hit:hover) {
+    /* Neither hover outranks the press below, so a pressed row takes the pressed ground. */
+    .sui-object-row:not(.current):has(> .sui-object-row-hit:hover:not(:active)) {
       background-color: var(--sui-row-hover);
+    }
+
+    /* Every other row answers the pointer, so the open one does too, on a deeper share of its
+       own accent: never the grey of a hovered row, which would make it look like any other.
+       Under keyboard focus the ring already marks the row or a control in it, and the deeper
+       share would take that ring under 3:1 on an inset ground, so a row with focus anywhere in
+       it keeps its resting plate. */
+    .sui-object-row.current:not(:has(:focus-visible)):has(
+        > .sui-object-row-hit:hover:not(:active)
+      ) {
+      background-color: light-dark(
+        color-mix(in srgb, var(--sui-brand-action) 30%, transparent),
+        color-mix(in srgb, var(--sui-brand-action) 38%, transparent)
+      );
     }
 
     /* The hover ground has round corners and a line crossing its edge reads as a crack, so
@@ -196,14 +238,10 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     translate: 0 1px;
   }
 
-  .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
-     one line, and drops under it, packed to the start, before a long name wraps down beside it.
-     A dropped side stands 12px under the main part, nearer it than the next row. */
+  /* On a phone the side stays beside the main part while both fit on one line at their full
+     width, so a short row keeps one line whatever its side's width, and drops under it, packed
+     to the start, before a long name wraps down beside it. A dropped side stands 12px under the
+     main part, nearer it than the next row. */
   @media (max-width: 47.9375rem) {
     .sui-object-row {
       display: flex;
@@ -212,7 +250,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     }
 
     .sui-object-row-main {
-      flex: 1 1 15rem;
+      flex: 1 1 max-content;
     }
 
     .sui-object-row-side {

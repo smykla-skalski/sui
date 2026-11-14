@@ -82,10 +82,11 @@
       label: 'North',
       points: [
         { x: 1, y: 18 },
-        { x: 2, y: Number.NaN },
-        { x: 3, y: 23 },
+        { x: 2, y: 21 },
+        { x: 3, y: Number.NaN },
         { x: 4, y: Number.NaN },
-        { x: 5, y: 31 }
+        { x: 5, y: 27 },
+        { x: 6, y: 31 }
       ]
     }
   ];

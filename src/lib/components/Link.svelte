@@ -77,7 +77,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     .join(' ') || undefined}
   class={['sui-link', className, { standalone }]}
   >{@render children()}{#if leaves}{JOINER}<span class="sui-link-external"
-      ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /><span id="{uid}-external" hidden
+      ><Icon name="arrow-up-right" size="micro" /><span id="{uid}-external" hidden
         >{externalLabel}</span
       ></span
     >{/if}</a

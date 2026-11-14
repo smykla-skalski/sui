@@ -7,10 +7,10 @@
 </script>
 
 <script lang="ts">
-  import { Icon, iconNames } from '#lib';
+  import { Icon, VisuallyHidden, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
-  import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
+  import '#lib/internal/scroll-edge.css';
 
   const directional = [
     'chevron-left',
@@ -20,13 +20,39 @@
     'settings'
   ] as const;
 
+  const directions = ['ltr', 'rtl'] as const;
+
+  // Pairs too wide for their stage, as at 320px with text at twice its size, scroll in their
+  // own box, which is then a tab stop, so a keyboard reaches the pairs past its edge.
+  let facingsScroll = $state(false);
+
+  function measureFacings(box: HTMLElement) {
+    const observer = new ResizeObserver(() => {
+      facingsScroll = box.scrollWidth > box.clientWidth;
+    });
+    observer.observe(box);
+    observer.observe(box.firstElementChild!);
+    return () => observer.disconnect();
+  }
+
   const glyphs = ['settings', 'refresh', 'check'] as const;
   const sizes = ['micro', 'xs', 'sm', 'base', 'md'] as const;
+
+  /* Each tier beside the words it stands with in the kit: a link's arrow, a pill's or chip's
+     glyph, a plate's, a control's and a dialog title's. */
+  const beside = {
+    micro: 'micro',
+    xs: 'compact',
+    sm: 'caption',
+    base: 'control',
+    md: 'title'
+  } as const;
+  const words = { settings: 'Settings', refresh: 'Refresh', check: 'Check' } as const;
 </script>
 
 <Example
   title="Set"
-  note="One outline family on a 24-unit grid with a 1.75 stroke, each glyph by its name"
+  note="One outline family on a 24-unit grid with a 2 stroke, each glyph by its name"
 >
   <ul class="grid" role="list">
     {#each iconNames as name (name)}
@@ -40,11 +66,13 @@
 
 <Example
   title="Sizes"
-  note="5 tiers from 10 to 18 px at the default text size, growing with the reader’s own text size"
+  note="5 tiers from 10 to 18 px at the default text size, each beside the words it stands with, growing with the reader’s text size"
 >
   <Variants rows={glyphs} columns={sizes} axis="name" rowLabel={(name) => `"${name}"`}>
     {#snippet cell(name, size)}
-      <Icon {name} {size} />
+      <span class="pair" style:font-size="var(--sui-font-size-{beside[size]})"
+        ><Icon {name} {size} /><span>{words[name]}</span></span
+      >
     {/snippet}
   </Variants>
 </Example>
@@ -53,30 +81,109 @@
   title="Direction"
   note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
 >
-  <Specimen label="Left to right">
-    <span class="row">
-      {#each directional as name (name)}<Icon {name} size="md" />{/each}
-    </span>
-  </Specimen>
-  <Specimen label="Right to left">
-    <span class="row" dir="rtl">
-      {#each directional as name (name)}<Icon {name} size="md" />{/each}
-    </span>
-  </Specimen>
+  <!-- Each glyph stands over its mirror in one 32px column, so a pair reads at a glance at
+       every width and the two directions take two short lines. The names head the columns
+       for assistive technology; the set above shows them to the eye. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div
+    class="facings-scroll sui-scroll-edge"
+    role={facingsScroll ? 'region' : undefined}
+    tabindex={facingsScroll ? 0 : undefined}
+    aria-label={facingsScroll ? 'Directional glyphs' : undefined}
+    {@attach measureFacings}
+  >
+    <table class="facings">
+      <thead>
+        <tr>
+          <td></td>
+          {#each directional as name (name)}
+            <th scope="col"><VisuallyHidden>{name}</VisuallyHidden></th>
+          {/each}
+        </tr>
+      </thead>
+      <tbody>
+        {#each directions as direction (direction)}
+          <tr>
+            <th scope="row">{direction === 'ltr' ? 'Left to right' : 'Right to left'}</th>
+            {#each directional as name (name)}
+              <td><span class="facing" dir={direction}><Icon {name} size="md" /></span></td>
+            {/each}
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 </Example>
 
 <style>
-  .row {
+  /* It reaches a focus ring's room past the table and hands it back, as a scrolling variant
+     matrix does, so the ring on the box stays whole. */
+  .facings-scroll {
+    margin: calc(-1 * var(--sui-space-1));
+    max-inline-size: calc(100% + 2 * var(--sui-space-1));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: var(--sui-space-1);
+    scrollbar-width: thin;
+  }
+
+  .facings {
+    border-collapse: collapse;
+  }
+
+  .facings :is(th, td) {
+    padding: 0;
+  }
+
+  .facings tbody th {
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
+      var(--sui-sans);
+    padding-inline-end: var(--sui-space-4);
+    text-align: start;
+  }
+
+  .facings tbody td {
+    block-size: var(--sui-space-8);
+    inline-size: var(--sui-space-8);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  /* A block of its own, so the glyph centres in its cell and never rides on a line's baseline
+     above the label's capitals. */
+  .facing {
     color: var(--sui-text-primary);
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-3);
+    justify-content: center;
+  }
+
+  .pair {
+    align-items: center;
+    color: var(--sui-text-primary);
+    display: inline-flex;
+    font-weight: var(--sui-weight-medium);
+    gap: var(--sui-space-2);
+    line-height: var(--sui-leading-compact);
+    white-space: nowrap;
+  }
+
+  /* Words trimmed to their capitals in an even box, so the glyph centres on them, not on the
+     line's air (L-94), and every edge stays on the pixel grid (L-95). */
+  .pair > span,
+  .name {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
   }
 
   .grid {
     display: grid;
     gap: var(--sui-space-2);
-    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    /* 10rem holds the longest name, 16 mono capitals' width, beside its glyph, so no name wraps
+       under its glyph (L-94). */
+    grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
     inline-size: 100%;
     list-style: none;
     margin: 0;
@@ -92,9 +199,10 @@
     min-inline-size: 0;
   }
 
+  /* A glyph's name in the glyph's own ink, the ink of the words an icon stands beside. */
   .name {
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-note)
       var(--sui-mono);
     overflow-wrap: anywhere;
   }

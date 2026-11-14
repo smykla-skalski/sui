@@ -128,10 +128,18 @@
 
   /** Moves focus to a heading or a pane, so the next Tab starts there. */
   function land(target: HTMLElement): void {
-    if (!target.hasAttribute('tabindex')) {
-      target.tabIndex = -1;
-      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
-    }
+    const lent = !target.hasAttribute('tabindex');
+    if (lent) target.tabIndex = -1;
+    // Marked so it wears the kit's ring rather than the browser's (styles.css).
+    target.dataset.suiLanded = '';
+    target.addEventListener(
+      'blur',
+      () => {
+        if (lent) target.removeAttribute('tabindex');
+        delete target.dataset.suiLanded;
+      },
+      { once: true }
+    );
     target.focus();
   }
 </script>
@@ -166,11 +174,11 @@ around it.
 
 - Semantics: the list is a `nav` landmark named by `label`; the detail is a plain box, or the page's `main` with `landmark="main"` when the page has no other; the way back is a `BackLink`.
 - Content: a `list` of links to each item's address, usually an `ObjectList`, and the open item's `detail`, usually a `PageHeader` over a `DetailLayout`.
-- States: nothing open (beside the list, an `EmptyState` with `emptyTitle`, `emptyDescription` and `emptyStep`), an item open, and its row current (`ObjectRow current`) while both panes show; the panes draw no state of their own.
+- States: nothing open (beside the list, an `EmptyState` with `emptyTitle`, `emptyDescription` and `emptyStep`, at most 32rem wide, centred across the pane a quarter of the way down), an item open, and its row current (`ObjectRow current`) while both panes show; the panes draw no state of their own.
 - Keyboard: Tab walks the list, then the detail; the way back is a link that Enter follows; nothing traps focus, since the pair is not modal.
 - Pointer and touch: none of its own; the rows and the way back keep their own targets, 44px on a phone.
 - Focus: opening an item moves focus to the detail's first heading, and closing it returns focus to the row that opened it, or the list's first control.
-- Responsive: a container query on the layout's own width shows both panes from 56rem (`--sui-breakpoint-detail`), the detail keeping at least 36rem, each scrolling on its own, and one pane at a time below it, the open item over the list; a pane holds its scroll at its end only when the pair fills the viewport, and a `contained` pair lets the wheel run on into the page.
+- Responsive: a container query on the layout's own width shows both panes from 56rem (`--sui-breakpoint-detail`), the detail keeping at least 36rem, each scrolling on its own and the detail's `PageHeader` taking the compact 24px title, and one pane at a time below it, the open item over the list; a pane holds its scroll at its end only when the pair fills the viewport, and a `contained` pair lets the wheel run on into the page.
 - Accessibility: the list is a named navigation landmark a reader can jump to, the current row is announced as the current page, the hairline holds the shell's structural contrast, and the hidden pane is out of the accessibility tree.
 - Localization: `label`, `backLabel` and the empty words are props with English defaults; the list stands at the inline start and the way back's chevron mirrors in a right-to-left page.
 - Performance: layout by container query with no script; focus work runs once per change of `current`, and the list is never rendered again when the detail changes.
@@ -233,7 +241,11 @@ around it.
     display: contents;
   }
 
+  /* Its few short lines keep a reading measure, so a wide pane shows a quiet placeholder
+     rather than a banner across it. */
   .sui-list-detail-empty {
+    --sui-local-empty-measure: 32rem;
+    max-inline-size: var(--sui-local-empty-measure);
     padding: var(--sui-rhythm-pane-gutter);
   }
 
@@ -281,8 +293,37 @@ around it.
       display: none;
     }
 
+    /* An open item stands on its header band's ground, so it reads as one sheet beside the list
+       on the page's canvas rather than as a band over the canvas. With nothing open the pane
+       keeps the canvas, so its placeholder card keeps its lift. */
+    .open > .sui-list-detail-detail {
+      background: var(--sui-surface-base);
+    }
+
+    /* With nothing open the placeholder stands centred across the pane and a quarter of the
+       way down it, where the eye looks for what the pane is for, rather than in a corner of a
+       blank pane. The pane measures itself, so a contained pair places it in its own box, and
+       both offsets are rounded down to whole pixels (L-95). The pane is at least 36rem wide, so
+       the measure and its gutters always fit. */
+    .sui-list-detail-panes:not(.open) > .sui-list-detail-detail {
+      container-type: size;
+    }
+
+    .sui-list-detail-empty {
+      margin-block-start: round(down, 25cqb, 1px);
+      margin-inline-start: round(
+        down,
+        calc((100cqi - var(--sui-local-empty-measure)) / 2 - var(--sui-rhythm-pane-gutter)),
+        1px
+      );
+    }
+
+    /* Beside the list the open item is one pane of a page, not the page, so its header takes
+       the compact title a phone's takes, and the list's heading keeps its weight beside it. */
     .sui-list-detail-detail {
+      --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
       --sui-head-kicker-shown: 0;
+      --sui-leading-page: var(--sui-leading-page-compact);
     }
   }
 </style>

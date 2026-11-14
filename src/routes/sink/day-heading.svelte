@@ -84,14 +84,19 @@
 </Example>
 
 <style>
+  /* A heading sits on its entries at their own step, and a day stands three times as far from
+     the last, so each heading reads as the head of the run under it and the runs still read as
+     one feed. The
+     feed keeps a form's measure, so on a wide page each time stays near its entry. */
   .days {
     display: grid;
-    gap: var(--sui-space-5);
+    gap: var(--sui-space-6);
+    max-inline-size: 40rem;
   }
 
   .day {
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-2);
   }
 
   .entries {
@@ -102,12 +107,13 @@
     padding: 0;
   }
 
+  /* Each time keeps the column at the row's end at every width, so the times read down one
+     edge; an entry too long for its line wraps its own words beside its time. */
   .entries > li {
     align-items: baseline;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-1) var(--sui-space-3);
-    justify-content: space-between;
+    column-gap: var(--sui-space-4);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
   }
 
   .what {
@@ -118,9 +124,11 @@
     overflow-wrap: anywhere;
   }
 
+  /* A time reads at the caption tier, a step under its entry, and in the mono face, so its
+     digits line up down the column. */
   .time {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }

@@ -140,7 +140,7 @@ struggling. The reason takes the count's place and the button retries until the 
 
 - Semantics: a native `button` that controls the list, a paragraph that describes it, an alert for a failure, and a polite status.
 - Content: the count of rows shown, of the total when known, the button's words, a failure's reason, and the end note.
-- States: ready (`countLabel` and `moreLabel`), loading (the button's spinner and `loadingLabel`, dimmed and busy), failed (the reason in danger ink beside `retryLabel`) and whole (`endLabel` alone).
+- States: ready (`countLabel` and `moreLabel`), loading (the button's spinner and `loadingLabel`, busy, in the width the button held from the start), failed (the reason in danger ink beside `retryLabel`) and whole (`endLabel` alone).
 - Keyboard: Enter or Space on the button asks for the next page.
 - Pointer and touch: the button is 34px tall, 44px on a phone or a touch screen.
 - Focus: the button keeps focus while a page loads; when it lands, focus moves to the first new row's link or control (WCAG 2.4.3), or stays on the button when that row has none, and moves to the end note when the button leaves.
@@ -159,7 +159,7 @@ struggling. The reason takes the count's place and the button retries until the 
     </p>
   {:else if problem}
     <p id="{id}-words" class="sui-load-more-words sui-load-more-problem" role="alert">
-      <span class="sui-load-more-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-load-more-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-load-more-text">{problem}</span>
     </p>
   {:else}
@@ -168,8 +168,16 @@ struggling. The reason takes the count's place and the button retries until the 
     </p>
   {/if}
   {#if more}
-    <Button {loading} aria-controls={list} aria-describedby="{id}-words" onclick={press}>
-      {loading ? loadingLabel : problem ? retryLabel : moreLabel}
+    <!-- The button holds the loading words' room from the start, so it keeps one width as it
+         turns from Load More to loading to Try Again and the line never shifts. -->
+    <Button
+      {loading}
+      busyLabel={loadingLabel}
+      aria-controls={list}
+      aria-describedby="{id}-words"
+      onclick={press}
+    >
+      {problem ? retryLabel : moreLabel}
     </Button>
   {/if}
   <VisuallyHidden role="status">{said}</VisuallyHidden>
@@ -195,15 +203,17 @@ struggling. The reason takes the count's place and the button retries until the 
     align-items: start;
     color: var(--sui-text-muted);
     display: flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
     min-inline-size: 0;
   }
 
+  /* Medium, as a field's error is, so the red reason holds its weight beside its mark. */
   .sui-load-more-problem {
     color: var(--sui-danger);
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The box hugs the ink to the pixel, so the words stand one row gap under the hairline as a
@@ -221,7 +231,14 @@ struggling. The reason takes the count's place and the button retries until the 
   .sui-load-more-mark {
     display: flex;
     flex: none;
-    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-xs)) / 2);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
+  }
+
+  /* The end note holds the button's height, so the footer keeps one height from the first page
+     to the last and the note stands where the count stood. */
+  .sui-load-more-end {
+    align-items: center;
+    min-block-size: var(--sui-control-height-compact);
   }
 
   .sui-load-more-end:focus-visible {

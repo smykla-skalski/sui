@@ -29,7 +29,7 @@
   ];
 
   const states = [
-    { value: 'all', label: 'All', count: repositories.length },
+    { value: 'all', label: 'All' },
     { value: 'active', label: 'Active' },
     { value: 'archived', label: 'Archived' }
   ];
@@ -39,15 +39,18 @@
     { value: 'name', label: 'Name' }
   ];
 
-  /* Each bar keeps its own choices, so one example never changes another. */
-  function choices(shown: string, order: string) {
+  /* Each bar keeps its own choices, so one example never changes another, and All counts
+     what the bar's search leaves. */
+  function choices(shown: string, order: string, all = () => repositories.length) {
     const picked = $state({ shown, order });
     return {
       picked,
       get filter(): ListToolGroup {
         return {
           label: 'State',
-          options: states,
+          options: states.map((state) =>
+            state.value === 'all' ? { ...state, count: all() } : state
+          ),
           value: picked.shown,
           onchange: (value) => (picked.shown = value)
         };
@@ -67,7 +70,7 @@
 
   const parts = choices('all', 'updated');
   const narrow = choices('active', 'name');
-  const list = choices('all', 'updated');
+  const list = choices('all', 'updated', () => found.length);
 
   // The search is kept in the address, so a shared link opens the list as filtered.
   const search = addressed('q', '');
@@ -82,10 +85,13 @@
     context?.querySelector<HTMLInputElement>('[role="searchbox"]')?.focus();
   }
 
+  const found = $derived(
+    repositories.filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
+  );
+
   const rows = $derived(
-    repositories
+    found
       .filter((repository) => list.picked.shown === 'all' || repository.state === list.picked.shown)
-      .filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
       .sort((a, b) =>
         list.picked.order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated
       )
@@ -98,8 +104,8 @@
   layout="stack"
 >
   <Specimen label="Search & action">
-    <ListToolbar searchLabel="Search members" placeholder="octocat…">
-      {#snippet action()}<Button>Invite Member</Button>{/snippet}
+    <ListToolbar searchLabel="Search repositories" placeholder="sui…">
+      {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
     </ListToolbar>
   </Specimen>
   <Specimen label="Filter & tools">
@@ -122,8 +128,13 @@
 >
   <Specimen label="In 17 rem">
     <div class="narrow">
-      <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
-        {#snippet action()}<Button>Add Repository</Button>{/snippet}
+      <ListToolbar
+        searchLabel="Search repositories"
+        placeholder="sui…"
+        filter={narrow.filter}
+        tools={narrow.tools}
+      >
+        {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
       </ListToolbar>
     </div>
   </Specimen>
@@ -149,7 +160,7 @@
     {#if rows.length > 0}
       <ObjectList>
         {#each rows as repository (repository.name)}
-          <ObjectRow>
+          <ObjectRow href="#list-toolbar">
             {#snippet main()}
               <span class="name">{repository.name}</span>
               <span class="sum">Updated {repository.updated}&nbsp;days ago</span>
@@ -178,8 +189,13 @@
     min-inline-size: 0;
   }
 
+  /* The 17rem column is drawn, a hairline with no fill, so the bar reads as filling a narrow
+     holder rather than stopping short in a wide one. */
   .narrow {
-    inline-size: min(100%, 17rem);
+    border-radius: var(--sui-radius-surface);
+    box-shadow: 0 0 0 var(--sui-stroke) var(--sui-border-subtle);
+    inline-size: min(100% - 2 * var(--sui-space-3), 17rem);
+    padding: var(--sui-space-3);
   }
 
   .name {

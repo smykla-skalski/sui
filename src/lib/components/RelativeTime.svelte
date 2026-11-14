@@ -51,7 +51,8 @@
     ).format(at);
   }
 
-  /* The language decides the hour cycle and how the zone is spelled. */
+  /* The language decides the hour cycle, whether the hour pads to two figures, and how the
+     zone is spelled. */
   function exact(at: number, locale: string | undefined, timeZone: string | undefined): string {
     return once(
       `exact ${locale} ${timeZone}`,
@@ -60,7 +61,7 @@
           day: 'numeric',
           month: 'short',
           year: 'numeric',
-          hour: '2-digit',
+          hour: 'numeric',
           minute: '2-digit',
           second: '2-digit',
           timeZoneName: 'shortOffset',
@@ -174,15 +175,14 @@ tooltip.
 </time>{#if element && valid && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
-  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
-     stroke apart, which reads as solid, so a row of round dots, 4px apart, runs along the foot
-     of the words instead. */
+  /* The box spans its line in a sentence too, and reaches 2px past it below and 2px past the
+     words at each side, all given back by its margin so nothing moves: the dots stand 3px clear
+     of a g or a y, and the focus ring clears the first and last letters as it clears the cap. */
   .sui-relative-time {
-    --sui-local-dot: color-mix(in srgb, var(--sui-text-muted) 70%, transparent);
-    background-image: radial-gradient(circle, var(--sui-local-dot) 0.75px, transparent 1.25px);
-    background-position: 0 100%;
-    background-repeat: repeat-x;
-    background-size: 4px 2px;
+    --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
+    display: inline-block;
+    margin: 0 -2px -2px;
+    padding: 0 2px 2px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -195,30 +195,62 @@ tooltip.
     cursor: help;
   }
 
-  /* Hover strengthens the dots and only nudges the words, so the reading stays in its sentence. */
+  /* Hover draws the dots in the words' full ink over a faint accent veil spread to the focus
+     ring's outer edge, so hover and focus mark one box, and only nudges the words, so the time
+     answers the pointer plainly and the reading stays in its sentence. White takes a tint less
+     than the dark card does before the veil reads, so light lays a firmer share. Under the
+     focus ring the veil steps back, so the ring keeps 3:1 on a current row's plate (L-6). */
   @media (hover: hover) {
-    .sui-relative-time:not(.exact):hover {
-      --sui-local-dot: var(--sui-text-secondary);
+    .sui-relative-time:not(.exact):hover:not(:focus-visible) {
+      --sui-local-dot: currentColor;
+      --sui-local-veil: light-dark(
+        color-mix(in srgb, var(--sui-focus) 12%, transparent),
+        color-mix(in srgb, var(--sui-focus) 8%, transparent)
+      );
+      background: var(--sui-local-veil);
+      border-radius: var(--sui-radius-chip);
+      box-shadow: 0 0 0 calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width))
+        var(--sui-local-veil);
       color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }
 
+  /* Focus opens the same tip as hover, so it draws the same dots. */
   .sui-relative-time:focus-visible {
+    --sui-local-dot: currentColor;
     border-radius: var(--sui-radius-chip);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
+     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in 60% of the
+     words' ink runs along the box's foot under the words alone. */
+  .sui-relative-time::before {
+    background: linear-gradient(to right, var(--sui-local-dot) 1px, transparent 1px) 0 0 / 3px 1px
+      repeat-x;
+    block-size: 1px;
+    content: '';
+    inset: auto 2px 0;
+    position: absolute;
+  }
+
   .sui-relative-time::after {
     content: '';
-    inset: calc(-1 * var(--sui-space-2)) calc(-1 * var(--sui-space-1) - 2px);
+    inset: calc(-1 * var(--sui-space-2)) calc(-1 * var(--sui-space-1));
     position: absolute;
+  }
+
+  .exact::before {
+    content: none;
   }
 
   /* The whole instant is twice as long as the relative reading, so it may wrap where a
      column sized for the short one would otherwise clip it. */
   .exact {
-    background-image: none;
+    display: inline;
+    margin: 0;
+    padding: 0;
     white-space: normal;
   }
 

@@ -82,7 +82,7 @@ action are a `Button` with the word beside the glyph.
   {#if spinning.current}
     <span class="sui-icon-button-spinner" aria-hidden="true"></span>
   {:else}
-    <Icon name={icon} size="base" strokeWidth={2} />
+    <Icon name={icon} size="base" />
   {/if}
 </button><Tooltip anchor={element} text={label} />
 

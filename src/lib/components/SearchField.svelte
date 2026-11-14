@@ -120,7 +120,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       invalid={Boolean(shown)}
       onkeydown={onkeydownInput}
     />
-    <span class="sui-search-field-icon"><Icon name="search" size="base" strokeWidth={2} /></span>
+    <span class="sui-search-field-icon"><Icon name="search" size="base" /></span>
     {#if value && !rest.disabled}
       <span class="sui-search-field-clear">
         <IconButton

@@ -111,11 +111,11 @@
     filter: 3.5,
     // The dial's arc is drawn the long way round, so it bulges past its own endpoints.
     gauge: 2.5,
-    gear: 2.8,
+    gear: 3.1,
     /* Octicons draw to the edge of the box where this set keeps a margin, so the
        mark is nearly full-bleed. Left as it is: another product's logo is
        reproduced or it is not used. */
-    github: 0.5,
+    github: 2,
     globe: 3,
     help: 3.5,
     history: [4, 3.48],
@@ -184,7 +184,7 @@
   const {
     name,
     size = 'base',
-    strokeWidth = 1.75,
+    strokeWidth = 2,
     class: className
   }: {
     name: IconName;
@@ -224,7 +224,7 @@
 
 <!--
 @component
-One drawn set on a 24-unit grid at a 1.75 stroke, from a closed list of names, so two
+One drawn set on a 24-unit grid at a 2 stroke, from a closed list of names, so two
 icons side by side never disagree about weight.
 
 `size` names a tier of the icon scale (`--sui-icon-*`). The tiers are px at the default text
@@ -267,10 +267,24 @@ word would start.
   {#if name === 'arrow-up-right'}
     <path d="M7 17 17 7M9 7h8v8" />
   {:else if name === 'settings'}
-    <path d="M4 7h10M18 7h2M4 17h2M10 17h10M4 12h4M12 12h8" />
-    <circle cx="16" cy="7" r="2" />
-    <circle cx="8" cy="17" r="2" />
-    <circle cx="10" cy="12" r="2" />
+    {#if size === 'micro'}
+      <!-- Three rails 5 units apart merge at 12px and under, so the small tiers keep two, with
+           their knobs at least a clear pixel from each other. Each rail runs through the middle
+           of a pixel row so it draws as one sharp line: at 12px a unit is half a pixel, so odd
+           units land there, and at 10px 6 and 18 do. -->
+      <path d="M4 6h9M17 6h3M4 18h3M11 18h9" />
+      <circle cx="15" cy="6" r="2" />
+      <circle cx="9" cy="18" r="2" />
+    {:else if size === 'xs'}
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    {:else}
+      <path d="M4 7h10M18 7h2M4 17h2M10 17h10M4 12h4M12 12h8" />
+      <circle cx="16" cy="7" r="2" />
+      <circle cx="8" cy="17" r="2" />
+      <circle cx="10" cy="12" r="2" />
+    {/if}
   {:else if name === 'repositories'}
     <!-- Shifted up 1 from the shape as drawn. The outline ran 5.5 to 20.5 - the
          tab at the top, then eleven units of body and a 2-unit corner at the
@@ -307,8 +321,12 @@ word would start.
          reproduced or it is not used, and an approximation of this one is
          recognisably wrong. It is a filled shape, so it carries its own fill and
          cancels the stroke this component sets - without that the svg's
-         `fill="none" stroke="currentColor"` would draw it as an empty outline. -->
+         `fill="none" stroke="currentColor"` would draw it as an empty outline.
+         A solid mark reads heavier than an outline of the same reach, so the
+         whole mark scales to 0.87 about the centre, 2 to 22, the reach of the
+         outline glyphs with their stroke. -->
     <path
+      transform="matrix(0.87 0 0 0.87 1.56 1.56)"
       fill="currentColor"
       stroke="none"
       d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"
@@ -363,9 +381,9 @@ word would start.
     <path d="m6 6 12 12" />
   {:else if name === 'circle-dashed'}
     <!-- A ring that is drawn but not closed: the file that should be there and
-         is not. Dash length is the mock's, not a guess - a coarser dash reads
-         as a decorative border at 14px. -->
-    <circle cx="12" cy="12" r="8.5" stroke-dasharray="3.4 3.4" />
+         is not. The drawn dash is the mock's, not a guess - a coarser dash reads
+         as a decorative border at 14px; the round caps add a stroke to each. -->
+    <circle cx="12" cy="12" r="8.5" stroke-dasharray="1.4 5.4" />
   {:else if name === 'refresh'}
     <!-- One arc with a single arrowhead, the approved shape. The two-arrow
          cycle it replaced read as a pair of chevrons at 14px. Used by the sync
@@ -447,9 +465,10 @@ word would start.
     <path d="M5 5.25h14M5 10.75h14M5 16.25h7" />
     <path d="M16.5 13.75v5M14 16.25h5" />
   {:else if name === 'gear'}
-    <circle cx="12" cy="12" r="3.2" />
+    <!-- Eight teeth on one closed rim, so the gear never reads as the sun's loose rays. -->
+    <circle cx="12" cy="12" r="3" />
     <path
-      d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"
+      d="M10.07 5.69L10.44 3.14L13.56 3.14L13.93 5.69A6.6 6.6 0 0 1 15.1 6.17L17.16 4.63L19.37 6.84L17.83 8.9A6.6 6.6 0 0 1 18.31 10.07L20.86 10.44L20.86 13.56L18.31 13.93A6.6 6.6 0 0 1 17.83 15.1L19.37 17.16L17.16 19.37L15.1 17.83A6.6 6.6 0 0 1 13.93 18.31L13.56 20.86L10.44 20.86L10.07 18.31A6.6 6.6 0 0 1 8.9 17.83L6.84 19.37L4.63 17.16L6.17 15.1A6.6 6.6 0 0 1 5.69 13.93L3.14 13.56L3.14 10.44L5.69 10.07A6.6 6.6 0 0 1 6.17 8.9L4.63 6.84L6.84 4.63L8.9 6.17A6.6 6.6 0 0 1 10.07 5.69z"
     />
   {:else if name === 'calendar'}
     <rect x="4" y="5.5" width="16" height="15" rx="2.5" />
@@ -515,13 +534,13 @@ word would start.
   {:else if name === 'file' || name.startsWith('file-')}
     <path d="M6 3h8l4 4v14H6zM14 3v5h4" />
     {#if name === 'file-valid'}
-      <path d="m9 14 2 2 4-4" />
+      <path d="m9.5 14 1.5 1.5 3.5-3.5" />
     {:else if name === 'file-invalid'}
-      <path d="m10 12 4 4M14 12l-4 4" />
+      <path d="m9.5 11.5 5 5M14.5 11.5l-5 5" />
     {:else if name === 'file-missing'}
-      <path d="M9 14h6" stroke-dasharray="2 2" />
+      <path d="M9.5 14h.5M14 14h.5" />
     {:else if name === 'file-bypassed'}
-      <path d="M10 12h4l-4 4h4" />
+      <path d="M9.5 11.5h5l-5 5h5" />
     {/if}
   {/if}
 </svg>

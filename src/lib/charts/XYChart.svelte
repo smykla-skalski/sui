@@ -14,9 +14,9 @@
     fraction,
     markerPath,
     markerReach,
-    minus,
     plus,
     px,
+    roundDown,
     sieve,
     thin,
     thinWidth,
@@ -69,8 +69,17 @@
   let validSeries = $derived(
     series.map((item, index) => {
       const points = item.points.filter(finite);
+      // A line breaks where a value is missing, so it never draws a value the data does not hold.
+      const runs: ChartPoint[][] = [[]];
+      for (const point of item.points) {
+        if (finite(point)) runs.at(-1)!.push(point);
+        else runs.push([]);
+      }
       return {
         ...item,
+        runs: runs.filter((run) => run.length > 1),
+        // A value with a gap on each side has no line to stand on, so it keeps its marker.
+        alone: runs.filter((run) => run.length === 1).flat(),
         color: chartColor(index),
         marker: chartMarker(index),
         dash: chartDash(index),
@@ -106,7 +115,8 @@
   function outermost(): MarkReach[] {
     return validSeries.flatMap((item) => {
       if (item.points.length === 0) return [];
-      const reach = item.marked ? markerReach(item.marker, MARKER[kind]) : CAP;
+      const reach =
+        item.marked || item.alone.length > 0 ? markerReach(item.marker, MARKER[kind]) : CAP;
       const pick = (first: (a: ChartPoint, b: ChartPoint) => boolean) =>
         item.points.reduce((best, point) => (first(point, best) ? point : best));
       return [
@@ -204,7 +214,7 @@
     >
       {#each yAxis.ticks as tick (tick)}
         {@const words = formatY(tick)}
-        <rect class="grid" style:y={css(minus(y(tick, box), px(0.5)))} />
+        <rect class="grid" style:y={css(roundDown(y(tick, box)))} />
         <text
           class="axis tick"
           text-anchor="end"
@@ -234,10 +244,10 @@
         >
       {/if}
       {#each validSeries as item (item.id)}
-        {#if kind === 'line' && item.points.length > 1}
+        {#if kind === 'line' && item.runs.length > 0}
           <path
             class="line"
-            d={path(item.points)}
+            d={item.runs.map(path).join(' ')}
             fill="none"
             stroke={item.color}
             stroke-dasharray={item.dash}
@@ -246,8 +256,8 @@
             stroke-linejoin="round"
           />
         {/if}
-        {#if item.marked}
-          {#each drawn(item.points) as point, pointIndex (pointIndex)}
+        {#if item.marked || item.alone.length > 0}
+          {#each drawn(item.marked ? item.points : item.alone) as point, pointIndex (pointIndex)}
             <path
               d={markerPath(item.marker, 0, 0, MARKER[kind])}
               fill={item.color}
@@ -343,8 +353,10 @@
   .grid {
     fill: var(--sui-chart-grid);
     height: 1px;
-    width: calc(var(--sui-local-plot-end) - var(--sui-local-plot-start));
-    x: var(--sui-local-plot-start);
+    width: calc(
+      round(up, var(--sui-local-plot-end), 1px) - round(down, var(--sui-local-plot-start), 1px)
+    );
+    x: round(down, var(--sui-local-plot-start), 1px);
   }
   .y-title {
     rotate: -90deg;

@@ -119,6 +119,13 @@ suite('the kitchen sink', together, () => {
           prefix: diff.unifiedDiff('x😀', 'x😃')[0].emphasis,
           suffix: diff.unifiedDiff('😀x', '😃x')[0].emphasis,
           both: both[0].emphasis,
+          words: diff
+            .unifiedDiff('"labels": ["dependencies"]', '"schedule": ["before 6am on monday"]')
+            .map((/** @type {{ emphasis: unknown }} */ line) => line.emphasis),
+          many: diff.unifiedDiff('a,b,c,d', 'w,x,y,z')[0].emphasis,
+          swapped: diff
+            .unifiedDiff('red blue', 'blue red')
+            .map((/** @type {{ emphasis: unknown }} */ line) => line.emphasis),
           marked: diff
             .emphasize([{ text: 'x😀y' }], both[0].emphasis)
             .filter((/** @type {{ word?: boolean }} */ piece) => piece.word)
@@ -144,6 +151,21 @@ suite('the kitchen sink', together, () => {
       assert.deepEqual(result.prefix, [[1, 3]]);
       assert.deepEqual(result.suffix, [[0, 2]]);
       assert.deepEqual(result.both, [[1, 3]]);
+      // Whole changed words are marked and the shared quotes and brackets stay plain; the
+      // words of one change, split only by space, read as one stretch.
+      assert.deepEqual(result.words, [
+        [
+          [1, 7],
+          [12, 24]
+        ],
+        [
+          [1, 9],
+          [14, 34]
+        ]
+      ]);
+      assert.deepEqual(result.many, [[0, 7]], 'four stretches read as one');
+      // Both lines of a pair leave the same word plain, blue, where a tie could split them.
+      assert.deepEqual(result.swapped, [[[0, 4]], [[4, 8]]]);
       assert.deepEqual(result.marked, ['😀']);
       assert.deepEqual(result.toml, [
         [{ cls: 'tok-head', text: '[owner]' }],
@@ -788,6 +810,50 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test("an identity row's face stands level with its name's first line", async () => {
+    // A long name used to centre the face on its whole block, so beside three lines it stood
+    // by the second. It now centres on the first line, held in the row, as a short name's is.
+    const page = await openMount(browser, url, { viewport: { width: 1440, height: 900 } });
+    try {
+      const rows = await page.evaluate(async () => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = document.createElement('div');
+        host.style.cssText = 'display: grid; gap: 24px; inline-size: 16rem';
+        document.body.append(host);
+        const names = ['Ada Lovelace', 'Maria Gaetana Agnesi de la Cruz Montgomery-Wellington'];
+        for (const name of names)
+          for (const size of [24, 32, 40])
+            mount(lib.IdentityRow, { target: host, props: { name, handle: '@ada', size } });
+        flushSync();
+        await document.fonts.ready;
+        return [...host.querySelectorAll('.sui-identity-row')].map((row) => {
+          const name = /** @type {Element} */ (row.querySelector('.sui-identity-name'));
+          const words = document.createRange();
+          words.selectNodeContents(name);
+          const face = /** @type {Element} */ (
+            row.querySelector('.sui-avatar')
+          ).getBoundingClientRect();
+          return {
+            lines: words.getClientRects().length,
+            top: face.top - row.getBoundingClientRect().top
+          };
+        });
+      });
+      for (const [index, size] of [24, 32, 40].entries()) {
+        const [short, long] = [rows[index], rows[index + 3]];
+        assert.equal(short.lines, 1, 'the short name wrapped');
+        assert.ok(long.lines > 1, 'the long name did not wrap');
+        assert.equal(
+          long.top,
+          short.top,
+          `a wrapped name's ${size}px face stands ${long.top - short.top}px under a short name's`
+        );
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   test("L-102 an avatar's initials centre their drawn ink on the drawn circle", async () => {
     // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
     // advance and the cap band are not where the letters draw. The ground is painted red and
@@ -870,12 +936,120 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test('L-5 L-6 an open row the pointer rests on keeps its words and ring legible', async () => {
+    // The open row's deeper hover share took the ring to 2.87:1 on the light inset ground, so a
+    // row under keyboard focus keeps its resting plate while the pointer rests on it. A row
+    // under the pointer alone wears the hover plate, where no ring stands but its quiet words
+    // still read, so only their contrast is measured there.
+    for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+      const page = await open(1440, scheme, {}, 'avatar');
+      try {
+        const row = page.locator('#avatar .sui-object-row.current');
+        await row.evaluate((node) =>
+          /** @type {HTMLElement | null} */ (node.closest('.list'))?.style.setProperty(
+            'background',
+            'var(--sui-surface-inset)'
+          )
+        );
+        await row.locator('a').hover();
+        assert.deepEqual(
+          (await audit(page))
+            .filter(({ law }) => law === 'L-5' || law === 'L-6')
+            .map(({ law, detail }) => `${law} ${detail}`),
+          [],
+          `a hovered row with no focus, ${scheme}`
+        );
+        await page.keyboard.press('Shift');
+        await row.locator('a').focus();
+        await row.locator('a').hover();
+        assert.equal(
+          await row.locator('a').evaluate((link) => link.matches(':focus-visible')),
+          true
+        );
+        assert.deepEqual(
+          (await audit(page))
+            .filter(({ law }) => law === 'L-5' || law === 'L-6')
+            .map(({ law, detail }) => `${law} ${detail}`),
+          [],
+          `a focused row the pointer rests on, ${scheme}`
+        );
+        // A control inside the row, such as a time, holds the ring there instead.
+        const plate = () => row.evaluate((node) => getComputedStyle(node).backgroundColor);
+        await page.mouse.move(0, 0);
+        const resting = await plate();
+        await row.evaluate((node) => {
+          const control = document.createElement('span');
+          control.tabIndex = 0;
+          control.textContent = '4 minutes ago';
+          node.append(control);
+          control.focus();
+        });
+        await row.locator('a').hover();
+        await page.waitForTimeout(400);
+        assert.equal(
+          await plate(),
+          resting,
+          `a row with focus inside deepens its plate, ${scheme}`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test('L-6 a focused time the pointer rests on keeps its ring legible on a current row', async () => {
+    for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+      const page = await open(1440, scheme, {}, 'object-list');
+      try {
+        const time = page.locator('#object-list .sui-object-row time.sui-relative-time').first();
+        await time.evaluate((node) => {
+          const row = /** @type {HTMLElement} */ (node.closest('.sui-object-row'));
+          row.classList.add('current');
+          /** @type {HTMLElement} */ (row.parentElement).style.background =
+            'var(--sui-surface-inset)';
+        });
+        await page.keyboard.press('Shift');
+        await time.focus();
+        await time.hover();
+        await page.waitForTimeout(400);
+        assert.equal(await time.evaluate((node) => node.matches(':focus-visible')), true);
+        // The hover veil under the ring took it to 2.96:1 on the light current plate, a tint
+        // the audit's ring check does not composite, so the time must lay none under its ring.
+        assert.deepEqual(
+          await time.evaluate((node) => {
+            const look = getComputedStyle(node);
+            return [look.backgroundColor, look.boxShadow];
+          }),
+          ['rgba(0, 0, 0, 0)', 'none'],
+          `a focused, hovered time lays its veil under its ring, ${scheme}`
+        );
+        assert.deepEqual(
+          (await audit(page))
+            .filter(({ law }) => law === 'L-6')
+            .map(({ law, detail }) => `${law} ${detail}`),
+          [],
+          `a focused, hovered time on a current row, ${scheme}`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('a picture draws the same before script runs as after, named once', async () => {
     // The server render with no script is the reader's first frame: there a picture that fails
     // draws nothing over its initials and their ring, and one that loads covers them, even
     // through a logo's clear middle. The running page draws each the same.
-    const failed = ['Alan Turing', 'Radia Perlman'];
-    const loaded = ['Grace Hopper', 'Platform Team'];
+    // Each failed picture names the one that loads beside it, so a specimen is found by its label.
+    /** @type {Record<string, string>} */
+    const named = {
+      'Person, not loaded': 'Grace Hopper',
+      'Workspace, not loaded': 'Platform Team',
+      Person: 'Grace Hopper',
+      Workspace: 'Platform Team'
+    };
+    const failed = ['Person, not loaded', 'Workspace, not loaded'];
+    const loaded = ['Person', 'Workspace'];
     const address = new URL('avatar/', url);
     /** @type {string[]} */
     const problems = [];
@@ -931,8 +1105,10 @@ suite('the kitchen sink', together, () => {
      */
     const shoot = async (page, name) => {
       const avatar = page
-        .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
-        .getByRole('img', { name, exact: true });
+        .locator('#avatar .example', { hasText: /^Pictures/ })
+        .locator('figure')
+        .filter({ has: page.getByText(name, { exact: true }) })
+        .getByRole('img', { name: named[name], exact: true });
       await avatar.scrollIntoViewIfNeeded();
       // An edge off the pixel grid blends a few levels apart once the layers above it change,
       // so a shot is only a fair witness of an avatar standing on whole pixels.
@@ -1027,8 +1203,8 @@ suite('the kitchen sink', together, () => {
         }
         if (!javaScriptEnabled) {
           assert.equal(
-            await page.getByRole('img', { name: 'Alan Turing', exact: true }).ariaSnapshot(),
-            '- img "Alan Turing"'
+            await (await shoot(page, 'Person, not loaded')).avatar.ariaSnapshot(),
+            '- img "Grace Hopper"'
           );
           // Beside the name an avatar is not heard at all, so the name is read once.
           await page.goto(new URL('timeline/', url).href);
@@ -1865,8 +2041,10 @@ suite('the kitchen sink', together, () => {
           for (let index = worker; index < count.kinds; index += WORKERS) {
             // Brought to the middle of the view, clear of the page's fixed bars, and measured in
             // one call. A control an earlier press re-rendered away is not there to press, so the
-            // first of its kind still shown stands for it.
-            const point = await page.evaluate((index) => {
+            // first of its kind still shown stands for it. Rows off the screen skip their layout
+            // (content-visibility: auto), so the rows a scroll brings near lay out a few frames
+            // later and can move the control; it is measured once it holds still.
+            const point = await page.evaluate(async (index) => {
               document.querySelector('[data-press-at]')?.removeAttribute('data-press-at');
               const element = [...document.querySelectorAll(`[data-press-probe="${index}"]`)].find(
                 (element) => element.checkVisibility({ visibilityProperty: true })
@@ -1874,6 +2052,14 @@ suite('the kitchen sink', together, () => {
               if (!element) return null;
               element.setAttribute('data-press-at', '');
               element.scrollIntoView({ block: 'center', inline: 'nearest' });
+              const frame = () => new Promise((done) => requestAnimationFrame(done));
+              let last = '';
+              for (let still = 0, frames = 0; still < 6 && frames < 60; frames += 1) {
+                await frame();
+                const { x, y } = element.getBoundingClientRect();
+                still = `${x},${y}` === last ? still + 1 : 0;
+                last = `${x},${y}`;
+              }
               const box = element.getBoundingClientRect();
               return box.width > 0 && box.height > 0
                 ? { x: box.x + box.width / 2, y: box.y + box.height / 2 }

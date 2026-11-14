@@ -77,7 +77,7 @@ on the page instead.
       else open = pressedBy === 'mouse' || !openAtPress;
     }}
   >
-    <Icon name="help" size="base" strokeWidth={2} />
+    <Icon name="help" size="base" />
   </button><Tooltip anchor={element} {text} describe {side} {align} {preview} bind:open />
 {/snippet}
 

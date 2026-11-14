@@ -10,6 +10,8 @@
     nowrap?: boolean;
     /** Makes the heading a button that sorts the rows by this column. */
     sortable?: boolean;
+    /** A typical widest value, which the heading holds unseen, so the column has its loaded width while the rows load, fail or are empty, and the table does not move when they arrive. */
+    sample?: string;
   };
 
   export type DataTableSort = { key: string; direction: 'ascending' | 'descending' };
@@ -149,11 +151,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, each column as wide as its `sample`, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy, and `refreshingLabel` on the caption's line after the refresh mark), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
-- Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
+- Pointer and touch: a sortable heading is a 28px control, and its target 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and a hairline at the end edge while more columns are past it, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group in the reader's format and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders and is laid out, even off the screen, because a row cannot skip and a frame that skips cannot measure its overflow; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
@@ -173,11 +175,22 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 {/snippet}
 
 <div class={['sui-data-table', className, { striped, scrolls, held: rowHeader }]}>
-  {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
+  {#if caption || (refreshing && !loading)}
+    <div class="head">
+      {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
+      {#if refreshing && !loading}
+        <p class="refreshing" aria-hidden="true">
+          <span class="refreshing-mark"><Icon name="refresh" size="sm" /></span><span
+            class="refreshing-words">{refreshingLabel}</span
+          >
+        </p>
+      {/if}
+    </div>
+  {/if}
   <p class="caption hint" aria-hidden="true">{scrollHint}</p>
   {#if error && rows.length > 0}
     <div class="problem" role="alert">
-      <Icon name="alert" size="sm" />
+      <Icon name="alert" size="base" />
       <span class="problem-words">{error}</span>
       {@render retry()}
     </div>
@@ -205,7 +218,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
               <th
                 scope="col"
                 data-align={alignOf(column)}
-                class={{ nowrap: column.nowrap || column.numeric }}
+                class={{ nowrap: column.nowrap || column.numeric, numeric: column.numeric }}
                 aria-sort={sort?.key === column.key ? sort.direction : undefined}
               >
                 {#if column.sortable}
@@ -217,12 +230,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                         : sort.direction === 'ascending'
                           ? 'chevron-up'
                           : 'chevron-down'}
-                      size="xs"
+                      size="base"
                     />
                   </button>
                 {:else}
                   <span class="value">{column.label}</span>
                 {/if}
+                {#if column.sample}<span class="sample" aria-hidden="true">{column.sample}</span
+                  >{/if}
               </th>
             {/each}
           </tr>
@@ -245,7 +260,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
               <td class="state" colspan={columns.length}>
                 {#if error}
                   <span class="problem" role="alert">
-                    <Icon name="alert" size="sm" />
+                    <Icon name="alert" size="base" />
                     <span class="problem-words">{error}</span>
                     {@render retry()}
                   </span>
@@ -296,18 +311,18 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     timeline-scope: --sui-data-table-frame;
   }
 
+  /* The caption names the table as a chart's title names its plot (L-25), one size at every
+     width, so a table and a chart side by side carry one title. */
+  .caption:not(.hint) {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+  }
+
   /* The line that says the columns scroll takes its room only while they do. The frame's scroll
      timeline is active only while the frame has somewhere to scroll, and the browser settles it
      before it paints, so a server-rendered table draws the line from its first frame. Without
      scroll timelines the line follows the measure script. */
-  /* The caption names the table as a sub-section title does (L-25), so it reads over the column
-     headings under it and the scroll hint beside them. */
-  .caption:not(.hint) {
-    color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
-      var(--sui-sans);
-  }
-
   .hint {
     display: none;
   }
@@ -347,6 +362,44 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     text-box: trim-both cap alphabetic;
   }
 
+  /* Rows on their way say so on the caption's line, led by the refresh mark in the info hue as a
+     refreshing chart's note is, so the table does not move; the status region says it to a
+     screen reader. Both lines are trimmed to their baseline, so ending them together sets the
+     smaller words on the caption's baseline by whole pixels. */
+  .head {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-row-copy-gap) var(--sui-space-3);
+  }
+
+  .refreshing {
+    align-items: center;
+    color: var(--sui-info);
+    display: flex;
+    gap: var(--sui-space-2);
+    margin: 0;
+  }
+
+  /* The mark is taller than the words' trimmed line, so it hangs from a box of no height,
+     centred on the line, and the line stays the caption's height: the table never stands
+     under its neighbour's. */
+  .refreshing-mark {
+    align-items: center;
+    block-size: 0;
+    display: flex;
+  }
+
+  .refreshing-words {
+    color: var(--sui-text-secondary);
+  }
+
+  /* The mark carries the failure, so the words read in the primary ink, as an error panel's
+     title does, and it is the 16px mark 8px off that a field's 14px message takes (L-94). */
+  .problem-words {
+    color: var(--sui-text-primary);
+  }
+
   .problem {
     align-items: center;
     color: var(--sui-danger);
@@ -355,12 +408,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     gap: var(--sui-space-2);
   }
 
-  /* The mark carries the failure, so the words read in the primary ink, as an error panel's
-     title does. */
-  .problem-words {
+  .problem-words,
+  .refreshing-words {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
@@ -395,6 +446,37 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   .frame:focus-visible {
     outline: none;
+  }
+
+  /* While more columns are past the end, a hairline stands at the frame's end edge past the
+     fade, as the held row headings' hairline stands at the start, so the cut reads as the frame's
+     edge with more behind it, never as a clipped column. It clears a pixel short of the end, as
+     the fade does, and a frame that does not scroll has no timeline and no hairline. */
+  @supports (animation-timeline: scroll()) {
+    .viewport::before {
+      animation: sui-data-table-more var(--sui-ease-linear) both;
+      animation-range: calc(100% - 2px) calc(100% - 1px);
+      animation-timeline: --sui-data-table-frame;
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: var(--sui-layer-inner-plate);
+    }
+  }
+
+  @keyframes sui-data-table-more {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 
   .viewport:has(> .frame:focus-visible)::after {
@@ -463,14 +545,34 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
   }
 
-  /* A sort heading is a chip-tier control (L-37) whose ground reaches a space past its words.
-     The negative margins hand that back, so it lines up with the plain headings and the heading
-     row keeps its line. */
+  /* A column's sample stands under its heading at no height, set as its values are, so the
+     column is as wide as its loaded values in every state: loading, empty or failed. */
+  thead .sample {
+    block-size: 0;
+    display: block;
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    overflow: hidden;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  .held thead th:first-child .sample {
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .numeric .sample {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A sort heading is a quiet-tier control (L-37) whose ground reaches 8px past its words, its
+     arrow the 16px mark a combobox's chevron is. The negative margins hand that room back, so it
+     lines up with the plain headings and takes 16px of the heading row, as a chip's did. */
   .sort {
     align-items: center;
     appearance: none;
     background-color: transparent;
-    block-size: var(--sui-control-height-chip);
+    block-size: var(--sui-tier-quiet);
     border: 0;
     box-sizing: border-box;
     border-radius: var(--sui-radius-control);
@@ -481,8 +583,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     font: inherit;
     gap: var(--sui-space-1);
     inline-size: var(--sui-inline-snap);
-    margin: calc(-1 * var(--sui-space-1));
-    padding: 0 var(--sui-space-1);
+    margin: calc((var(--sui-space-4) - var(--sui-tier-quiet)) / 2) calc(-1 * var(--sui-space-2));
+    padding: 0 var(--sui-space-2);
     position: relative;
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */

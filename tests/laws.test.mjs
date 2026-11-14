@@ -99,7 +99,11 @@ test('L-2 every token read is declared and every declared token is read', () => 
       ...sources.matchAll(/'(--sui-[a-z0-9-]+)'/g)
     ].map((m) => m[1])
   );
-  const tokens = tokenMap(stripComments(palette));
+  // A token can read another in one theme's block only, so every block's value counts.
+  /** @type {Record<string, string>} */
+  const tokens = {};
+  for (const [, name, value] of stripComments(palette).matchAll(/(--sui-[a-z0-9-]+)\s*:([^;]*);/g))
+    tokens[name] = `${tokens[name] ?? ''} ${value}`;
   const queue = [...readNames];
   while (queue.length > 0) {
     const name = /** @type {string} */ (queue.pop());
@@ -259,6 +263,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a toast's description wraps at the note leading in balanced lines"
   );
   assert.match(
+    stripComments(read('src/lib/components/IdentityRow.svelte')),
+    /\.sui-identity-name \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "an identity row's name wraps at the note leading"
+  );
+  assert.match(
     stripComments(read('src/lib/components/Toaster.svelte')),
     /\.acting \.sui-toast-description \{\s*text-wrap: pretty;/,
     "beside an action a toast's balanced reason leaves a gap before it"
@@ -290,15 +299,12 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   );
 });
 
-test('L-66 a chart grid draws 65% of the way to a control edge, and every legend at one size', () => {
+test('L-66 a chart grid draws the hairline that frames a surface, and every legend at one size', () => {
   const grids = [...stripComments(palette).matchAll(/--sui-chart-grid:\s*([^;]+);/g)].map((match) =>
     match[1].trim()
   );
   assert.ok(grids.length > 0);
-  assert.deepEqual(
-    new Set(grids),
-    new Set(['color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control))'])
-  );
+  assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
   const legends = Object.entries(styles)
     .filter(([path]) => path.includes('/charts/'))
     .flatMap(([path, css]) =>
@@ -313,17 +319,27 @@ test('L-66 a chart grid draws 65% of the way to a control edge, and every legend
   );
 });
 
-test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popover foot over 16px', () => {
+test('L-107 a scroll edge fades over 24px, 20px on a phone, code lines over 32px, 24px on a phone, and a popover foot over 16px', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
   const space = tokenMap(stripComments(palette));
   const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
     ([, token]) => pixels(space[token])
   );
-  assert.deepEqual(fades, [24, 20]);
+  assert.deepEqual(fades, [24, 20, 32, 24]);
   assert.match(
     sheet,
     /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
   );
+  assert.match(
+    sheet,
+    /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge\.sui-scroll-edge-lines \{\s*--sui-local-edge-fade/
+  );
+  for (const part of ['code', 'diff'])
+    assert.match(
+      read(`src/lib/components/${part === 'code' ? 'CodeBlock' : 'DiffBlock'}.svelte`),
+      new RegExp(`class="sui-${part}-block-scroll sui-scroll-edge sui-scroll-edge-lines"`),
+      `a ${part} block's lines fade as code`
+    );
   const footSheet = stripComments(read('src/lib/internal/scroll-foot.css'));
   const foot = /\.sui-scroll-foot::after \{([^}]*)\}/.exec(footSheet)?.[1];
   assert.ok(foot, 'a scrolling layer draws a foot fade');
@@ -383,7 +399,7 @@ test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn 
   }
 });
 
-test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step under its words', () => {
+test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step under its words', () => {
   const space = tokenMap(stripComments(palette));
   const lengths = (/** @type {string | undefined} */ rule, /** @type {string} */ property) =>
     [
@@ -401,7 +417,7 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
     )?.[1];
     assert.deepEqual(
       { padding: lengths(rest, 'padding'), gap: lengths(rest, 'gap') },
-      { padding: [28, 24], gap: [20] },
+      { padding: [32, 20], gap: [20] },
       path
     );
     assert.deepEqual(
@@ -412,13 +428,62 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   }
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
-    /\.over \{[^}]*justify-content: start;/,
-    "a failed refresh's retry stands right after its words, not at the line's far end"
+    /\.over \{[^}]*justify-content: space-between;/,
+    "a failed refresh's retry ends its line, where a line's action stands"
+  );
+  assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /\.over > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    'a line too narrow for both wraps the retry under its words'
   );
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
     /\.sui-error-state-title \{[^}]*color: var\(--sui-text-primary\);/,
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
+  );
+  const empty = stripComments(styles['src/lib/components/EmptyState.svelte']);
+  const edge = empty.match(/\.sui-empty-state::before \{[^}]*\}/)?.[0] ?? '';
+  assert.match(
+    edge,
+    /background: var\(--sui-border-control\);/,
+    'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
+  );
+  assert.match(edge, /currentcolor 0 4px, transparent 4px 8px/, 'its dashes stand on whole pixels');
+  assert.match(
+    edge,
+    /--sui-local-r: var\(--sui-radius-control\);/,
+    "its corners close on the panel's own radius"
+  );
+  assert.equal(
+    edge.match(/radial-gradient\(circle at [^,]+, var\(--sui-local-arc\)\)/g)?.length,
+    4,
+    'each corner closes on one quarter ring'
+  );
+  assert.match(
+    edge,
+    /--sui-local-arc:\s*transparent calc\(var\(--sui-local-r\) - var\(--sui-stroke\) - 0\.5px\)/,
+    "its rings run at the panel's own stroke"
+  );
+  for (const [file, step] of [
+    ['ErrorState', 'error-state'],
+    ['EmptyState', 'empty-state']
+  ])
+    assert.match(
+      stripComments(styles[`src/lib/components/${file}.svelte`]),
+      new RegExp(
+        `\\.sui-${step}-step \\{[^}]*color: var\\(--sui-text-primary\\);[^}]*font: var\\(--sui-weight-regular\\)`
+      ),
+      `${file}'s step in words parts from the description by its ink and stays under the title's weight`
+    );
+  assert.match(
+    stripComments(styles['src/lib/components/DayHeading.svelte']),
+    /\.sui-day-heading \{[^}]*color: var\(--sui-text-primary\);/,
+    'a day heading heads its entries in their own primary ink, not under them in the secondary'
+  );
+  assert.match(
+    stripComments(styles['src/lib/components/DayHeading.svelte']),
+    /\.sui-day-heading \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-title\)/,
+    'a day heading stands a step over its 14px entries at the 16px title tier on every width, not at their size'
   );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   const refusal = stripComments(styles['src/lib/components/FormError.svelte']);
@@ -447,10 +512,10 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   for (const name of ['Empty', 'Error']) {
     const css = styles[`src/lib/components/${name}State.svelte`];
     assert.match(css, /-state-copy \{[^}]*gap: var\(--sui-title-copy-gap\)/, `${name}State`);
-    assert.doesNotMatch(
-      css,
-      /calc\(var\(--sui-(row|title)-copy-gap\) - var\(--sui-(title|row)-copy-gap\)\)/,
-      `${name}State: a step in words stands the title gap under the explanation, apart from it`
+    assert.match(
+      read(`src/lib/components/${name}State.svelte`),
+      /<\/div>\s*\{#if step\}<p class="sui-\w+-state-step">/,
+      `${name}State: a step in words stands where a control would, a panel gap under the words`
     );
   }
 });
@@ -521,23 +586,53 @@ test('L-25 the type tiers keep the sizes the law names', () => {
       alertTitle: tier('alert-title'),
       cardTitle: tier('card-title'),
       body: tier('body'),
-      control: tier('control')
+      control: tier('control'),
+      chartTitle: tier('title'),
+      chartStateTitle: tier('chart-state-title')
     },
-    { pageTitle: 32, dialogTitle: 20, alertTitle: 18, cardTitle: 17, body: 15, control: 14 }
+    {
+      pageTitle: 32,
+      dialogTitle: 20,
+      alertTitle: 18,
+      cardTitle: 17,
+      body: 15,
+      control: 14,
+      chartTitle: 16,
+      chartStateTitle: 15
+    }
+  );
+  assert.equal(
+    tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))))[
+      '--sui-font-size-chart-state-title'
+    ],
+    undefined,
+    "a state in a chart's plot box stays a step under the chart's title on a phone too"
   );
   const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
   const small = Object.entries(all).filter(
     ([name, value]) => name.startsWith('--sui-font-size-') && pixels(value) < 11
   );
-  assert.deepEqual(small, [], 'no text is smaller than 11px');
+  // A small avatar's initials are a mark, not words, and only that step uses this size.
+  assert.deepEqual(
+    small,
+    [['--sui-font-size-initials-small', '0.5625rem']],
+    'no text is smaller than 11px'
+  );
+  assert.deepEqual(
+    [...read('src/lib/components/Avatar.svelte').matchAll(/--sui-font-size-initials-small/g)]
+      .length,
+    1,
+    "only a small avatar's initials take the size under the floor"
+  );
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
     {
       cardTitle: pixels(phone['--sui-font-size-card-title']),
+      stateTitle: pixels(phone['--sui-font-size-state-title']),
       body: pixels(phone['--sui-font-size-body'])
     },
-    { cardTitle: 18, body: 16 },
-    "on a phone a section's title stays a step over the body-sized sub-section title"
+    { cardTitle: 18, stateTitle: 17, body: 16 },
+    "on a phone a section's title stays a step over the body-sized sub-section title, and a state's title a step between them"
   );
   assert.deepEqual(
     { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
@@ -601,20 +696,15 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   );
   assert.match(
     styles['src/lib/components/DataTable.svelte'],
-    /\.caption:not\(\.hint\) \{\s*color: var\(--sui-text-primary\);\s*font: var\(--sui-weight-semibold\) var\(--sui-font-size-body\)/,
-    "a table's caption names it as a sub-section title does, over its column headings"
+    /\.caption:not\(\.hint\) \{\s*color: var\(--sui-text-primary\);\s*font: var\(--sui-weight-semibold\) var\(--sui-font-size-title\)/,
+    "a table's caption names it as a chart's title does, 16px 600 at every width"
   );
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(
       styles[`src/lib/components/${path}.svelte`],
-      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-card-title\)/,
-      `an ${path} panel's title stands a tier over the words it heads`
+      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-state-title\)/,
+      `an ${path}'s title stands a step under the list heading over it`
     );
-  assert.match(
-    styles['src/lib/components/ErrorState.svelte'],
-    /\.over :is\(\.sui-error-state-title, \.sui-error-state-mark\) \{\s*font-size: var\(--sui-font-size-title\);/,
-    'a failed refresh over a list stays a quiet line'
-  );
 });
 
 test('L-20 a duration amount reads in the words face with figures of one width', () => {
@@ -669,7 +759,13 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   const widened = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .filter((path) => read(path).includes('--specimen-caption-gap='));
-  assert.deepEqual(widened, ['src/routes/sink/overlays.svelte'], 'only live tips widen a name gap');
+  assert.ok(widened.length > 0);
+  for (const path of widened)
+    assert.match(
+      read(path),
+      /<(?:Tooltip|ClippedLabel)\b/,
+      `${path} widens a name gap with no live tip`
+    );
   assert.match(
     specimen,
     /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-caption\)/
@@ -680,6 +776,11 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   assert.ok(rows.length > 0);
   for (const [, step] of rows)
     assert.ok(Number(step) > 4, `a row gap of space-${step} reads as close as a name`);
+  assert.match(
+    stripComments(styles['src/routes/kit/Example.svelte']),
+    /row-gap: calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\);/,
+    "a phone's rows stand closer than a page's widened name gap"
+  );
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
@@ -748,12 +849,12 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
   const forms = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .flatMap((path) =>
-      (read(path).match(/<form class="form"[\s\S]*?<\/form>/g) ?? [])
-        .filter((form) => /<Button[^>]*type="submit"/.test(form))
-        .map((form) => [path, form])
+      [...read(path).matchAll(/<form class="form(?: ([\w-]+))?"[\s\S]*?<\/form>/g)]
+        .filter(([form]) => /<Button[^>]*type="submit"/.test(form))
+        .map(([form, own = 'form']) => [path, form, own])
     );
-  assert.ok(forms.length >= 3);
-  for (const [path, form] of forms) {
+  assert.ok(forms.length >= 4);
+  for (const [path, form, own] of forms) {
     assert.match(
       form,
       /<Button[^>]*type="submit"[^>]*class="action"/,
@@ -761,9 +862,17 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
     );
     assert.match(
       styles[path],
-      /\.form > :global\(\.action\) \{[^}]*margin-block-start: var\(--sui-space-1\);/,
+      new RegExp(
+        `\\.${own} > :global\\(\\.action\\) \\{[^}]*margin-block-start: var\\(--sui-space-1\\);`
+      ),
       `${path} sets its action at the fields' gap`
     );
+    if (own !== 'form')
+      assert.match(
+        styles[path],
+        new RegExp(`\\.${own} \\{[^}]*gap: var\\(--sui-space-5\\);`),
+        `${path} stacks its ${own} form's fields another distance apart`
+      );
   }
 });
 
@@ -941,6 +1050,23 @@ test('L-53 radii come from the radius tokens', () => {
         : null
     ),
     []
+  );
+});
+
+test('L-53 a placeholder for words rounds 3px and one for a pill keeps its round ends', () => {
+  assert.match(read('src/lib/styles.css'), /--sui-radius-placeholder: 3px;/);
+  const skeleton = stripComments(read('src/lib/components/Skeleton.svelte'));
+  assert.match(skeleton, /\n {2}\.bar \{[^}]*border-radius: var\(--sui-radius-placeholder\);/);
+  assert.match(skeleton, /\n {2}\.bar\.side \{[^}]*border-radius: var\(--sui-radius-pill\);/);
+});
+
+test("L-53 a workspace mark's corner stays near 30% of its side", () => {
+  assert.match(read('src/lib/styles.css'), /--sui-radius-mark-large: 12px;/);
+  const avatar = stripComments(read('src/lib/components/Avatar.svelte'));
+  assert.match(avatar, /size < 40\s*\? 'surface'\s*: size < 44\s*\? 'mark-large'\s*: 'dialog'/);
+  assert.match(
+    avatar,
+    /\[data-corner='mark-large'\] \{\s*border-radius: var\(--sui-radius-mark-large\);/
   );
 });
 
@@ -1571,15 +1697,66 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
+test("a code block's head names its file or language in the primary ink at 500, apart from the secondary copy words", () => {
+  const block = stripComments(read('src/lib/components/CodeBlock.svelte'));
+  for (const { rule, name } of [
+    { rule: /\.sui-code-block-label \{[^}]*/, name: 'the file name' },
+    {
+      rule: /\.sui-code-block:not\(\.bare\) \.sui-code-block-lang \{[^}]*/,
+      name: 'the language name'
+    },
+    {
+      rule: /\.bare \.sui-code-block-lang \{[^}]*/,
+      name: "a bare block's language name over it on a phone"
+    }
+  ]) {
+    const body = block.match(rule)?.[0] ?? '';
+    assert.match(body, /color: var\(--sui-text-primary\);/, name);
+    assert.match(body, /font: var\(--sui-weight-medium\) /, name);
+  }
+});
+
+test("a framed code block's head steps off its code by 4% ink in light and 4.5% in dark, and its copy control stands lighter than the head in both", () => {
+  const css = read('src/lib/styles.css');
+  const percents = (/** @type {string} */ name) =>
+    [...css.matchAll(new RegExp(`--sui-code-${name}-ink: ([^;]+);`, 'g'))].map(
+      ([, value]) => value
+    );
+  assert.deepEqual(
+    percents('head'),
+    ['4%', '4.5%', '4.5%'],
+    'the light block, then each dark block'
+  );
+  assert.deepEqual(
+    percents('chip'),
+    ['0%', '10%', '10%'],
+    "light keeps the code's own white over a darker head, dark takes more ink than its head"
+  );
+});
+
+test('a danger wash frames its failure in a quiet edge of the hue, 28% light and 36% dark, so the wash and the mark carry it', () => {
+  assert.deepEqual(
+    [...read('src/lib/styles.css').matchAll(/--sui-danger-wash-edge: ([^;]+);/g)].map(
+      ([, value]) => value
+    ),
+    [
+      'color-mix(in srgb, var(--sui-danger) 28%, #0000)',
+      'color-mix(in srgb, var(--sui-danger) 36%, #0000)',
+      'color-mix(in srgb, var(--sui-danger) 36%, #0000)'
+    ],
+    'the light block, then each dark block'
+  );
+});
+
 test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over it and half that edge under it", () => {
   const modal = read('src/lib/components/Modal.svelte');
   assert.match(
     modal,
-    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
+    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: var\(--sui-danger-wash-edge\);/
   );
   assert.match(
     modal,
-    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 20%, transparent\);/
+    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger-wash-edge\) 50%, transparent\);/
   );
   assert.match(
     modal,
@@ -1597,12 +1774,11 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
 });
 
 test("L-58 a refused save says why on a form error's danger wash, in a form error's words", () => {
-  const wash =
-    /background: color-mix\(in srgb, var\(--sui-danger-tint\) (\d+)%, var\(--sui-[a-z-]+\)\);/;
+  const wash = /background: var\(--sui-danger-wash\);/;
   const form = wash.exec(read('src/lib/components/FormError.svelte'));
   const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
   assert.ok(form && line, 'a form error or the dialog error line lost its rule');
-  assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
+  assert.match(line[0], wash, "the dialog's reason left the form error's wash");
   const words = (/** @type {string} */ rule) =>
     ['color', 'font'].map(
       (property) => new RegExp(`(?:^|\\s)${property}: ([^;]*);`).exec(rule)?.[1]
@@ -1620,11 +1796,16 @@ test("L-58 a refused save says why on a form error's danger wash, in a form erro
     /\.sui-modal-error-mark \{[^}]*color: var\(--sui-danger\);/,
     "the dialog's refusal mark keeps the danger ink"
   );
-  const panel = /var\(--sui-danger-tint\) (\d+)%/.exec(
-    read('src/lib/components/ErrorState.svelte')
+  assert.match(
+    read('src/lib/components/ErrorState.svelte'),
+    /--sui-local-error-ground: var\(--sui-danger-wash\);/,
+    "an error panel left the form error's wash"
   );
-  assert.equal(panel?.[1], form[1], "an error panel left the form error's wash");
-  assert.equal(form[1], '65', 'a refusal wash parts itself from the ground it sits on');
+  assert.match(
+    palette,
+    /--sui-danger-wash: color-mix\(in srgb, var\(--sui-danger-tint\) 65%, var\(--sui-surface-base\)\);/,
+    'a refusal wash parts itself from the ground it sits on'
+  );
 });
 
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
@@ -1861,8 +2042,8 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
   assert.match(
     styles[path],
-    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\);/,
-    'a 12px inset crowds body-size words and their 16px mark'
+    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\) var\(--sui-space-5\);/,
+    'a 12px inset crowds body-size words and their 16px mark, and the sides keep the error panel rail'
   );
   assert.match(
     styles[path],
@@ -1877,10 +2058,19 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.sui-error-state-copy > p \{\s*grid-column: 1 \/ -1;/,
-    'the explanation and step keep the whole width, so the mark never narrows them'
+    /\.sui-error-state-copy > p \{\s*grid-column: 2;/,
+    "the explanation and step stand on the title's edge, one rail with it"
   );
-  assert.doesNotMatch(styles[state], /-retry \{\s*margin-inline-start/);
+  assert.match(
+    styles[state],
+    /\.sui-error-state:not\(\.over, \.centred\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    "a panel's retry leaves the line the mark and its gap take"
+  );
+  assert.match(
+    styles[state],
+    /\.centred \.sui-error-state-head \{\s*display: flex;\s*flex-wrap: wrap;[^}]*justify-content: center;/,
+    "a centred panel, as in a chart's plot box, leads its title with the mark on one centred line"
+  );
 });
 
 test("L-39 the service worker's update is a view of its own, so Reload wears the signal tone", () => {
@@ -1903,7 +2093,16 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
   const plate = (/** @type {string} */ share) =>
     `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;
   assert.equal(light['--sui-sidebar-active-bg'], plate('18%'), 'a 12% plate reads as hover');
-  assert.equal(dark['--sui-sidebar-active-bg'], plate('24%'));
+  assert.equal(
+    dark['--sui-sidebar-active-bg'],
+    plate('30%'),
+    'a 24% plate sits a hair over a pressed row'
+  );
+  assert.match(
+    stripComments(read('src/lib/components/PageToc.svelte')),
+    /\.sui-page-toc-link\[aria-current='location'\] \{\s*background: light-dark\(\s*color-mix\(in srgb, var\(--sui-brand-action\) 18%, transparent\),\s*color-mix\(in srgb, var\(--sui-brand-action\) 30%, transparent\)\s*\);/,
+    "the index's current entry does not stand on the accent plate the sidebar's current page wears"
+  );
   // Every row holds a hidden copy of its words at the current weight in the words' own cell,
   // so the current row's words step up to 500 and turning current never rewraps a label.
   for (const [name, label] of [
@@ -2114,4 +2313,22 @@ test('L-95 a box as wide as its content rounds its width up to the pixel', () =>
       /inline-size: (?:var\(--sui-local-button-span, )?var\(--sui-inline-snap\)/,
       `${name} snaps its width`
     );
+});
+
+test('L-67 every glyph, the set and the kit pages’ own, draws one 2-unit stroke that no caller restates', () => {
+  assert.match(read('src/lib/icons/Icon.svelte'), /strokeWidth = 2,/, 'the set');
+  assert.match(
+    read('src/routes/kit/glyphs.ts'),
+    /stroke-width="2" stroke-linecap/,
+    'the kit glyphs'
+  );
+  assert.match(
+    read('docs/laws.md'),
+    /\*\*L-67\*\* One outline family on a 24-unit grid with a 2 stroke/
+  );
+  assert.deepEqual(
+    svelteFiles.filter((file) => /<Icon [^>]*strokeWidth=\{2\}/.test(read(file))),
+    [],
+    'a caller that passes the default'
+  );
 });

@@ -59,11 +59,11 @@ neither.
 
 An empty list is not an error and is not drawn as one; a request that failed is
 `ErrorState`. There is no decorative icon. The title sits 12px above the explanation, and
-a step 8px under it.
+the next step, a control or words, stands a panel gap under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
-- States: one drawn state, on the raised ground inside a hairline frame.
+- States: one drawn state, on the raised ground inside a dashed frame that marks the room its content would fill.
 - Keyboard: none of its own; the action takes Tab.
 - Pointer and touch: the action keeps its own 34px and 44px targets.
 - Focus: it never takes focus; when a filter empties a list, focus stays on the field the reader typed in.
@@ -79,8 +79,8 @@ a step 8px under it.
   <div class="sui-empty-state-copy">
     <p class="sui-empty-state-title">{title}</p>
     <p class="sui-empty-state-description">{description}</p>
-    {#if step}<p class="sui-empty-state-step">{step}</p>{/if}
   </div>
+  {#if step}<p class="sui-empty-state-step">{step}</p>{/if}
   {#if action}
     <div class="sui-empty-state-action">{@render action()}</div>
   {/if}
@@ -90,23 +90,84 @@ a step 8px under it.
 {/if}
 
 <style>
-  /* Stretched beside a taller panel, its words keep to the top and its action to the foot, so
-     the actions of panels on one line share it (L-59). */
+  /* Stretched beside a taller panel, its words and its action keep to the top, the action one
+     gap under the words it answers, never the panel's foot away from them (L-59). A dashed
+     edge marks the room the content would fill, apart from a solid card; a dash shows only
+     half its length, so it takes the control edge to read as firm as a hairline. */
   .sui-empty-state {
-    align-content: space-between;
+    align-content: start;
     background: var(--sui-surface-raised);
-    border: var(--sui-stroke) solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid transparent;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-6);
+    padding: var(--sui-space-8) var(--sui-space-5);
+    position: relative;
   }
 
-  /* The title stands a title gap above its words, and a step in words stands one under them,
-     so the reader's next move reads apart from why the list is empty (L-59). */
+  /* A browser's own dashes stretch to fit each side and blur at their ends, so the edge is
+     drawn in layers on whole pixels: a solid quarter ring closes each corner at the panel's own
+     radius and stroke, centred half a stroke in as a border's curve is, and between the corners
+     each side runs 4px dashes and 4px gaps from its own start. The ring's soft half pixel either
+     side stands in for an arc's antialiasing. */
+  .sui-empty-state::before {
+    --sui-local-dash: currentcolor 0 4px, transparent 4px 8px;
+    --sui-local-r: var(--sui-radius-control);
+    --sui-local-arc:
+      transparent calc(var(--sui-local-r) - var(--sui-stroke) - 0.5px),
+      currentcolor calc(var(--sui-local-r) - var(--sui-stroke) + 0.5px),
+      currentcolor calc(var(--sui-local-r) - 0.5px), transparent calc(var(--sui-local-r) + 0.5px);
+    background: var(--sui-border-control);
+    content: '';
+    inset: calc(-1 * var(--sui-stroke));
+    mask-image:
+      radial-gradient(circle at 100% 100%, var(--sui-local-arc)),
+      radial-gradient(circle at 0 100%, var(--sui-local-arc)),
+      radial-gradient(circle at 0 0, var(--sui-local-arc)),
+      radial-gradient(circle at 100% 0, var(--sui-local-arc)),
+      repeating-linear-gradient(to right, var(--sui-local-dash)),
+      repeating-linear-gradient(to right, var(--sui-local-dash)),
+      repeating-linear-gradient(to bottom, var(--sui-local-dash)),
+      repeating-linear-gradient(to bottom, var(--sui-local-dash));
+    mask-position:
+      left top,
+      right top,
+      right bottom,
+      left bottom,
+      var(--sui-local-r) top,
+      var(--sui-local-r) bottom,
+      left var(--sui-local-r),
+      right var(--sui-local-r);
+    mask-repeat: no-repeat;
+    mask-size:
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      calc(100% - 2 * var(--sui-local-r)) var(--sui-stroke),
+      calc(100% - 2 * var(--sui-local-r)) var(--sui-stroke),
+      var(--sui-stroke) calc(100% - 2 * var(--sui-local-r)),
+      var(--sui-stroke) calc(100% - 2 * var(--sui-local-r));
+    pointer-events: none;
+    position: absolute;
+  }
+
+  @media (forced-colors: active) {
+    .sui-empty-state {
+      border: var(--sui-stroke) dashed CanvasText;
+    }
+
+    .sui-empty-state::before {
+      display: none;
+    }
+  }
+
+  /* The title stands a title gap above its words. A step in words takes the place a control
+     would, a panel gap under them, so the reader's next move reads apart from why the list is
+     empty (L-59). */
   .sui-empty-state-copy {
     display: grid;
     gap: var(--sui-title-copy-gap);
@@ -125,7 +186,7 @@ a step 8px under it.
   .sui-empty-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -138,8 +199,9 @@ a step 8px under it.
 
   .sui-empty-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    max-inline-size: var(--sui-measure);
   }
 
   .sui-empty-state-action {
@@ -148,7 +210,7 @@ a step 8px under it.
     gap: var(--sui-space-2);
   }
 
-  /* A phone gives the words some of the width the panel's inset would take. */
+  /* A phone's short screen takes the room above and below the words down to the sides' 20px. */
   @media (max-width: 47.9375rem) {
     .sui-empty-state {
       gap: var(--sui-space-4);

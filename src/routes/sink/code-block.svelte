@@ -53,19 +53,19 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="YAML">
+  <Specimen label="A comment, nested keys and a list">
     <CodeBlock code={yaml} lang="yaml" />
   </Specimen>
-  <Specimen label="TOML">
+  <Specimen label="A table with a comment">
     <CodeBlock code={toml} lang="toml" />
   </Specimen>
-  <Specimen label="Markdown">
+  <Specimen label="A heading, a list and inline code">
     <CodeBlock code={markdown} lang="markdown" />
   </Specimen>
-  <Specimen label="Shell">
+  <Specimen label="Variables, flags, quotes and a continued line">
     <CodeBlock code={shell} lang="shell" />
   </Specimen>
-  <Specimen label="Plain text">
+  <Specimen label="A setting left uncolored">
     <CodeBlock code="SUI_THEME=dark" lang="text" />
   </Specimen>
 </Example>
@@ -97,13 +97,15 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
 
 <Example title="Copy Control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
   <Specimen label="Default name">
-    <CopyButton text="npm install @smykla-skalski/sui" />
+    <div class="tier"><CopyButton text="npm install @smykla-skalski/sui" /></div>
   </Specimen>
   <Specimen label="Named for what it copies">
-    <CopyButton text="0.2.1" label="Copy Version" />
+    <div class="tier"><CopyButton text="0.2.1" label="Copy Version" /></div>
   </Specimen>
-  <Specimen label="Toolbar tier, 34 px">
-    <CopyButton text="https://sui.tercenas.com" label="Copy Link" toolbar />
+  <Specimen label="Toolbar tier, as tall as a field">
+    <div class="tier">
+      <CopyButton text="https://sui.tercenas.com" label="Copy Link" toolbar />
+    </div>
   </Specimen>
   <Specimen label="Disabled">
     <div class="copy-locked">
@@ -125,6 +127,23 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
+  }
+
+  /* Side by side, each tier stands in a toolbar tier's height, so the quieter 28px ones centre
+     on the 34px one beside them and the four words share one line. The disabled one keeps its
+     reason a copy gap under it, so it takes only the room above. A phone stacks them, each
+     alone on its line, so each keeps its own height there. */
+  @media (min-width: 48rem) {
+    .tier {
+      align-items: center;
+      display: grid;
+      justify-items: start;
+      min-block-size: var(--sui-control-height-compact);
+    }
+
+    .copy-locked {
+      padding-block-start: calc((var(--sui-control-height-compact) - var(--sui-tier-quiet)) / 2);
+    }
   }
 
   .copy-reason {

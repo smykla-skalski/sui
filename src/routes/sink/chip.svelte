@@ -37,8 +37,13 @@
     ['blocked', '#000000', 'Black']
   ] as const;
 
-  let labels = $state(['topology/zone', 'team:platform', 'env=production', 'v2.9.1']);
+  let labels = $state(['topology/zone', 'team:platform', 'env=production']);
   let unkeyed = $state(['first', 'second', 'third']);
+  let painted = $state([
+    ['priority: high', 'd73a4a'],
+    ['needs design', '5319e7']
+  ]);
+  let files = $state(true);
 </script>
 
 <Example
@@ -62,11 +67,17 @@
 </Example>
 
 <Example
+  title="In a Line"
+  note="A small chip keeps to the line of text it stands in, its foot on the words’ foot, so the line keeps its height"
+>
+  <Specimen label="In a sentence">
+    <p class="line">The last push changed <Chip small label="3 files" /> in the kit</p>
+  </Specimen>
+</Example>
+
+<Example
   title="Label Colors"
   note="The light theme shows the color with black or white ink, and the dark one a tint with ink in its hue"
-  layout="grid"
-  --specimen-min="9rem"
-  --specimen-column-gap="var(--sui-space-4)"
 >
   {#each github as [label, color, name] (label)}
     <Specimen label={name}>
@@ -78,9 +89,6 @@
 <Example
   title="Pale & Dark"
   note="Only a near-white chip draws an edge, so it still shows on a white card"
-  layout="grid"
-  --specimen-min="9rem"
-  --specimen-column-gap="var(--sui-space-4)"
 >
   {#each extremes as [label, color, name] (label)}
     <Specimen label={name}>
@@ -105,7 +113,7 @@
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
   layout="grid"
-  --specimen-min="18rem"
+  --specimen-min="24rem"
 >
   <Specimen label="Remove & refocus">
     <div class="group" role="group" aria-label="Labels">
@@ -128,11 +136,25 @@
       {/each}
     </div>
   </Specimen>
+  <Specimen label="Painted & small">
+    <div class="group" role="group" aria-label="Painted labels">
+      {#each painted as [label, color] (label)}
+        <Chip
+          {label}
+          {color}
+          onremove={() => (painted = painted.filter(([other]) => other !== label))}
+        />
+      {/each}
+      {#if files}<Chip small label="3 files" onremove={() => (files = false)} />{/if}
+      {#if painted.length === 0 && !files}<span class="empty">No labels</span>{/if}
+    </div>
+  </Specimen>
   <Specimen label="Disabled">
     <div class="held">
       <div class="group" role="group" aria-label="Locked labels" aria-describedby="sink-chip-held">
         <Chip mono label="team:platform" onremove={() => {}} disabled />
         <Chip mono label="v2.9.1" onremove={() => {}} disabled />
+        <Chip label="frozen" color="cfd3d7" onremove={() => {}} disabled />
       </div>
       <p id="sink-chip-held" class="empty">Labels are locked while the release runs</p>
     </div>
@@ -160,7 +182,9 @@
 </Example>
 
 <style>
+  /* Centred, so a small chip beside default ones keeps its own height rather than stretching. */
   .group {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
@@ -170,6 +194,13 @@
   .group:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  .line {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    margin: 0;
   }
 
   .held {

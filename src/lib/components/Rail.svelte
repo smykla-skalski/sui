@@ -69,7 +69,7 @@
 
 <!--
 @component
-The outermost navigation: a 72px column of tiles, one per place, such as a workspace or a
+The outermost navigation: an 80px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place.
 
@@ -165,21 +165,29 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
 <style>
   .sui-rail {
+    --sui-local-rail-edge: calc(-1 * var(--sui-stroke));
+
     align-items: center;
     background: var(--sui-sidebar-bg);
     block-size: 100%;
-    border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
+    /* The edge is drawn inside the column, not beside its room, so the tiles keep an even 64px
+       and a glyph centres on a whole pixel, where a border left 63px and a half-pixel glyph. */
+    box-shadow: inset var(--sui-local-rail-edge) 0 var(--sui-sidebar-border);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-2);
-    /* The column is 72px at the default text size and widens with a reader's larger text, so
+    /* The column is 80px at the default text size and widens with a reader's larger text, so
        a label keeps its words on a line instead of breaking letter by letter. */
     inline-size: var(--sui-rail-width);
     overflow: hidden auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
     scrollbar-width: thin;
+  }
+
+  .sui-rail:dir(rtl) {
+    --sui-local-rail-edge: var(--sui-stroke);
   }
 
   .sui-rail-brand {
@@ -196,7 +204,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   /* The list runs the column's width, so a scrollbar narrows the tiles instead of pushing
-     them past the edge. */
+     them past the edge. Its tiles stand 8px in, clear of the column's edge as a side nav's
+     rows stand clear of theirs, and give their words the room they gave up. */
   .sui-rail-list {
     align-self: stretch;
     display: grid;
@@ -204,20 +213,23 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     gap: var(--sui-space-2);
     list-style: none;
     margin: 0;
-    padding: 0 var(--sui-space-1);
+    padding: 0 var(--sui-space-2);
   }
 
   .sui-rail-foot {
     margin-block-start: auto;
   }
 
+  /* A badge's halo takes the tile's ground in every state, so it never shows the sidebar
+     through a hovered, pressed or current tile. */
   .sui-rail-tile {
+    --sui-local-tile-ground: var(--sui-sidebar-bg);
     align-items: center;
     background: transparent;
     border: 0;
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
-    color: var(--sui-sidebar-text-muted);
+    color: var(--sui-sidebar-text-rest);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -226,7 +238,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     justify-content: center;
     margin: 0;
     min-block-size: var(--sui-touch-target);
-    padding: var(--sui-space-1);
+    padding: var(--sui-space-1) 0;
     text-decoration: none;
     touch-action: manipulation;
     transition:
@@ -239,18 +251,21 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   @media (hover: hover) {
     .sui-rail-tile:hover:not(:active, [aria-current]) {
-      background: var(--sui-sidebar-item-hover);
-      color: var(--sui-sidebar-text-secondary);
+      --sui-local-tile-ground: var(--sui-sidebar-item-hover);
+      background: var(--sui-local-tile-ground);
+      color: var(--sui-sidebar-text);
     }
   }
 
   .sui-rail-tile:active {
-    background: var(--sui-sidebar-item-pressed);
+    --sui-local-tile-ground: var(--sui-sidebar-item-pressed);
+    background: var(--sui-local-tile-ground);
     box-shadow: var(--sui-sidebar-pressed-inset);
     translate: 0 1px;
   }
 
   .sui-rail-tile:focus-visible {
+    color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
@@ -258,7 +273,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   /* The plate under the current tile marks the state with the tile's ink and glyph, so it
      needs no ring or edge. */
   .sui-rail-tile[aria-current] {
-    background: var(--sui-sidebar-active-bg);
+    --sui-local-tile-ground: var(--sui-sidebar-active-bg);
+    background: var(--sui-local-tile-ground);
     box-shadow: var(--sui-sidebar-thumb-shadow);
     color: var(--sui-sidebar-active-ink);
   }
@@ -278,9 +294,11 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   /* A hidden copy of the words at the current weight shares their cell, so every tile already
      holds the room its words take once current, and turning current never rewraps them (L-85). */
+  /* The label's box is an even height, so the glyph over it centres in the tile on a whole
+     pixel. */
   .sui-rail-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
@@ -294,10 +312,10 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   .sui-rail-label > span,
   .sui-rail-label::after {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     grid-area: 1 / 1;
     min-inline-size: 0;
-    padding-block: var(--sui-block-snap-room);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -312,21 +330,22 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
-     centres on the glyph's top-end corner, so it covers no more than that corner. */
+     stands over the glyph's top-end corner, a quarter of its height above the glyph and 4px over
+     its end, so it covers no more than that corner and its halo stays inside the tile. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
     block-size: var(--sui-icon-base);
     border-radius: var(--sui-radius-pill);
-    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
+    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-local-tile-ground);
     box-sizing: border-box;
     color: var(--sui-on-brand-action);
     display: inline-flex;
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
-    inset-block-start: calc(-1 * var(--sui-space-2));
-    inset-inline-start: calc(100% - var(--sui-space-2));
+    inset-block-start: calc(-1 * var(--sui-space-1));
+    inset-inline-start: calc(100% - var(--sui-space-1));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
     padding-inline: var(--sui-space-1);
@@ -346,19 +365,21 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     content: attr(data-count);
   }
 
-  /* In a shell with a bottom bar, on a phone, the tiles stand side by side and share the row. */
+  /* In a shell with a bottom bar, on a phone, the tiles stand side by side and share the row,
+     8px in from the bar's edges as the rail's tiles are from its column's. */
   @container sui-shell (max-width: 47.9375rem) {
     .sui-rail[data-bar] {
       block-size: auto;
       border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
       border-inline-end: 0;
+      box-shadow: none;
       flex-direction: row;
       flex-wrap: wrap;
       gap: 0;
       inline-size: 100%;
       overflow: visible;
-      padding: var(--sui-space-1) var(--sui-space-1)
-        calc(var(--sui-space-1) + env(safe-area-inset-bottom));
+      padding: var(--sui-space-2) var(--sui-space-2)
+        calc(var(--sui-space-2) + env(safe-area-inset-bottom));
     }
 
     .sui-rail[data-bar] :is(.sui-rail-brand, .sui-rail-rule) {
@@ -385,8 +406,16 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       min-inline-size: var(--sui-touch-target);
     }
 
-    /* In a tile no wider than its words the count stands beside the glyph, inside the tile,
-       rather than on its corner, where it would reach into the next tile. */
+    /* Tiles in a row meet, so a narrow phone gives each label the whole tile. */
+    .sui-rail[data-bar] .sui-rail-tile {
+      padding-inline: 0;
+    }
+  }
+
+  /* The count rides the glyph's corner in the bar as in the rail, unless the bar is so narrow
+     that its tiles shrink to their words, where the corner would reach into the next tile: there
+     it stands beside the glyph, inside the tile. */
+  @container sui-shell (max-width: 18rem) {
     .sui-rail[data-bar] .sui-rail-glyph {
       align-items: center;
       gap: var(--sui-space-1);
@@ -396,14 +425,14 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       box-shadow: none;
       position: static;
     }
-
-    /* Tiles in a row meet, so a narrow phone gives each label the whole tile. */
-    .sui-rail[data-bar] .sui-rail-tile {
-      padding-inline: 0;
-    }
   }
 
   @media (forced-colors: active) {
+    /* Forced colors drop a shadow, so the column's edge is a border there. */
+    .sui-rail {
+      border-inline-end: var(--sui-stroke) solid CanvasText;
+    }
+
     .sui-rail-tile[aria-current] {
       background-color: Highlight;
       color: HighlightText;

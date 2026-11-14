@@ -57,7 +57,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="No changes">
+  <Specimen label="Both sides empty">
     <DiffBlock before="" after="" />
   </Specimen>
 </Example>

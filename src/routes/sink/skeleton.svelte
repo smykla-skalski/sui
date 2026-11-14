@@ -7,24 +7,37 @@
 </script>
 
 <script lang="ts">
-  import { Button, FactLine, ObjectList, ObjectRow, Section, Skeleton } from '#lib';
+  import { Button, FactLine, ObjectList, ObjectRow, Pill, Section, Skeleton } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const names = ['smykla-skalski/sui', 'smykla-skalski/smyklot', 'smykla-skalski/ledger'];
+  // Each row has a side, as the placeholders promise, so the loaded rows take their shape.
+  const repositories = [
+    { name: 'smykla-skalski/sui', visibility: 'Public' },
+    { name: 'smykla-skalski/smyklot', visibility: 'Public' },
+    { name: 'smykla-skalski/ledger', visibility: 'Private' }
+  ];
 
   let loading = $state(true);
+  let settling: ReturnType<typeof setTimeout> | undefined;
+
+  /* Each load owns its timer, so an earlier load's never ends a later one early. */
+  function settle() {
+    clearTimeout(settling);
+    loading = false;
+  }
 
   function reload() {
+    clearTimeout(settling);
     loading = true;
-    setTimeout(() => (loading = false), 1500);
+    settling = setTimeout(settle, 1500);
   }
 </script>
 
 <Example
   title="Rows"
   note="Bars stand where a row’s name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="Two-line rows">
@@ -48,7 +61,7 @@
 <Example
   title="Slow"
   note="A wait that outlasts its patience stops its light and says so in the first row’s shape, here from the start"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="Two-line rows">
@@ -69,14 +82,16 @@
   layout="stack"
   ground="canvas"
 >
-  <Button onclick={() => (loading ? (loading = false) : reload())}>
-    {loading ? 'Show the Rows' : 'Load Again'}
-  </Button>
   <Specimen label={loading ? 'Loading' : 'Loaded'}>
     <Section title="Repositories" level={4}>
+      {#snippet actions()}
+        <Button onclick={() => (loading ? settle() : reload())}>
+          {loading ? 'Show Rows' : 'Load Again'}
+        </Button>
+      {/snippet}
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>
-          {#each names as name (name)}
+          {#each repositories as { name, visibility } (name)}
             <ObjectRow>
               {#snippet main()}
                 <span class="name">{name}</span>
@@ -85,6 +100,7 @@
                   ></span
                 >
               {/snippet}
+              {#snippet side()}<Pill>{visibility}</Pill>{/snippet}
             </ObjectRow>
           {/each}
         </ObjectList>

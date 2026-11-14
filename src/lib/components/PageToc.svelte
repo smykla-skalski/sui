@@ -152,10 +152,18 @@
   /** Moves focus to the section's heading, or the section, so the next Tab starts there. */
   function land(section: HTMLElement): void {
     const target = section.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? section;
-    if (!target.hasAttribute('tabindex')) {
-      target.tabIndex = -1;
-      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
-    }
+    const lent = !target.hasAttribute('tabindex');
+    if (lent) target.tabIndex = -1;
+    // Marked so it wears the kit's ring rather than the browser's (styles.css).
+    target.dataset.suiLanded = '';
+    target.addEventListener(
+      'blur',
+      () => {
+        if (lent) target.removeAttribute('tabindex');
+        delete target.dataset.suiLanded;
+      },
+      { once: true }
+    );
     target.focus({ preventScroll: true });
   }
 
@@ -304,7 +312,7 @@ when not, records the hash, and moves focus to the section's first heading, or t
 section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
-muted entries, a step of 2:1 or more in lightness, on an inset plate that marks it too, and
+muted entries, a step of 2:1 or more in lightness, on the accent plate that marks it too, and
 `Highlight` under forced colors, its words at 500. Every entry holds the room its words take
 at 500, so turning current never rewraps it or changes its height. It is announced with `aria-current="location"`. The first
 entry is current from the first paint, as at the top of the page, and then it follows the URL
@@ -319,11 +327,11 @@ phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the quiet plate, in room every entry holds, so it moves nothing).
+- States: rest, hover (a row ground and the hover ink), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
-- Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
-- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
-- Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
+- Pointer and touch: entries are 28px tall on a desktop pointer and 44px with no gap on a phone or a coarse pointer, across the column's width.
+- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex` and, when the keyboard brought it there, the kit's ring around its words; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
+- Responsive: the index sticks and scrolls inside itself, keeping the current entry in view, and keeps room for a scrollbar only while it scrolls, so one that fits ends its plates on its column's end; on a phone its words start on the page's text edge and its plates hang 8px past it; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
@@ -363,23 +371,38 @@ phone drawer, and following an entry closes the drawer before focus moves.
 </nav>
 
 <style>
-  /* The index sticks to the viewport's top, or under the page's bar, and fills the height
-     below it, padding its own scroll area, so entries leave at that edge and never get cut
-     at a line in the middle of the page. The end padding is room for the scrollbar, which
-     an overlay scrollbar would otherwise draw over the entries. */
+  /* The index sticks 16px under the viewport's top, or under the page's bar, and fills the
+     height below it, padding its own scroll area, so entries leave at that edge and never get
+     cut at a line in the middle of the page. Its title stands at the box's top, so at rest its
+     letters' tops line up with those of the page's first heading beside it.
+     Its entries keep room at their end for a scrollbar, which an overlay one would otherwise draw
+     over the entries, while the index scrolls, so an index that fits ends on its column's end. */
   .sui-page-toc {
     align-self: start;
     box-sizing: border-box;
-    inset-block-start: var(--sui-local-toc-offset, 0px);
-    max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px));
+    container-type: scroll-state;
+    inset-block-start: calc(var(--sui-local-toc-offset, 0px) + var(--sui-space-4));
+    max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px) - var(--sui-space-4));
     min-inline-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-block: var(--sui-space-6);
-    padding-inline-end: var(--sui-space-3);
+    padding-block: 0 var(--sui-space-6);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
     scrollbar-width: thin;
+  }
+
+  @container scroll-state(scrollable: block) {
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline-end: var(--sui-space-3);
+    }
+  }
+
+  /* A browser that cannot ask whether the index scrolls keeps the room always. */
+  @supports not (container-type: scroll-state) {
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline-end: var(--sui-space-3);
+    }
   }
 
   .sui-page-toc-title + .sui-page-toc-group {
@@ -392,19 +415,20 @@ phone drawer, and following an entry closes the drawer before focus moves.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    margin: var(--sui-space-5) 0 var(--sui-space-2);
+    margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* The headings stand on the entries' words, not on their plates' edge, as a SideNav's do. */
   .sui-page-toc-title {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.06em;
-    margin: 0 0 var(--sui-space-2);
+    letter-spacing: 0.04em;
+    margin: 0 var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
@@ -437,9 +461,11 @@ phone drawer, and following an entry closes the drawer before focus moves.
   }
 
   @media (hover: hover) {
+    /* Under the pointer an entry steps from its quiet ink to the hover ink, the primary on light
+       and the bright ink on dark (L-11), so the entry a reader is about to follow reads at once. */
     .sui-page-toc-link:hover:not(:active, [aria-current='location']) {
       background: var(--sui-row-hover);
-      color: var(--sui-text-secondary);
+      color: var(--sui-hover-ink);
     }
   }
 
@@ -481,16 +507,51 @@ phone drawer, and following an entry closes the drawer before focus moves.
     font-weight: var(--sui-weight-medium);
   }
 
-  /* The current mark every navigation list shares: the current ink on an inset plate, which
-     both carry the state. */
+  /* The current mark every navigation list shares: the current ink on the accent plate that
+     marks where the reader is, as the sidebar's current page and an open list row do (L-85),
+     so the section the reader is in never looks like the entry under the pointer. It mixes
+     into the page's own ground, which the index stands on. */
   .sui-page-toc-link[aria-current='location'] {
-    background: var(--sui-surface-inset);
+    background: light-dark(
+      color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
+      color-mix(in srgb, var(--sui-brand-action) 30%, transparent)
+    );
     color: var(--sui-text-current);
   }
 
+  /* A 44px entry already parts its words from the next one's, so the entries touch and the list
+     keeps the height of its targets alone. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-page-toc-list {
+      gap: 0;
+    }
+
     .sui-page-toc-link {
       min-block-size: var(--sui-touch-target);
+    }
+  }
+
+  /* On a phone the index stands over the page and never sticks, so it needs no end room, under
+     it or beside it for a scrollbar. Its words start on the page's text edge, and the plates
+     hang 8px past it on both sides, inside the box's own padding, so its scroll area never cuts
+     them, and the index and the article read down one edge. With no heading beside it, its
+     title keeps 8px of room over it. */
+  @media (max-width: 47.9375rem) {
+    .sui-page-toc {
+      margin-inline: calc(-1 * var(--sui-space-2));
+      padding: var(--sui-space-2) var(--sui-space-2) 0;
+    }
+
+    .sui-page-toc > :is(.sui-page-toc-title, .sui-page-toc-group) {
+      margin-inline: 0;
+    }
+
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline: calc(-1 * var(--sui-space-2));
+    }
+
+    .sui-page-toc-link {
+      padding-inline: var(--sui-space-2);
     }
   }
 
