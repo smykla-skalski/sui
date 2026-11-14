@@ -374,7 +374,7 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a rail tile stands 8px in from each side of its 80px column, its words given 63px', async () => {
+  test('a rail tile stands 8px in from each side of its 80px column, its words given 62px and its glyph a whole pixel', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       const found = await page.evaluate(() => {
@@ -386,16 +386,18 @@ suite('navigation', together, () => {
         );
         const box = tile.getBoundingClientRect();
         const look = getComputedStyle(tile);
+        const glyph = /** @type {Element} */ (tile.querySelector('svg')).getBoundingClientRect();
         return [
           box.left - rail.left,
           rail.right - 1 - box.right,
-          box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd)
+          box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd),
+          Number.isInteger(glyph.left) && Number.isInteger(glyph.top)
         ];
       });
       assert.deepEqual(
         found,
-        [8, 8, 63],
-        "the tile, past the column's 1px edge, and its words' room"
+        [8, 8, 62, true],
+        "the tile, past the column's 1px edge, its words' room, and its glyph on a whole pixel"
       );
     } finally {
       await page.close();

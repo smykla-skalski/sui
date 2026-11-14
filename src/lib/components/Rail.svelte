@@ -230,7 +230,10 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     justify-content: center;
     margin: 0;
     min-block-size: var(--sui-touch-target);
-    padding: var(--sui-space-1) 0;
+    /* A column of an odd width would centre the glyph on a half pixel and blur it, so the
+       tile's end gives up the odd pixel and its content centres on a whole one. */
+    padding-block: var(--sui-space-1);
+    padding-inline: 0 calc(100% - round(down, 100%, 2px));
     text-decoration: none;
     touch-action: manipulation;
     transition:
@@ -286,9 +289,11 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   /* A hidden copy of the words at the current weight shares their cell, so every tile already
      holds the room its words take once current, and turning current never rewraps them (L-85). */
+  /* The label's box is an even height, so the glyph over it centres in the tile on a whole
+     pixel. */
   .sui-rail-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
@@ -302,10 +307,10 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   .sui-rail-label > span,
   .sui-rail-label::after {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     grid-area: 1 / 1;
     min-inline-size: 0;
-    padding-block: var(--sui-block-snap-room);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
