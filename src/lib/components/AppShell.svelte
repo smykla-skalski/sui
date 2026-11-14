@@ -493,9 +493,11 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   /* A page header's foot meets the sidebar's edge, so inside the shell it is drawn in the
-     sidebar's line ink and the two rules meet as one. */
+     sidebar's line ink, over the sidebar's ground: the ink is translucent, and over the header's
+     lighter band it would paint a step lighter, so the two rules meet as one only on one ground. */
   .sui-shell-pane {
     --sui-border-band: var(--sui-sidebar-border);
+    --sui-border-band-ground: var(--sui-sidebar-bg);
     min-inline-size: 0;
   }
 

@@ -317,7 +317,41 @@ suite('navigation', together, () => {
           .borderRightColor
       ]);
       assert.equal(band, edge);
+      // The ink is translucent, so both rules must also paint over one ground to meet as one.
+      const pixel = async (/** @type {number} */ x, /** @type {number} */ y) => {
+        const shot = await page.screenshot({ clip: { x, y, width: 1, height: 1 } });
+        return page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(1, 1).getContext('2d');
+            context?.drawImage(image, 0, 0);
+            return [...(context?.getImageData(0, 0, 1, 1).data ?? [])].slice(0, 3).join();
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+      };
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate((theme) => (document.documentElement.dataset.theme = theme), theme);
+        const { foot, side } = await page.evaluate(() => {
+          const header = /** @type {Element} */ (
+            document.querySelector('.sui-page-header')
+          ).getBoundingClientRect();
+          const pages = /** @type {Element} */ (
+            document.querySelector('.sui-shell-pages')
+          ).getBoundingClientRect();
+          return {
+            foot: { x: header.left + 40, y: header.bottom - 1 },
+            side: { x: pages.right - 1, y: header.bottom + 40 }
+          };
+        });
+        assert.equal(
+          await pixel(foot.x, foot.y),
+          await pixel(side.x, side.y),
+          `${theme}: the header's foot and the sidebar's edge paint two inks`
+        );
+      }
     } finally {
+      await page.evaluate(() => delete document.documentElement.dataset.theme);
       await page.close();
     }
   });

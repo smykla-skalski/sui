@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- AppShell: a page header's foot stands on the sidebar's ground, so its translucent rule paints the same ink as the sidebar's edge where the two meet, where it painted a step lighter over the header's band.
 - HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
 - DataTable: the caption is set 16px 600 at every width, as a chart's title is, and a refreshing table's words sit on the caption's baseline.
 - AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
