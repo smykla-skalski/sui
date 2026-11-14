@@ -1827,6 +1827,37 @@ suite('navigation', together, () => {
       }
     );
 
+    // A line with more than 12 values draws no markers, so a value with a gap on each side has
+    // no run to stand on.
+    test('a value alone between two gaps keeps its marker on a line too long to mark', async () => {
+      const page = await openMount(browser, url);
+      try {
+        const marks = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const ys = [3, 4, 5, 6, 7, 8, Number.NaN, 9, Number.NaN, 10, 11, 12, 13, 14, 15];
+          const target = document.createElement('div');
+          document.body.append(target);
+          mount(lib.LineChart, {
+            target,
+            props: {
+              title: 'Readings',
+              description: 'One reading stands alone',
+              xLabel: 'Day',
+              yLabel: 'Items',
+              series: [{ id: 'a', label: 'A', points: ys.map((y, index) => ({ x: index + 1, y })) }]
+            }
+          });
+          flushSync();
+          return [...target.querySelectorAll('path.marker title')].map((title) =>
+            title.textContent?.replace(/\D+/g, ' ').trim()
+          );
+        });
+        assert.deepEqual(marks, ['8 9'], 'the lone value at day 8 draws its marker');
+      } finally {
+        await page.close();
+      }
+    });
+
     test('a stale chart’s note leads with the warning mark in its hue, at a refreshing note’s height', async () => {
       const page = await charts();
       const read = await page.evaluate(() => {

@@ -4,7 +4,7 @@
 
 - A chart whose values are out of date leads its note with the warning mark in the warning hue, so a stale plot no longer reads as one that is only described. A `RangeChart` fits a band down to 240px before it scrolls, where 320px cut a 390px phone's section chart at its last tick.
 - An `EmptyState`'s dashed edge bends at `--sui-radius-control` and runs at `--sui-stroke`, so a themed panel's frame follows its corner and stroke, where its arcs held 8px and 1px.
-- A `LineChart` breaks its line where a value is missing, where it drew straight across the gap as if the value were there. A chart's table names each series from the start edge, where its row headings took the browser's centring.
+- A `LineChart` breaks its line where a value is missing, where it drew straight across the gap as if the value were there. A value with a gap on each side keeps its marker, even on a line of more than 12 values that draws none. A chart's table names each series from the start edge, where its row headings took the browser's centring.
 - A `DiffBlock` keeps its air above its first line and under its last on the code ground, outside the lines, so every tone is one line tall, and its head's words centre on their capitals in the row. L-65 now asks a diff block for the same air as a code block.
 - On dark, a `CodeBlock`'s comments and line numbers and a `DiffBlock`'s line numbers take the whole muted ink, which reads Lc 60 on the code ground, where 85% of it read Lc 48.
 - The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.

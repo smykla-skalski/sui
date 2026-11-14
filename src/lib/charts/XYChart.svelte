@@ -78,6 +78,8 @@
       return {
         ...item,
         runs: runs.filter((run) => run.length > 1),
+        // A value with a gap on each side has no line to stand on, so it keeps its marker.
+        alone: runs.filter((run) => run.length === 1).flat(),
         color: chartColor(index),
         marker: chartMarker(index),
         dash: chartDash(index),
@@ -113,7 +115,8 @@
   function outermost(): MarkReach[] {
     return validSeries.flatMap((item) => {
       if (item.points.length === 0) return [];
-      const reach = item.marked ? markerReach(item.marker, MARKER[kind]) : CAP;
+      const reach =
+        item.marked || item.alone.length > 0 ? markerReach(item.marker, MARKER[kind]) : CAP;
       const pick = (first: (a: ChartPoint, b: ChartPoint) => boolean) =>
         item.points.reduce((best, point) => (first(point, best) ? point : best));
       return [
@@ -253,8 +256,8 @@
             stroke-linejoin="round"
           />
         {/if}
-        {#if item.marked}
-          {#each drawn(item.points) as point, pointIndex (pointIndex)}
+        {#if item.marked || item.alone.length > 0}
+          {#each drawn(item.marked ? item.points : item.alone) as point, pointIndex (pointIndex)}
             <path
               d={markerPath(item.marker, 0, 0, MARKER[kind])}
               fill={item.color}
