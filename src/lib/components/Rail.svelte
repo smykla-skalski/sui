@@ -265,10 +265,16 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     translate: 0 1px;
   }
 
+  /* The ring stands inside the tile, as on a side nav row, so the sidebar's two columns draw
+     one ring, and on the current plate it takes the plate's ink, as a current row's does. */
   .sui-rail-tile:focus-visible {
     color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
-    outline-offset: var(--sui-focus-ring-offset);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  .sui-rail-tile[aria-current]:focus-visible {
+    outline-color: var(--sui-sidebar-active-ink);
   }
 
   /* The plate under the current tile marks the state with the tile's ink and glyph, so it
