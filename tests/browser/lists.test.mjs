@@ -1868,6 +1868,23 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test("a right-to-left link list starts at its card's inline start, the right edge", async () => {
+      const page = await opened();
+      const [list, holder] = await page.evaluate(() => {
+        const list = /** @type {Element} */ (
+          document.querySelector('#link-list [dir="rtl"] .sui-link-list')
+        );
+        const card = /** @type {Element} */ (
+          /** @type {Element} */ (list.closest('.specimen')).parentElement
+        );
+        return [
+          list.getBoundingClientRect().right,
+          card.getBoundingClientRect().right - parseFloat(getComputedStyle(card).paddingInlineEnd)
+        ];
+      });
+      assert.equal(list, holder);
+    });
+
     test('a failed refresh over its rows keeps its words 16px inside its tint, as a form error does, above and below', async () => {
       const page = await opened();
       const strip = page
