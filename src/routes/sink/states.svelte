@@ -210,7 +210,6 @@
   title="Over Loaded Content"
   note="A failed refresh becomes one line above the rows it leaves in place"
   layout="stack"
-  ground="canvas"
 >
   <Specimen label="Refresh failed">
     <Section title="Repositories" level={4}>

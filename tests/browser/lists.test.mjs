@@ -1607,6 +1607,14 @@ suite('lists', together, () => {
         assert.ok(Math.abs(value - 16) < 0.5, `the strip keeps ${value}px ${where} its words`);
     });
 
+    test('a failed refresh and the rows it keeps stand on the surface a list lives on', async () => {
+      const page = await opened();
+      const ground = await page
+        .locator('#states .stage', { hasText: 'Refresh failed' })
+        .getAttribute('data-ground');
+      assert.equal(ground, 'surface');
+    });
+
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {
