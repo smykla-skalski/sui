@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A retry inside an `ErrorState` hovers in 16% of the danger hue on dark too, as on light, where 12% left the step easy to miss on the tinted panel.
 - An `ErrorState` over its rows pads its words 16px inside its tint above and below on a wide screen, as a `FormError` stands its words in its own, up from 13px.
 - An `ErrorState` over its rows pads its words 13px inside its tint above and below on a wide screen, up from 9px, so a two-line failure never meets its edge.
 - A `CodeBlock` parts its head row from its code and its line numbers from their lines in its frame's own edge, so the block draws one rule ink, where a row divider's 75% of it left the line about 1.2:1 on light and the head standing on its ground alone.

@@ -150,10 +150,7 @@ of them.
       var(--sui-surface-raised),
       color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-raised))
     );
-    --sui-interactive-hover-layer: light-dark(
-      color-mix(in srgb, var(--sui-danger) 16%, transparent),
-      color-mix(in srgb, var(--sui-danger) 12%, transparent)
-    );
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 16%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 24%, transparent);
     --sui-control-border: color-mix(in srgb, var(--sui-danger) 18%, var(--sui-border-control));
     --sui-control-border-hover: color-mix(
