@@ -4,7 +4,7 @@
 
 - A `SideNav` draws the hairline under its title only once rows scroll under it, fading in over their first 8px, so at rest the shell shows one rule beside the page header's, not two at different heights. Inside an `AppShell` a `PageHeader`'s foot takes the sidebar's line ink, so the two rules meet as one.
 - `SideNav` and `Rail` rows rest in `--sui-sidebar-text-rest`, the strongest ink that keeps the current row's ink 2:1 apart: 30% of the primary ink over the muted on light, so the links read over their group headings, and the muted ink on dark. A hovered or focused row takes the primary ink.
-- A `DiffBlock` numbers each kept line by its line in the new text, so a window's numbers agree with the file, where they counted the window's rows and skipped over each change.
+- A `DiffBlock` numbers each kept, added or changed line by its line in the new text, the toned ones in their line's ink, so a window's numbers agree with the file, where they counted the window's rows and only kept lines wore one. A removed line has no line in the new text and wears none.
 - A `DiffBlock` whose first or last line is removed or added carries that line's tone to the frame, where the block's air had left an untoned band.
 - A waiting chart veils only its plot's box, round at a control's corner, and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
 - A chart's grid lines and table rows draw the hairline that frames a surface, `--sui-border-subtle`, where they stood 65% of the way to a control's edge, so the series lead over the grid.

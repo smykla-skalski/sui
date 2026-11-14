@@ -1696,7 +1696,7 @@ suite('lists', together, () => {
       );
     });
 
-    test('a diff numbers each kept line by its line in the new text', async () => {
+    test('a diff numbers each kept or added line by its line in the new text', async () => {
       const page = await opened();
       const numbers = await page
         .locator('#diff-block .sui-diff-block')
@@ -1704,8 +1704,8 @@ suite('lists', together, () => {
         .evaluate((block) =>
           [...block.querySelectorAll('.ln .no')].map((no) => no.textContent).filter(Boolean)
         );
-      // renovate.json keeps "{", "automerge" and "}", lines 1, 3 and 5 of the repository's file.
-      assert.deepEqual(numbers, ['1', '3', '5']);
+      // renovate.json's new text runs 5 lines; its 2 removed lines take none of them.
+      assert.deepEqual(numbers, ['1', '2', '3', '4', '5']);
     });
 
     test('a diff’s toned edge line carries its tone to the frame', async () => {
