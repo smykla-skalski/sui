@@ -3117,9 +3117,9 @@ export function cutSides(element: Element, reach: number): string[] {
 }
 
 /**
- * Code lines (L-65): every line of a code or diff block is one height. A diff block's first
- * and last lines meet its edges, so their tones run to them; a code block keeps one even air
- * above its first line and under its last, and its copy control centres on the first line.
+ * Code lines (L-65): every line of a code or diff block is one height, and the block keeps one
+ * even air above its first line and under its last; a code block's copy control centres on the
+ * first line.
  */
 function codeLines(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -3163,7 +3163,7 @@ function codeLines(root: Document): Finding[] {
       first.top - edge.top - scroller.clientTop,
       edge.bottom - spans.at(-1)!.bottom - parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
-    const air = code ? (row - first.height) / 2 : 0;
+    const air = (row - first.height) / 2;
     if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
       found.push(
         finding(

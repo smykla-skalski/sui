@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `DiffBlock` keeps its air above its first line and under its last on the code ground, outside the lines, so every tone is one line tall, and its head's words centre on their capitals in the row. L-65 now asks a diff block for the same air as a code block.
 - On dark, a `CodeBlock`'s comments and line numbers and a `DiffBlock`'s line numbers take the whole muted ink, which reads Lc 60 on the code ground, where 85% of it read Lc 48.
 - The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.
 - A `DiffBlock` draws a `CodeBlock`'s head: a 44px row a faint step off the code, with the file name at 13px medium and a subtle rule under it. Its line numbers take the code block's quiet gutter ink on a 16px start rail, and its first and last lines get the code block's room. `--sui-code-gutter` is now that quiet ink in both themes.

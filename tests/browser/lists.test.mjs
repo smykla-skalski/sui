@@ -1619,8 +1619,11 @@ suite('lists', together, () => {
             height: top.getBoundingClientRect().height,
             fill: style.backgroundColor,
             ink: getComputedStyle(number).color,
-            room: first?.matches(':first-child')
-              ? parseFloat(getComputedStyle(number).paddingTop)
+            air: first?.matches(':first-child')
+              ? number.getBoundingClientRect().top +
+                parseFloat(getComputedStyle(number).paddingTop) -
+                /** @type {Element} */ (number.closest('pre')).getBoundingClientRect().top -
+                /** @type {Element} */ (number.closest('pre')).clientTop
               : null
           };
         };
@@ -1636,7 +1639,7 @@ suite('lists', together, () => {
       assert.equal(diff.height, code.height, 'head row height');
       assert.equal(diff.fill, code.fill, 'head fill');
       assert.equal(diff.ink, code.ink, 'line number ink');
-      assert.equal(diff.room, code.room, 'room over the first line');
+      assert.equal(diff.air, code.air, 'air over the first line’s words');
     });
 
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {

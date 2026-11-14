@@ -286,11 +286,13 @@ or removed empty line. Two empty sides say `emptyLabel`.
 
 <style>
   /* A diff is a code block's sibling: the same 44px head row a faint step off the code, the same
-     quiet line numbers on a 16px start rail, and the same room over its first line and under its
-     last. */
+     quiet line numbers on a 16px start rail, and the same air over its first line and under its
+     last, which centres a line in the head row's height. */
   .sui-diff-block {
     --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
-    --sui-local-code-room: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room: calc(
+      (var(--sui-local-code-row) - var(--sui-leading-meta) - var(--sui-space-1)) / 2
+    );
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
@@ -329,6 +331,15 @@ or removed empty line. Two empty sides say `emptyLabel`.
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+  }
+
+  /* The head's words trimmed to their capitals in even boxes, so they centre in the row (L-102). */
+  .sui-diff-block-name,
+  .sui-diff-block-sources > * {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-diff-block-sources {
@@ -378,11 +389,11 @@ or removed empty line. Two empty sides say `emptyLabel`.
     grid-template-columns: auto auto minmax(0, 1fr);
     inline-size: max-content;
     min-inline-size: 100%;
+    padding-block: var(--sui-local-code-room);
   }
 
-  /* Every line is one height with its air inside its cells, so a tone runs from edge to edge,
-     the gutter's step fills the line's height, and the block has no strip of bare ground above
-     its first line or below its last. */
+  /* Every line is one height with its air inside its cells, so a tone runs the line's height and
+     the gutter's step fills it; the block's own air stands outside the first and last lines. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
@@ -392,14 +403,6 @@ or removed empty line. Two empty sides say `emptyLabel`.
 
   .ln > * {
     padding-block: calc(var(--sui-space-1) / 2);
-  }
-
-  .ln:first-child > * {
-    padding-block-start: var(--sui-local-code-room);
-  }
-
-  .ln:last-child > * {
-    padding-block-end: var(--sui-local-code-room);
   }
 
   .no {
