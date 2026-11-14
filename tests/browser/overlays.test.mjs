@@ -788,6 +788,27 @@ suite('overlays', together, () => {
       }
     });
 
+    // A box as tall as its line stood its ring 5px over the figures, tall and thin around them.
+    test("a relative time's ring stands 2px inside its line's top, on a whole pixel", async () => {
+      const boxes = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
+          (time) => {
+            const look = getComputedStyle(time);
+            const line = parseFloat(
+              getComputedStyle(/** @type {Element} */ (time.parentElement)).lineHeight
+            );
+            const { top, height } = time.getBoundingClientRect();
+            return { top, words: height - parseFloat(look.paddingBlockEnd), line };
+          }
+        )
+      );
+      assert.ok(boxes.length > 0);
+      for (const { top, words, line } of boxes) {
+        assert.equal(words, line - 4, `the ring spans ${words}px of a ${line}px line`);
+        assert.ok(Number.isInteger(top), `the ring's top stands at ${top}px`);
+      }
+    });
+
     // An English 12-hour clock writes 9:26, not 09:26.
     test('a whole instant pads its hour only where the language does', async () => {
       const whole = await page

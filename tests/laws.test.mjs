@@ -179,7 +179,9 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
   const leading = /var\(--sui-(leading-[a-z-]+|row-copy-leading)\)/;
   assert.deepEqual(
     violations(({ property, value }) => {
-      if (property === 'line-height' && !leading.test(value) && value !== 'inherit')
+      // A box set inside its parent's line (RelativeTime) takes that line less a whole step.
+      const inset = /^calc\(1lh - var\(--sui-space-\d\)\)$/.test(value);
+      if (property === 'line-height' && !leading.test(value) && value !== 'inherit' && !inset)
         return 'leading off the scale';
       if (property === 'font' && value !== 'inherit' && !/\/\s*var\(/.test(value))
         return 'font without its leading';

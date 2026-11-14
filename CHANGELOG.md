@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
 - The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.
 - The sink's Timeline page sets its Times and Days examples two to a line, each half of the stage, so on a desktop each timeline keeps the time column its note describes, where a 320px column stood each time over its words.
 - On a phone the sink's Link List page stands its two Links specimens 40px apart, so the second one's name, 20px under the last link where the links stand 24px apart, no longer reads as one more row of the first list. A grid example takes `--specimen-phone-row-gap`.

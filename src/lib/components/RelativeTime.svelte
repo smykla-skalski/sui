@@ -175,17 +175,19 @@ tooltip.
 </time>{#if element && valid && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
-  /* The box spans its line in a sentence too, and reaches 4px past it below, given back by its
-     margin so nothing moves, and keeps to the words at each side. The dots run 2px over its
-     foot, 3px clear of a g or a y. The ring sits on the box, 2px under the dots: a space in
-     the sans is 2.5px wide, so a ring further off would draw on the letters of the word before
-     or after the time. */
+  /* The box stands 2px inside its line's top, a whole pixel past the parent's whole-pixel
+     line, so the ring stands 3px over the figures rather than 5px, and reaches 4px past the
+     line below, given back by its margin so nothing moves; it keeps to the words at each side.
+     The dots run 2px over its foot, 3px clear of a g or a y. The ring sits on the box, 2px under
+     the dots: a space in the sans is 2.5px wide, so a ring further off would draw on the
+     letters of the word before or after the time. */
   .sui-relative-time {
     --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
     --sui-local-ring-offset: 0px;
     display: inline-block;
-    margin-block-end: calc(-1 * var(--sui-space-1));
-    padding-block-end: var(--sui-space-1);
+    line-height: calc(1lh - var(--sui-space-1));
+    margin-block-end: calc(-1 * var(--sui-space-1) - 2px);
+    padding-block-end: calc(var(--sui-space-1) + 2px);
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -252,6 +254,7 @@ tooltip.
      column sized for the short one would otherwise clip it. */
   .exact {
     display: inline;
+    line-height: inherit;
     margin: 0;
     padding: 0;
     white-space: normal;
