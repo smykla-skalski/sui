@@ -247,6 +247,24 @@ suite('navigation', together, () => {
     });
   });
 
+  test('a phone row keeps its side beside a short name, however wide the side', long, async () => {
+    const page = await openLayout('layouts/app-shell/', 375);
+    try {
+      const dropped = await page.evaluate(() =>
+        [...document.querySelectorAll('.sui-object-row')]
+          .filter((row) => {
+            const main = /** @type {Element} */ (row.querySelector('.sui-object-row-main'));
+            const side = row.querySelector('.sui-object-row-side');
+            return side && side.getBoundingClientRect().top >= main.getBoundingClientRect().bottom;
+          })
+          .map((row) => row.textContent?.trim())
+      );
+      assert.deepEqual(dropped, [], 'a short row dropped its side');
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,

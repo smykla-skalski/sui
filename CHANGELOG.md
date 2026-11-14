@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- On a phone an `ObjectRow` keeps its side beside the main part whenever both fit on one line, so a wider pill such as Not checked no longer drops under a short name while the rows beside it keep theirs.
 - A `DiffBlock` with 2 empty sides draws one 44px body row with its words in the code's mono and the line numbers' quiet ink, where a 36px box of sans words read as a field. Its plus and minus glyphs stand at 600, so the removed side's short bar keeps its ink beside the added side's cross.
 - A chart whose values are out of date leads its note with the warning mark in the warning hue, so a stale plot no longer reads as one that is only described. A `RangeChart` fits a band down to 240px before it scrolls, where 320px cut a 390px phone's section chart at its last tick.
 - An `EmptyState`'s dashed edge bends at `--sui-radius-control` and runs at `--sui-stroke`, so a themed panel's frame follows its corner and stroke, where its arcs held 8px and 1px.
