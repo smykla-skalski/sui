@@ -948,6 +948,24 @@ p { margin-block-end: 2em !important; }`;
       }
     );
 
+  test(
+    'the icon page reflows its direction pairs in 320px with text at twice its size',
+    long,
+    async () => {
+      const page = await open(320, 'light');
+      try {
+        await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+        const past = await page
+          .locator('#icons .example', { has: page.locator('.title', { hasText: 'Direction' }) })
+          .locator('.stage')
+          .evaluate((stage) => stage.scrollWidth - stage.clientWidth);
+        assert.ok(past <= 1, `the pairs run ${past}px past their frame`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test("a section's lone ghost button ends its words on the content's edge", long, async () => {
     const page = await open(1440, 'light');
     try {
