@@ -41,7 +41,7 @@
 - A `SideNav` drawer's close draws a dialog close's 18px glyph in the secondary ink, so the way out reads beside the place's name.
 - A `LinkList` on a phone steps its links one 44px target apart, so a short list keeps a row's pitch instead of a gap that reads as a missing link.
 - A `Disclosure` hint in a right-to-left page keeps its room at the summary's end, so a hint in another script no longer starts its wrapped line 32px off the summary's edge.
-- A folded `SideNav` that stands alone keeps its `kicker` centred over the head's hairline, which stays at 56px, so the strip still names its place; beside a rail it leaves the naming to the rail. A choice in its `foot`, such as a `ThemeSwitch`, sits on the current row's tint plate instead of the accent fill, so the column holds one accent plate.
+- A folded `SideNav` that stands alone keeps its `kicker` where the whole nav draws it, in the primary ink, over the head's hairline, so the strip still names its place; beside a rail it leaves the naming to the rail. A choice in its `foot`, such as a `ThemeSwitch`, sits on the current row's tint plate with the current row's accent glyph instead of the accent fill, so the column holds one accent plate. `SegmentedControl` takes `--sui-segment-thumb-glyph` for the chosen option's glyph.
 - An `AppShell` phone bar draws its `eyebrow` at 14px, the menu label's size, so the place it names never reads smaller than the button beside it.
 - A compact `Callout` centres its symbol in a full tile's 2rem slot, so its words start where a full callout's do.
 - A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.

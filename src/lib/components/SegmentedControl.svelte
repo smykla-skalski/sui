@@ -776,6 +776,7 @@ itself, so the choice shows from the first frame.
     .sui-segmented-track:not(:has(> .selected))
     > .sui-segmented-option[data-scheme='system']
     .sui-segmented-label {
+    --sui-local-segment-glyph: var(--sui-segment-thumb-glyph, var(--sui-segment-thumb-ink));
     color: var(--sui-segment-thumb-ink);
     font-weight: var(--sui-weight-semibold);
   }
@@ -796,6 +797,7 @@ itself, so the choice shows from the first frame.
       .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
       > .sui-segmented-option[data-scheme='light']
       .sui-segmented-label {
+      --sui-local-segment-glyph: var(--sui-segment-thumb-glyph, var(--sui-segment-thumb-ink));
       color: var(--sui-segment-thumb-ink);
       font-weight: var(--sui-weight-semibold);
     }
@@ -817,6 +819,7 @@ itself, so the choice shows from the first frame.
       .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
       > .sui-segmented-option[data-scheme='dark']
       .sui-segmented-label {
+      --sui-local-segment-glyph: var(--sui-segment-thumb-glyph, var(--sui-segment-thumb-ink));
       color: var(--sui-segment-thumb-ink);
       font-weight: var(--sui-weight-semibold);
     }
@@ -1043,7 +1046,10 @@ itself, so the choice shows from the first frame.
     z-index: var(--sui-layer-inner-face);
   }
 
+  /* The chosen option's glyph may take its own ink, such as the accent of a current row's
+     glyph on a tint thumb; it follows the words otherwise. */
   .sui-segmented-label > :global(svg:first-child) {
+    color: var(--sui-local-segment-glyph, inherit);
     flex: none;
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
@@ -1105,6 +1111,7 @@ itself, so the choice shows from the first frame.
   }
 
   .selected .sui-segmented-label {
+    --sui-local-segment-glyph: var(--sui-segment-thumb-glyph, var(--sui-segment-thumb-ink));
     color: var(--sui-segment-thumb-ink);
     font-weight: var(--sui-weight-semibold);
   }
