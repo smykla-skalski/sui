@@ -369,22 +369,35 @@ suite('navigation', together, () => {
     }
   });
 
-  test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
-    const page = await openLayout('layouts/app-shell/', 1440);
-    try {
-      const [list, header] = await page.evaluate(() =>
-        ['main .sui-object-list', 'main .sui-page-header'].map(
-          (name) =>
-            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().right
-        )
-      );
-      assert.ok(
-        Math.abs(header - 24 - list) <= 0.5,
-        `the list ends at ${list}, the band at ${header}`
-      );
-    } finally {
-      await page.close();
-    }
+  test("the shell demo ends its list on a detail pane's main column, its start on the header's words", async () => {
+    const edges = async (/** @type {string} */ path, /** @type {string} */ part) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(
+          ([part]) => {
+            const box = /** @type {Element} */ (
+              document.querySelector(part)
+            ).getBoundingClientRect();
+            const words = /** @type {Element} */ (
+              document.querySelector('main .sui-page-header h1')
+            ).getBoundingClientRect();
+            return [box.left - words.left, box.right];
+          },
+          [part]
+        );
+      } finally {
+        await page.close();
+      }
+    };
+    const [overview, detail] = [
+      await edges('layouts/app-shell/', 'main .sui-object-list'),
+      await edges('layouts/detail-pane/', 'main .sui-callout')
+    ];
+    assert.ok(Math.abs(overview[0]) <= 0.5, `the list starts ${overview[0]}px off the title`);
+    assert.ok(
+      Math.abs(overview[1] - detail[1]) <= 0.5,
+      `the list ends at ${overview[1]}, the detail's main column at ${detail[1]}`
+    );
   });
 
   test('a one-figure count is a circle, and a longer one a pill as tall', async () => {
