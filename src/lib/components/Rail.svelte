@@ -242,6 +242,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     gap: var(--sui-space-1);
   }
 
+  /* Beside the pages, and in the one folded column, a place's tile rounds as a page's row does,
+     so the column's plates share one corner. */
+  .host .sui-rail-tile {
+    border-radius: var(--sui-radius-control);
+  }
+
   .host .sui-rail-foot {
     grid-area: foot;
     margin-block-start: 0;

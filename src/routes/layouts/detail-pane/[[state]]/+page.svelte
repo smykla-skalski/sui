@@ -252,9 +252,9 @@
            the description's lines and the facts' lines will: one of each where the description
            fits a line, and two lines of description over the facts' one line where it wraps. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
-        <!-- The status region is there from the first render, so the state is read once it
-             arrives, and its pill's place is held beside the title. -->
-        {#snippet status()}<span class="chip" aria-hidden="true"></span>{/snippet}
+        <!-- The status region is there from the first render with the state it has, a loading
+             word, so the check's own state is read once it arrives. -->
+        {#snippet status()}<Pill tone="neutral">Loading</Pill>{/snippet}
         {#snippet facts()}
           <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
           <div class="from-ink two-lines">
@@ -342,10 +342,9 @@
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader title="Sync Check #4182" kicker={back}>
-        {#snippet status()}<Pill tone="neutral">Not found</Pill>{/snippet}
-      </PageHeader>
-      <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice. -->
+      <PageHeader title="Sync Check #4182" kicker={back} />
+      <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice, once,
+           in the panel's title rather than in a status beside the header's too. -->
       <div class="zones missing">
         <EmptyState
           title="This Check Does Not Exist"
@@ -510,15 +509,6 @@
 
   .under {
     display: none;
-  }
-
-  /* The status pill's place beside the title, as tall and wide as the loaded one. */
-  .chip {
-    background: var(--sui-placeholder);
-    block-size: var(--sui-control-height-chip);
-    border-radius: var(--sui-radius-pill);
-    display: block;
-    inline-size: 4.5rem;
   }
 
   /* The action's placeholder ends where the callout's button will, its inset from the foot. */
