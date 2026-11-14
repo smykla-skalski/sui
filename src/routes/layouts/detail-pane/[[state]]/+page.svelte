@@ -288,6 +288,7 @@
                     <Skeleton
                       rows={1}
                       ruled={false}
+                      side={false}
                       rowHeight="var(--notice-row)"
                       patience={Infinity}
                       label=""
@@ -301,6 +302,7 @@
                     <span class="press"></span>
                   </div>
                 </div>
+                <span class="press beside"></span>
               </div>
             </div>
             <Section title="Outcome">
@@ -521,6 +523,17 @@
 
   .under {
     display: none;
+  }
+
+  /* Beside the words, the action's placeholder is the button's own box, centred on the tile's
+     band and its inset from the end, as the callout's button stands. */
+  .press.beside {
+    margin-block: calc(
+        var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4) +
+          (var(--sui-symbol-tile) - var(--sui-tier-quiet)) / 2
+      )
+      0;
+    margin-inline-end: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
   }
 
   /* The action's placeholder ends where the callout's button will, its inset from the foot. */

@@ -1002,6 +1002,33 @@ suite('navigation', together, () => {
     }
   });
 
+  test("a detail pane's waiting notice holds its button's box where the button will stand", async () => {
+    const box = async (
+      /** @type {string} */ path,
+      /** @type {string} */ frame,
+      /** @type {string} */ action
+    ) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(
+          ([frame, action]) => {
+            const outer = /** @type {Element} */ (document.querySelector(frame));
+            const inner = /** @type {Element} */ (outer.querySelector(action));
+            const [o, i] = [outer.getBoundingClientRect(), inner.getBoundingClientRect()];
+            return [i.top - o.top, o.right - i.right, i.width, i.height];
+          },
+          [frame, action]
+        );
+      } finally {
+        await page.close();
+      }
+    };
+    assert.deepEqual(
+      await box('layouts/detail-pane/loading/', '.notice', '.press.beside'),
+      await box('layouts/detail-pane/', '.sui-callout', '.sui-button')
+    );
+  });
+
   test("a section's waiting count holds a two-digit count's box and leaves the heading its title", async () => {
     const count = async (/** @type {string} */ path, /** @type {string} */ name) => {
       const page = await openLayout(path, 1440);
