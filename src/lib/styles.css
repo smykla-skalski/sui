@@ -480,6 +480,7 @@
   --sui-font-size-title: 1rem;
   /* A state's title: a step over the body on a phone too (L-25). */
   --sui-font-size-state-title: var(--sui-font-size-title);
+  --sui-font-size-chart-state-title: 0.9375rem;
   /* Under the 11px floor on purpose: a 20px avatar's letters are a mark (L-25). */
   --sui-font-size-initials-small: 0.5625rem;
   --sui-font-size-initials-large: 1.25rem;

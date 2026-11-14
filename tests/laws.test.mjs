@@ -586,9 +586,27 @@ test('L-25 the type tiers keep the sizes the law names', () => {
       alertTitle: tier('alert-title'),
       cardTitle: tier('card-title'),
       body: tier('body'),
-      control: tier('control')
+      control: tier('control'),
+      chartTitle: tier('title'),
+      chartStateTitle: tier('chart-state-title')
     },
-    { pageTitle: 32, dialogTitle: 20, alertTitle: 18, cardTitle: 17, body: 15, control: 14 }
+    {
+      pageTitle: 32,
+      dialogTitle: 20,
+      alertTitle: 18,
+      cardTitle: 17,
+      body: 15,
+      control: 14,
+      chartTitle: 16,
+      chartStateTitle: 15
+    }
+  );
+  assert.equal(
+    tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))))[
+      '--sui-font-size-chart-state-title'
+    ],
+    undefined,
+    "a state in a chart's plot box stays a step under the chart's title on a phone too"
   );
   const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
   const small = Object.entries(all).filter(
@@ -2045,8 +2063,13 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    /\.sui-error-state:not\(\.over, \.centred\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
     "a panel's retry leaves the line the mark and its gap take"
+  );
+  assert.match(
+    styles[state],
+    /\.centred > \.sui-error-state-copy \{\s*grid-template-columns: minmax\(0, 1fr\);/,
+    "a centred panel, as in a chart's plot box, has no rail, so its mark stands over the title"
   );
 });
 

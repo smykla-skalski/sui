@@ -210,7 +210,7 @@
       style:--sui-local-plot={css(inlined(plotSize(measure)))}
       {@attach onGrid}
     >
-      <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
+      <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} centred />
     </div>
   {:else if status === 'loading'}
     <div
@@ -425,10 +425,16 @@
   }
 
   /* A failed or empty chart says so in the plot's own box, the one the veil takes while it
-     waits, so every state of a chart stands where its plot will. */
+     waits, so every state of a chart stands where its plot will. It reads under the chart's
+     title, a step under it at every width, its words at the chart's description size, and it
+     stands in the middle of the box as the plot it stands for would. */
   .plot-band.standing > :global(*) {
+    --sui-font-size-state-title: var(--sui-font-size-chart-state-title);
+    --sui-font-size-body: var(--sui-font-size-meta);
     align-content: center;
+    justify-items: center;
     min-block-size: var(--sui-local-plot);
+    text-align: center;
   }
 
   .sui-chart-wait {

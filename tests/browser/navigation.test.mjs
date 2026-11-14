@@ -2252,6 +2252,45 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a failed or empty chart centres its state in the plot’s box, its title a step under the chart’s, at every width', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const found = await page.evaluate(() =>
+            [...document.querySelectorAll('.plot-band.standing')].map((band) => {
+              const panel = /** @type {HTMLElement} */ (band.firstElementChild);
+              const box = panel.getBoundingClientRect();
+              const middle = (box.left + box.right) / 2;
+              const off = Math.max(
+                ...[...panel.querySelectorAll('p, button, [class*="-mark"]')].map((part) => {
+                  const own = part.getBoundingClientRect();
+                  return Math.abs((own.left + own.right) / 2 - middle);
+                })
+              );
+              const size = (/** @type {Element | null} */ element) =>
+                element ? parseFloat(getComputedStyle(element).fontSize) : NaN;
+              const chart = band.closest('.sui-chart');
+              return [
+                off <= 1,
+                size(panel.querySelector('[class*="-state-title"]')) <
+                  size(chart?.querySelector('.sui-chart-title') ?? null)
+              ];
+            })
+          );
+          assert.deepEqual(
+            found,
+            [
+              [true, true],
+              [true, true]
+            ],
+            `at ${width}px, each part centred and the title under the chart's`
+          );
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
     test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
       const page = await openLayout('charts/', 1440);
       try {

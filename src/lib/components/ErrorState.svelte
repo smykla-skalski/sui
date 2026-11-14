@@ -15,6 +15,7 @@
     busy = false,
     focusAfterRetry,
     overContent = false,
+    centred = false,
     retryLabel = word('ErrorState.retryLabel', 'Try Again'),
     retryingLabel = word('ErrorState.retryingLabel', 'Retrying…'),
     element = $bindable(null),
@@ -37,6 +38,8 @@
     focusAfterRetry?: () => HTMLElement | null | undefined;
     /** Loaded content stands behind the failure, so it becomes a line above it. */
     overContent?: boolean;
+    /** The panel stands in a box the size of what it stands for, such as a chart's plot, so its words centre in it, the mark over the title. */
+    centred?: boolean;
     retryLabel?: string;
     /** The retry button's words while the retry runs. */
     retryingLabel?: string;
@@ -104,7 +107,7 @@ of them.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
 - Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words, and its button under them.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and a warning mark and the danger ink stand beside words that say what failed.
-- Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
+- Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page, unless `centred`.
 - Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
 - Analytics: `onretry` reports each attempt to recover.
 - Failure: every failure offers a way out: `onretry` for one a retry can fix, `action` for another control, such as one that opens settings, and `step` in words for one that happens elsewhere, such as asking an owner for access; the law audit flags a failure with none.
@@ -113,7 +116,7 @@ of them.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-error-state', className, { over: overContent }]}
+  class={['sui-error-state', className, { over: overContent, centred: centred && !overContent }]}
   role="alert"
 >
   <div class="sui-error-state-copy" {@attach evenHeight}>
@@ -199,9 +202,24 @@ of them.
   /* A panel's next step, a step in words or the retry, stands on the words' rail too, as a
      form error's links leave the line its mark and gap take. Over a list it follows the words
      on their line instead. */
-  .sui-error-state:not(.over) > .sui-error-state-step,
-  .sui-error-state:not(.over) > .sui-error-state-retry {
+  .sui-error-state:not(.over, .centred) > .sui-error-state-step,
+  .sui-error-state:not(.over, .centred) > .sui-error-state-retry {
     padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  /* Centred words leave no rail to hang the mark before, so it stands over the title. */
+  .centred {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .centred > .sui-error-state-copy {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .centred > .sui-error-state-copy > p {
+    grid-column: 1;
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.
