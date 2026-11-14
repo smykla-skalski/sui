@@ -447,12 +447,6 @@
     border-radius: var(--sui-radius-pill);
   }
 
-  @media (max-width: 47.9375rem) {
-    .counts-wait {
-      column-gap: var(--sui-space-4);
-    }
-  }
-
   /* The description takes a second line in a header under 432px on a phone, where its text is
      16px. */
   .two-lines {

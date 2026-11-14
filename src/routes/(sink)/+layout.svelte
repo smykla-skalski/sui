@@ -121,7 +121,7 @@
   {#snippet sidebar()}
     <!-- The sidebar stays in view at every width, in the drawer on a phone, so the theme lives
          once, at its foot. Two choices fill the sidebar's width as a segmented control, so the
-         foot ends on the rows' edge. -->
+         foot ends on the rows' edge, folded or not. -->
     <SideNav
       kicker="SUI"
       title="Kitchen Sink"
@@ -135,7 +135,7 @@
       {#snippet foot(folded: boolean)}<ThemeSwitch
           system={false}
           iconOnly={folded}
-          fill={!folded}
+          fill
         />{/snippet}
     </SideNav>
   {/snippet}

@@ -354,12 +354,12 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    'the sidebar foot theme switch fills the rows width in whole pixel options',
+    'the sidebar foot theme switch fills the fold row width in whole pixel options, folded or not',
     long,
     async () => {
       const page = await open(1440, 'light');
-      try {
-        const { foot, track, options } = await page.evaluate(() => {
+      const measure = () =>
+        page.evaluate(() => {
           const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
           const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
           const fieldset = /** @type {Element} */ (
@@ -373,17 +373,38 @@ suite('the kitchen sink', together, () => {
             )
           };
         });
-        assert.equal(track.left, foot.left, 'the switch starts where the fold row starts');
-        assert.equal(track.right, foot.right, 'the switch ends where the fold row ends');
-        for (const option of options)
-          assert.ok(
-            Number.isInteger(option.left) && Number.isInteger(option.width),
-            'whole pixels'
+      try {
+        for (const state of ['whole', 'folded']) {
+          if (state === 'folded') {
+            await page.locator('.sui-side-nav-fold').click();
+            await page.waitForFunction(() =>
+              document
+                .querySelector('.sui-side-nav[data-collapsed]')
+                ?.getAnimations({ subtree: true })
+                .every((animation) => !(animation instanceof CSSTransition))
+            );
+          }
+          const { foot, track, options } = await measure();
+          assert.equal(
+            track.left,
+            foot.left,
+            `${state}: the switch starts where the fold row does`
           );
-        assert.ok(
-          Math.abs(options[0].width - options[1].width) <= 1,
-          'the options share the track'
-        );
+          assert.equal(
+            track.right,
+            foot.right,
+            `${state}: the switch ends where the fold row does`
+          );
+          for (const option of options)
+            assert.ok(
+              Number.isInteger(option.left) && Number.isInteger(option.width),
+              `${state}: whole pixels`
+            );
+          assert.ok(
+            Math.abs(options[0].width - options[1].width) <= 1,
+            `${state}: the options share the track`
+          );
+        }
       } finally {
         await page.close();
       }

@@ -494,6 +494,7 @@ itself, so the choice shows from the first frame.
   .filled {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    justify-self: stretch;
   }
 
   .filled > .sui-segmented-track > .sui-segmented-option {

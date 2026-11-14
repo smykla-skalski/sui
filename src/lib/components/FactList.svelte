@@ -73,8 +73,9 @@ apart, and the action under the value.
 differences, as a dashboard's figures are: each figure, a 24px semibold number in tabular
 figures, stands 8px before its label on one baseline, so the counts read before the words
 around them, their digits line up, and the stats take one line. The list keeps each label
-before its figure, so a screen reader says "Match, 12". The stats stand 24px apart, 16px on a
-phone, as inline facts do, and wrap one by one.
+before its figure, so a screen reader says "Match, 12". The stats stand 24px apart at every width,
+three times the 8px inside a stat, so on a phone too each figure reads with its own label, and
+they wrap one by one.
 
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
 - Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime`, a `Pill` or a `Chip`; in `rows`, an optional `action` per fact whose name says which fact it changes.
@@ -372,10 +373,6 @@ phone, as inline facts do, and wrap one by one.
   @media (max-width: 47.9375rem) {
     .inline > .sui-fact-list-fact {
       margin-inline-end: var(--sui-space-4);
-    }
-
-    .stats {
-      column-gap: var(--sui-space-4);
     }
   }
 
