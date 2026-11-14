@@ -1667,12 +1667,15 @@ suite('lists', together, () => {
               document.querySelector('#diff-block .sui-diff-block-empty')
             );
             const number = /** @type {Element} */ (document.querySelector('#diff-block .no'));
+            const words = /** @type {Element} */ (
+              document.querySelector('#diff-block .sui-diff-block-sources > span')
+            );
             return {
               height: empty.getBoundingClientRect().height,
               face: getComputedStyle(empty).fontFamily,
               ink: getComputedStyle(empty).color,
               numbers: {
-                face: getComputedStyle(number).fontFamily,
+                face: getComputedStyle(words).fontFamily,
                 ink: getComputedStyle(number).color
               }
             };
@@ -1684,8 +1687,8 @@ suite('lists', together, () => {
       assert.equal(diff.fill, code.fill, 'head fill');
       assert.equal(diff.ink, code.ink, 'line number ink');
       assert.equal(diff.air, code.air, 'air over the first line’s words');
-      // Two empty sides draw one row of the head's height in the line numbers' face and ink, so
-      // the block never reads as a field.
+      // Two empty sides draw one row of the head's height in the line numbers' ink, so the block
+      // never reads as a field, and in the words' sans, as words are never mono (L-20).
       assert.deepEqual(
         { height: empty.height, face: empty.face, ink: empty.ink },
         { height: diff.height, ...empty.numbers },

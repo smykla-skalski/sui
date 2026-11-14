@@ -298,8 +298,16 @@ or removed empty line. Two empty sides say `emptyLabel`.
       {#if label !== undefined}<span class="sui-diff-block-name" translate="no">{label}</span>{/if}
       {#if labels}
         <span class="sui-diff-block-sources">
-          <span><span class="del" aria-hidden="true">−</span>{joiner('space')}{labels.before}</span>
-          <span><span class="add" aria-hidden="true">+</span>{joiner('space')}{labels.after}</span>
+          <span
+            ><span class="del" aria-hidden="true" translate="no">−</span>{joiner(
+              'space'
+            )}{labels.before}</span
+          >
+          <span
+            ><span class="add" aria-hidden="true" translate="no">+</span>{joiner(
+              'space'
+            )}{labels.after}</span
+          >
         </span>
       {/if}
     </figcaption>
@@ -399,13 +407,14 @@ or removed empty line. Two empty sides say `emptyLabel`.
   }
 
   /* Two empty sides still read as a diff and not a field: one row of the body's height, its
-     words in the code's mono and the line numbers' quiet ink, on their 16px start rail. */
+     words in the line numbers' quiet ink on their 16px start rail, and in the sans, as words
+     are and code is not (L-20). */
   .sui-diff-block-empty {
     align-content: center;
     block-size: var(--sui-local-code-row);
     color: var(--sui-code-gutter);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-mono);
+      var(--sui-sans);
     margin: 0;
     padding-inline: var(--sui-space-4);
     text-box: trim-both cap alphabetic;
@@ -487,12 +496,12 @@ or removed empty line. Two empty sides say `emptyLabel`.
     background: var(--sui-diff-chg-bg);
   }
 
-  /* A minus is a short bar where a plus is a cross, so both glyphs stand at 600: the removed
-     side's mark keeps its ink beside the added side's. */
+  /* A minus is a short bar where a plus is a cross, so both glyphs stand at the code face's
+     heaviest weight, 500 (L-19): the removed side's mark keeps its ink beside the added side's. */
   .op > [aria-hidden],
   .add,
   .del {
-    font-weight: var(--sui-weight-semibold);
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The head's glyphs are the lines' glyphs, drawn in the code's face beside the sans words. */
