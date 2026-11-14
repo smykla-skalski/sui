@@ -307,8 +307,13 @@
                 {/each}
               </div>
             </Section>
-            <!-- The Load More line waits under the five rows as its words and its button. -->
+            <!-- The Load More line waits under the five rows as its words and its button. The
+                 sync page's link needs nothing the check brings, so it stands ready, as the
+                 closing disclosure does. -->
             <Section title="Repositories" count={null}>
+              {#snippet actions()}
+                <Link href="#repositories" standalone>Open sync page</Link>
+              {/snippet}
               <Skeleton
                 rows={PAGE}
                 bars={false}
