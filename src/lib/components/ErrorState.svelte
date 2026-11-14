@@ -38,7 +38,7 @@
     focusAfterRetry?: () => HTMLElement | null | undefined;
     /** Loaded content stands behind the failure, so it becomes a line above it. */
     overContent?: boolean;
-    /** The panel stands in a box the size of what it stands for, such as a chart's plot, so its words centre in it, the mark over the title. */
+    /** The panel stands in a box the size of what it stands for, such as a chart's plot, so its words centre in it, the mark before the title as one centred line. */
     centred?: boolean;
     retryLabel?: string;
     /** The retry button's words while the retry runs. */
@@ -207,19 +207,34 @@ of them.
     padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
-  /* Centred words leave no rail to hang the mark before, so it stands over the title. */
+  /* Centred words still lead with the mark, as every note and a table's failure do: the mark
+     and the title centre as one line, and the explanation centres under both. A title too long
+     to share its line drops under the mark, so its wrapped lines centre on their own. */
   .centred {
     justify-items: center;
     text-align: center;
   }
 
+  /* The line and the room it centres in are both an even width, so the mark lands on a whole
+     pixel and draws sharp. */
   .centred > .sui-error-state-copy {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-inline-end: calc(100% - round(down, 100%, 2px));
   }
 
-  .centred > .sui-error-state-copy > p {
-    grid-column: 1;
+  .centred > .sui-error-state-copy > .sui-error-state-mark {
+    flex: none;
+  }
+
+  .centred > .sui-error-state-copy > .sui-error-state-title {
+    inline-size: calc-size(fit-content, round(up, size, 2px));
+    min-inline-size: 0;
+  }
+
+  .centred > .sui-error-state-copy > .sui-error-state-description {
+    flex-basis: 100%;
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.

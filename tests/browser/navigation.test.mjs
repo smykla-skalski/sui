@@ -2438,11 +2438,25 @@ suite('navigation', together, () => {
               const panel = /** @type {HTMLElement} */ (band.firstElementChild);
               const box = panel.getBoundingClientRect();
               const middle = (box.left + box.right) / 2;
+              // A mark that leads its title shares its line, so each line is centred as one.
+              /** @type {{ top: number, bottom: number, left: number, right: number }[]} */
+              const lines = [];
+              for (const part of panel.querySelectorAll('p, button, [class*="-mark"]')) {
+                const own = part.getBoundingClientRect();
+                const line = lines.find((it) => own.top < it.bottom && own.bottom > it.top);
+                if (line) {
+                  line.left = Math.min(line.left, own.left);
+                  line.right = Math.max(line.right, own.right);
+                } else
+                  lines.push({
+                    top: own.top,
+                    bottom: own.bottom,
+                    left: own.left,
+                    right: own.right
+                  });
+              }
               const off = Math.max(
-                ...[...panel.querySelectorAll('p, button, [class*="-mark"]')].map((part) => {
-                  const own = part.getBoundingClientRect();
-                  return Math.abs((own.left + own.right) / 2 - middle);
-                })
+                ...lines.map((line) => Math.abs((line.left + line.right) / 2 - middle))
               );
               const size = (/** @type {Element | null} */ element) =>
                 element ? parseFloat(getComputedStyle(element).fontSize) : NaN;
@@ -2462,6 +2476,33 @@ suite('navigation', together, () => {
             ],
             `at ${width}px, each part centred and the title under the chart's`
           );
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
+    test('a failed chart’s mark leads its title on one centred line, 8px before it, on whole pixels', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const found = await page
+            .locator('.plot-band.standing .sui-error-state')
+            .first()
+            .evaluate((panel) => {
+              const mark = /** @type {Element} */ (
+                panel.querySelector('.sui-error-state-mark svg')
+              ).getBoundingClientRect();
+              const title = /** @type {Element} */ (
+                panel.querySelector('.sui-error-state-title')
+              ).getBoundingClientRect();
+              return [
+                mark.top < title.bottom && mark.bottom > title.top,
+                title.left - mark.right,
+                Number.isInteger(mark.left) && Number.isInteger(mark.top)
+              ];
+            });
+          assert.deepEqual(found, [true, 8, true], `at ${width}px`);
         } finally {
           await page.close();
         }

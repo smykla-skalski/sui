@@ -2068,8 +2068,8 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.centred > \.sui-error-state-copy \{\s*grid-template-columns: minmax\(0, 1fr\);/,
-    "a centred panel, as in a chart's plot box, has no rail, so its mark stands over the title"
+    /\.centred > \.sui-error-state-copy \{\s*display: flex;\s*flex-wrap: wrap;\s*justify-content: center;/,
+    "a centred panel, as in a chart's plot box, leads its title with the mark on one centred line"
   );
 });
 

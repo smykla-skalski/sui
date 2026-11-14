@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
 - Rail: the column draws its edge inside its 80px, so each tile is an even 64px and its label box an even height, and the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels.
 - A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
 - A chart band with no ground starts its plot, its veil and its state boxes on the title's edge, as its legend and summary do, so the chart reads down one left edge.
