@@ -264,7 +264,7 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   );
   assert.match(
     stripComments(read('src/lib/components/IdentityRow.svelte')),
-    /\.sui-identity-name \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    /\.sui-identity-name \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/\s+var\(--sui-leading-note\)/,
     "an identity row's name wraps at the note leading"
   );
   assert.match(
@@ -583,6 +583,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     {
       pageTitle: tier('page-title'),
       dialogTitle: tier('dialog-title'),
+      stat: tier('stat'),
       alertTitle: tier('alert-title'),
       cardTitle: tier('card-title'),
       body: tier('body'),
@@ -593,6 +594,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     {
       pageTitle: 32,
       dialogTitle: 20,
+      stat: 24,
       alertTitle: 18,
       cardTitle: 17,
       body: 15,

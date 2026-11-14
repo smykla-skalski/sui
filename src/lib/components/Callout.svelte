@@ -12,6 +12,7 @@
   let {
     tone = 'quiet',
     decision = false,
+    compact = false,
     title,
     icon,
     actions,
@@ -25,6 +26,8 @@
     tone?: CalloutTone;
     /** The gold surface for an unsaved decision and the action that resolves it. */
     decision?: boolean;
+    /** One 40px line about the whole page, such as data shown stale: a bare 16px symbol and no title. */
+    compact?: boolean;
     title?: string;
     /** The mark beside the words, when the words alone do not carry the weight. */
     icon?: Snippet;
@@ -102,6 +105,12 @@ the gold surface of an unsaved decision: opaque, with a one-stroke gold edge, an
 hears `decisionLabel` before its words. Its resolving action wears Button's `decision` tone,
 and every other action keeps the default tone.
 
+`compact` is a strip for a notice about the whole page, such as data shown stale, that must
+not push the page down as far as a message about the work does: no title, its symbol bare
+at 16px in the ink of its words, centred in a full tile's 2rem slot so its words start where
+a full callout's do, and its band only as tall as its quiet-tier actions, so one line of it
+stands 40px tall.
+
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
 tile opens the message's first line in a band its actions fit inside: they are drawn at the
@@ -118,7 +127,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside a 14rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the words' start edge past its symbol, only when the callout cannot hold them beside a 14rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
 - Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
@@ -130,7 +139,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}
 
-<div {...rest} class={['sui-callout', className, { decision, live }]} data-tone={tone}>
+<div {...rest} class={['sui-callout', className, { compact, decision, live }]} data-tone={tone}>
   <div class="sui-callout-inner">
     <div class="sui-callout-message">
       {#if icon}
@@ -178,8 +187,9 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   /* The message and the actions share one line while the callout holds both, and the actions
      wrap under the copy only when they do not fit beside a 14rem measure of it (about 34
      characters, a phone message's title on one line). Wrapping decides that from the actions' own width, which a container query
-     cannot know. A wrapped line of actions starts at the callout's start edge, under the tile,
-     so a pair keeps one line in a narrow callout (L-90). On a shared line the actions centre on
+     cannot know. A wrapped line of actions starts where the words start, past the tile, so
+     the actions read as the message's and not the tile's (L-90): the inner box gives up the
+     tile's room at its start and the message takes it back. On a shared line the actions centre on
      the tile's band, the message's first line, so a long message keeps them by its title, as
      an alert's action stands on its title row. */
   .sui-callout-inner {
@@ -195,6 +205,11 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
     --sui-callout-indent: calc(var(--sui-symbol-tile) + var(--sui-space-3));
+    padding-inline-start: var(--sui-callout-indent);
+  }
+
+  .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) > .sui-callout-message {
+    margin-inline-start: calc(-1 * var(--sui-callout-indent));
   }
 
   .sui-callout[data-tone='warning'] {
@@ -334,6 +349,28 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     gap: var(--sui-space-2);
     margin-block-start: var(--sui-local-band-room);
     min-inline-size: 0;
+  }
+
+  /* The band is a quiet-tier action's height and the box pads a step and a stroke over and
+     under it, so one line stands 40px tall with its ink centred. */
+  .compact {
+    --sui-symbol-tile: var(--sui-tier-quiet);
+    padding-block: calc(var(--sui-space-1) + var(--sui-stroke));
+  }
+
+  /* The symbol keeps a full tile's 2rem slot, so the strip's words start on the edge a full
+     callout's words do, and a strip over a warning shares one text edge with it. */
+  .compact .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
+    --sui-callout-indent: calc(var(--sui-space-8) + var(--sui-space-3));
+  }
+
+  .compact .sui-callout-icon {
+    --sui-icon-base: inherit;
+    --sui-icon-sm: var(--sui-icon-base);
+    --sui-icon-xs: var(--sui-icon-base);
+    background: none;
+    color: inherit;
+    inline-size: var(--sui-space-8);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

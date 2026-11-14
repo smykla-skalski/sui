@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- AppShell: a `rail` of the caller's own markup keeps the pages beside it, where only `Rail` drew them; a phone's bottom bar sticks to the foot of the view again; and the bar finds a page heading that the content brings in or renames after it opens.
+- Rail: with `bottomNav`, the drawer's pages keep one render site, so crossing the phone width no longer mounts the sidebar afresh. A badge past 99 draws "99+" so it stays in the column, as does a folded `SideNav` count; the names still say the whole number.
+- FactList: a flowing label breaks a word wider than its list instead of running past it.
+- SegmentedControl: with `fill`, the measure counts the widest option once per option, so a long label turns the control into a select before it outgrows its share.
+- Skeleton: a one-line row with a side keeps the side beside its bar, a pill's 56px wide, so a waiting list of one-line rows stands at the loaded rows' pitch. DetailLayout: an aside stacked under the main column keeps the section tier, and only an aside beside it takes the sub-section tier. SideNav: the drawer's close button centres on the title's line, past any kicker.
+- AppShell: a phone bar keeps its title hidden while the page's own h1 is still below the screen, and a shell in a frame further down a page reads its own screen, so the bar never names the page over the heading that names it.
+- ListDetail: Back to an item keeps its detail where the reader left it while focus lands on its title, where the landing scrolled a title partly above the pane back into view.
 - ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
 - Rail: the column draws its edge inside its 80px, so each tile is an even 64px and its label box an even height, and the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels.
 - A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
@@ -10,7 +17,6 @@
 - AppShell: a page header's foot stands on the sidebar's ground, so its translucent rule paints the same ink as the sidebar's edge where the two meet, where it painted a step lighter over the header's band.
 - HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
 - DataTable: the caption is set 16px 600 at every width, as a chart's title is, and a refreshing table's words sit on the caption's baseline.
-- AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
 - HeatmapChart: columns widen to an even share of the band in whole pixels, never under a square cell, so the matrix fills its column and scrolls only past its narrowest; cells stand on whole pixels.
 - A failed `DataTable` leads its words with the 16px danger mark 8px off, as a field's 14px message does, where a 13px mark drew 11px of ink.
 - A `SideNav` kicker is set as a page header's eyebrow, 12px at 0.05em, so their capitals share one line, where it was 11px at 0.07em and its capitals stood a pixel under the eyebrow's.
@@ -220,6 +226,72 @@
 - A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. The `ListToolbar` page's All counts what the search leaves.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 30% on light and 38% on dark, never on a hovered row's grey, and its quiet words lean halfway toward the primary ink, so they hold 4.5:1 and Lc 60 on that deeper plate, on an inset ground too.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
+- A folded `AppShell` with a rail draws one 80px column, not a rail beside a strip: the places at the top, a hairline, the pages, then the fold control and the rail's foot, and Tab meets them in that order. The rail holds the shell's pages between its places and its foot, beside them while the sidebar is whole (L-88).
+- Breaking: `--sui-rail-width` and the folded strip are 80px (5rem), the Material 3 rail's width, not 72px, so a strip label such as "Navigation" or "Invitations" keeps its word on one line. `--sui-sidebar-width-collapsed` follows `--sui-rail-width`.
+- On a phone the `AppShell` bar parts its menu button from the title by a 20px hairline, and the drawer's pages are 288px wide, or 228px beside the rail, with at least 56px of the screen left uncovered. A new `eyebrow` prop names where the page is, such as its workspace, over the bar's title.
+- Inline `FactList` facts keep flowing two to a line on a phone or in a page header 36rem wide or narrower, 16px apart, rather than taking a 44px row each.
+- A `Rail` that holds the shell's pages marks its current place on the inset plate, so the current page's accent plate is the column's one accent (L-85). A folded `SideNav` row's count rides past its glyph's top-end corner in its own neutral ground instead of leaving the strip, and a 24px hairline marks where each group starts. In a `FactList` of rows an `IdentityRow` name takes a value's 500, through a new `--sui-identity-weight`.
+- A folded `SideNav` draws its fold control as its glyph over the short word "Expand" (`expandShort`), as every strip tile has, named by its whole words and a tooltip, and centres what its `foot` holds on the strip's centre line, and a strip label takes one line in 68px of room, so every strip row keeps one 44px pitch: a longer label takes a `short`, and one that still overflows breaks at a hyphen, or at its edge where the browser has no hyphenation, rather than being cut. Its `foot` snippet is told whether the sidebar is the strip.
+- A `SideNav` whose rows scroll casts a soft shadow up from its foot's hairline while more rows are below, so a row cut there reads as more to scroll (L-107).
+- The detail pane keeps each fact once: the header's facts are the run's start and length, and Details keeps the workspace, trigger, requester and attempt. A missing check's panel takes the main column's width, and the stale notice stands 24px over the warning.
+- The phone drawer runs from the shell's top, over the bar, as a modal drawer does, so the scrim dims the whole frame behind it.
+- A phone `AppShell` bar names the page only once the page's own h1 in the same words has gone under it, fading the title in over 160ms; until then its `eyebrow` stands alone on the bar's middle. The bar's inner box is even, so its button and name sit on whole pixels.
+- A `PageHeader`'s actions stand beside its title down to 25rem, not 36rem, so a header in a 900px window keeps Check Again on the title's line, and its description and facts take the header's whole width under the title and the actions.
+- A `Timeline` event with an avatar, a status or an action keeps the list's pitch: its seat no longer adds a pixel over an odd cap.
+- A `Timeline` event with an avatar that is not yet drawn takes the height it will be drawn at, not a pixel more, so its row does not move when it comes near the screen.
+- A `SegmentedControl` or `ThemeSwitch` takes `fill`, which stretches its track over its room, each option a whole-pixel share of it, so a switch at a sidebar's foot ends on the rows' edge. The kit's foot switch fills the whole sidebar.
+- The detail pane's loading Details and More About This Check show each fact's label in words, as the loaded rows do, and only the values wait as bars.
+- A filled `SegmentedControl` stretches in a cell that centres its content, so the kit's folded strip draws its theme switch at the plates' 72px, two glyphs sharing it. `FactList` stats stand 24px apart on a phone too, so each figure reads with its own label.
+- A phone bottom bar stands its tiles 8px under its top and over its foot, not 4px, so the current tile's plate keeps clear of the bar's hairline and the screen's edge.
+- A `FactList` stat takes `tone`, a pill's 6px dot in that tone's ink before its label, so the detail pane's "3 Differ" ties to its warning pills. The stale notice's action says "Reload Data", so it never reads as the header's Check Again.
+- A `Disclosure`'s hint follows the summary's words 12px after them while both fit on one line, rather than standing at a wide row's far end.
+- A `Callout`'s actions on a line of their own start where its words start, past its symbol, rather than under the symbol (L-56).
+- An inline `FactList` ends at its words whichever fact holds a target: the last fact with a link or a time gives back its target's room under its words, where only a last fact did, so a header's actions stand as far under the facts as the header's foot stands under them.
+- A `Skeleton` takes `side`, a bar at a one-line row's end where a status pill will stand.
+- A phone bottom bar's count rides its glyph's corner, as the rail's does.
+- The detail pane's loading rows show where each status will stand.
+- A `DetailLayout` aside is 18 to 20rem wide, not 16 to 20rem, and a `FactList` of rows keeps two columns at exactly 18rem of its own width, so a pane's properties keep each label beside its value in a 1100px window (L-110).
+- The detail pane's words keep a 72rem pane's column on a wider one, as with the sidebar folded, centred as the kit's column is, so a row's status stays near its name. The app shell's overview keeps the same column, its sections 60rem wide inside it, so a place's pages share one start edge. A missing check's way out is the page's signal action.
+- The detail pane's loading state draws each fact's label and value, the related links, and the warning's symbol and action, and its notice, header and outcome placeholders change shape at the widths where the loaded words wrap, so no section moves when the check arrives.
+- A folded `AppShell` column keeps one 48px pitch: its places, pages and the rail's foot stand 4px apart, and the places stand 8px clear of the hairline under them, as a group's rows do. A rail beside the pages keeps its places 4px apart too, so they hold still when the sidebar folds. A folded `SideNav`'s rows stand 4px apart too.
+- The phone drawer's edge is a hairline as well as a shadow, so it shows on the dark theme's scrim.
+- A `Callout` takes `compact`: one 40px line about the whole page, such as data shown stale, with its symbol bare at 16px and no title. The detail pane's stale notice uses it, so it pushes the check down by one line, not by a message's two. L-33 and L-56 name it.
+- A folded `SideNav` count stands 4px clear of its glyph, and the hairline under a folded column's places stands 4px in from its sides, as the foot's does.
+- A `PageHeader` whose actions take a line of their own hangs a leading ghost button's glyph on the copy's start edge, as a card head does (L-33).
+- A narrow `Timeline` with an actor anywhere in it stands every event's words where the actor's words stand, so its times keep one edge and its words another.
+- The detail pane's loading Repositories end in the Load More line's words and button rather than a sixth row.
+- The detail pane's Outcome is its counts alone, without a sentence that said them again, the stale notice's retry reads "Reload", the loading title's status waits as a pill-shaped placeholder, and a loading timeline's time bars are as wide as the times.
+- A `Rail` count stands 4px clear of its glyph's top-end corner, whole, folded or in a bottom bar, as a folded `SideNav` count does, so it covers none of the glyph, and the phone drawer's pages beside the rail drop the second hairline between them.
+- A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
+- A `Timeline` with an actor anywhere in it stands every event's words past the avatar's seat at every width, not only when stacked, so its words keep one edge.
+- The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
+- A `SideNav`'s kicker and group headings are compact caps, 12px at 0.05em and 13px on a phone, a step under the rows, where 11px caps at 0.07em strained to read.
+- A folded `SideNav` count stands 4px over its glyph's top and 4px past its end, as a rail's place badge does, and on the current page's plate its ring takes the plate's ground. A drawer's head keeps its hairline at 56px with 13px caps.
+- A `DetailLayout` aside beside the main column draws its section titles at the 15px sub-section tier, a step under the main column's, so the properties no longer read as the work's peers.
+- A `SideNav` drawer's close draws a dialog close's 18px glyph in the secondary ink, so the way out reads beside the place's name.
+- A `LinkList` on a phone steps its links one 44px target apart, so a short list keeps a row's pitch instead of a gap that reads as a missing link.
+- A `Disclosure` hint in a right-to-left page keeps its room at the summary's end, so a hint in another script no longer starts its wrapped line 32px off the summary's edge.
+- Breaking: the `AppShell` phone bar's menu button says "Menu" (`menuLabel`), not "Navigation", so the place beside it keeps about 40px more of the bar.
+- A `DetailLayout` aside's section titles take the 15px sub-section tier at every width, 16px on a phone, so the properties stay a step under the work's sections once the aside drops under them too (L-25).
+- A `Rail` that holds the shell's pages marks its current place on `--sui-sidebar-place-bg`, a neutral plate a step past a pressed tile's, about 1.2:1 against the sidebar, not the 1.1:1 inset plate, so the chosen place reads at a glance beside the page's accent plate (L-85). The `AppShell` menu button's words are at 500, as a button's are, so the place beside it outweighs them.
+- A stacked `Timeline`, under 25rem of its own width, sets its words at the body size, 16px on a phone, and stands each time over its words on their edge, past an avatar's seat, so each event reads as one block and the seat holds only its avatar.
+- A `Rail` holding the shell's pages draws its current place's glyph in the current ink, so the current page's glyph is the column's one accent mark (L-85), and whole, its foot draws the pages' foot hairline on the same line, its tile centred on the fold control's, so the two feet read as one band.
+- A `Rail` holding the shell's pages rounds its tiles at a control's 8px, as a `SideNav` row does, so the folded column's plates share one corner. The detail pane's loading header says "Loading" in its status pill, and its missing state says the check does not exist once, in the panel, with no status beside the title.
+- A `LinkList` on a phone or a touch screen parts its links with a row's hairline, on a whole pixel in the 44px step between them, so the links read as rows, as a property list's do. The detail pane's loading aside draws its closing disclosure where it will stay, its facts waiting as rows when opened early.
+- The detail pane's stale notice leads with "The refresh failed" at a title's weight and draws the history glyph, which says the data is old, rather than a refresh glyph beside its Reload button.
+- A folded `SideNav` that stands alone keeps its `kicker` in the primary ink over a hairline, 8px from the strip's top, the line and the rows, so the strip still names its place; beside a rail it leaves the naming to the rail.
+- An `AppShell` phone bar draws its `eyebrow` at 14px, the menu label's size, so the place it names never reads smaller than the button beside it.
+- A compact `Callout` centres its symbol in a full tile's 2rem slot, so its words start where a full callout's do.
+- A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.
+- A `Disclosure` summary keeps its hint beside its words only with 32px to spare after it, and stands it under them otherwise, so a narrow aside or a phone never runs the two edge to edge as one line.
+- A folded `SideNav` draws its pages' glyphs at the 18px tier of a rail's places, so the one folded column holds one glyph size.
+- The law audit no longer judges the paint of words kept for a screen reader in a pixel-wide clip, such as a folded icon-only theme switch's words.
+- `FactList` takes `layout="stats"` for a few counts that answer the page: each 24px semibold figure in tabular figures (`--sui-font-size-stat`) stands 8px before its label on one baseline, 24px apart, 16px on a phone, as inline facts do. The detail pane's Outcome uses it, and its loading state waits as one bar per stat.
+- A loading `Timeline` takes `actors`: its placeholders' words then stand past the avatar's seat, where the loaded words will, so the words do not move when the events arrive.
+- A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap from ink to ink, as it parts its sections, where the summary's own room above its words had added 12px.
+- A `PageHeader` hangs a trailing ghost button's words on the content's end edge, so a header action ends where the page's cards end.
+- A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
+
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.
 - A `DetailLayout` stands its aside beside the main column from 44rem, the new `--sui-breakpoint-aside`, where it waited for 56rem, so a run in a wide `ListDetail` pane keeps its short sections and its properties side by side. A list-detail run's steps are set at the body size, as a row's one line is.
 - A `PageHeader` whose holder hides its kicker, as a wide `ListDetail` hides its way back, sets its title at the top with the actions beside it, where the actions had stood a row lower, beside the description. A holder says so with `--sui-head-kicker-shown: 0`.
@@ -326,6 +398,8 @@
 - A pressed `Select` no longer eases its inset under reduced motion (L-75). A `ColorPicker` focuses its swatch as its panel shows rather than a task later, so an arrow pressed at once picks a color.
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 - A closed `ColorPicker` panel or `ListToolbar` menu no longer keeps the `autofocus` mark it sets on open, so a `Modal` around one opens on its own field again, not on the hidden control.
+- A stacked `Timeline`, under 25rem, stands each event 4px further from the next, so a time over its words reads as one block.
+- A current `SideNav` row's count stands on a veil of the accent ink, not the grey pressed veil, so it reads as a step of the row's accent plate in both themes.
 
 ## 0.4.0
 

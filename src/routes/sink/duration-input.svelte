@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Duration Input',
+    short: 'Duration',
     lead: 'A duration stored in seconds and said as an amount and a unit. A count of anything else is a TextInput.',
     components: ['DurationInput']
   };

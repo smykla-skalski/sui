@@ -25,13 +25,15 @@
 @component
 The body of a detail pane, under its header band: a main column of sections and an aside of
 the thing's properties. Once the layout itself is 44rem wide or wider, the aside stands
-beside the main column, 16 to 20rem wide and `--sui-rhythm-section-gap` from it; narrower, it
+beside the main column, 18 to 20rem wide and `--sui-rhythm-section-gap` from it; narrower, it
 follows the main column below, the same gap under it. It answers to its own width rather than
 the page's, so a pane beside a list folds as early as a phone does.
 
 The aside comes after the main column in the DOM at every width, so a screen reader, the Tab
 order and a narrow screen all meet the primary content first. Nothing here draws a frame,
-ground or line; the sections inside carry the hierarchy.
+ground or line; the sections inside carry the hierarchy. Beside the main column the aside's
+section titles take the 15px sub-section tier, a step under the work's; stacked under it they
+keep the section tier, as the column's last sections.
 
 - Semantics: a plain box; the aside is an `aside` named by `asideLabel`, a complementary landmark.
 - Content: `main`, the primary sections, and an optional `aside` of properties.
@@ -74,18 +76,28 @@ ground or line; the sections inside carry the hierarchy.
   }
 
   /* Each column stacks its zones, the alert, the sections and a closing disclosure, the
-     section gap apart, so a caller needs no wrapper; sections that follow each other ask for
-     the same gap, which collapses into this one. The columns' class leads, so a zone that resets
-     its own margins, as a disclosure does, still takes the gap. */
+     section gap apart from ink to ink, so a caller needs no wrapper; sections that follow each
+     other ask for the same gap, which collapses into this one. The columns' class leads, so a
+     zone that resets its own margins, as a disclosure does, still takes the gap, less the room
+     it says it stands above its first ink (`--sui-local-lead-room`). */
   .sui-detail-layout-columns > .sui-detail-layout-main > :global(* + *),
   .sui-detail-layout-columns > .sui-detail-layout-aside > :global(* + *) {
-    margin-block-start: var(--sui-rhythm-section-gap);
+    margin-block-start: calc(var(--sui-rhythm-section-gap) - var(--sui-local-lead-room, 0px));
   }
 
   @container (min-width: 44rem) {
     .sui-detail-layout-columns:has(> .sui-detail-layout-aside) {
       align-items: start;
-      grid-template-columns: minmax(0, 1fr) clamp(16rem, 30%, 20rem);
+      grid-template-columns: minmax(0, 1fr) clamp(18rem, 30%, 20rem);
+    }
+
+    /* Beside the work, the aside's sections take the sub-section tier, size and leading, so the
+       properties read a step under the main column's sections. Stacked under it, they are the
+       column's last sections and keep the section tier, so they never read as parts of the
+       section above them. */
+    .sui-detail-layout-aside {
+      --sui-local-section-size: var(--sui-font-size-body);
+      --sui-local-section-leading: var(--sui-leading-meta);
     }
   }
 </style>

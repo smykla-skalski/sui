@@ -18,8 +18,8 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import { formatCount } from '../internal/locale.js';
-  import { followsInPlace, getShell } from '../internal/shell.svelte.js';
+  import { boundCount, formatCount } from '../internal/locale.js';
+  import { followsInPlace, getRailPages, getShell } from '../internal/shell.svelte.js';
   import Tooltip from './Tooltip.svelte';
 
   let {
@@ -53,8 +53,12 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const shell = getShell();
-  const bar = shell?.bottomNav ?? false;
+  // The shell's pages, when this rail stands beside them rather than in the phone's bottom bar.
+  const pages = getRailPages();
+  const bar = (shell?.bottomNav ?? false) && !pages;
   const inBar = $derived(bar && shell?.mode === 'drawer');
+  // A phone's drawer in a shell with a bottom bar holds only the pages: the bar has the places.
+  const pagesOnly = $derived(pages && shell?.bottomNav && shell.mode === 'drawer');
   const tiles = $state<Record<string, HTMLElement | null>>({});
 
   const key = (item: RailItem) => item.href ?? item.label;
@@ -75,10 +79,13 @@ that place.
 
 Every tile is at least a 44px target with its icon over its label, `short` when one is given.
 A label that does not fit wraps under the icon instead of being cut, and a tooltip with the
-full name opens beside a tile only when `short` replaces it. A badge rides the icon's corner
-and is read as part of the tile's name. Inside an `AppShell` the rail stays beside the
-collapsed strip. On a phone it rides in the drawer, or, in a shell with `bottomNav`, it turns
-into the bottom bar: the same tiles side by side, sharing the width.
+full name opens beside a tile only when `short` replaces it. A badge stands 4px clear of the icon's top-end corner
+and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
+between its places and its foot: beside them in a column of their own while the sidebar is
+whole, and stacked with them in one column once it folds. Holding them, it marks its current
+place on a neutral plate a step past a pressed tile's, its glyph in the place's own ink, so the current page's accent plate and glyph are the column's one accent. Whole, its foot draws the pages' foot hairline on the same line. On a phone it rides in the drawer, or,
+in a shell with `bottomNav`, it turns into the bottom bar: the same tiles side by side, sharing
+the width.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it.
 Rest tiles are muted and the place on screen is primary ink, a step of 2:1 or more in
@@ -91,12 +98,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 - Keyboard: Tab moves through the tiles in order, and Enter follows a link or presses a button.
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
-- Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row.
+- Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row, 8px under the bar's top and over its foot.
 - Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
 - Analytics: `onnavigate(event, item)` reports a followed link and `onpick(item)` a pressed button.
-- Failure: an empty `items` draws an empty column with its brand and foot; a place without a destination is a button, and a badge of 0 draws nothing.
+- Failure: an empty `items` draws an empty column with its brand and foot; a place without a destination is a button, and a badge of 0 draws nothing, and one past 99 draws "99+" so it stays in the column, its whole number in the tile's name.
 -->
 
 {#snippet tile(item: RailItem)}
@@ -140,7 +147,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   <span class="sui-rail-glyph">
     <Icon name={item.icon} size="md" />
     {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"
-        ><span data-count={formatCount(item.badge)}></span></span
+        ><span data-count={boundCount(item.badge)}></span></span
       >{/if}
   </span>
   <span class="sui-rail-label" data-label={item.short ?? item.label}
@@ -148,14 +155,28 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   >
 {/snippet}
 
-<nav {...rest} class={['sui-rail', className]} aria-label={label} data-bar={bar || undefined}>
-  {#if brand}
-    <div class="sui-rail-brand">{@render brand()}</div>
-    <span class="sui-rail-rule" aria-hidden="true"></span>
-  {/if}
-  <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
-    {#each items as item (key(item))}{@render tile(item)}{/each}
-  </ul>
+<!-- The pages keep one render site, so crossing the phone's width never mounts the sidebar
+     afresh: with only the pages, the column is no box and no landmark of its own. -->
+<nav
+  {...rest}
+  class={['sui-rail', className, { host: pages, 'pages-only': pagesOnly }]}
+  role={pagesOnly ? 'presentation' : undefined}
+  aria-label={pagesOnly ? undefined : label}
+  data-bar={bar || undefined}
+  data-collapsed={(pages && shell?.collapsed) || undefined}
+>
+  <div class="sui-rail-top">
+    {#if brand}
+      <div class="sui-rail-brand">{@render brand()}</div>
+      <span class="sui-rail-rule" aria-hidden="true"></span>
+    {/if}
+    <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
+      {#each items as item (key(item))}{@render tile(item)}{/each}
+    </ul>
+  </div>
+  <!-- The pages stand between the places and the foot, so Tab meets them in the order the
+       folded column draws them. -->
+  {@render pages?.()}
   {#if foot.length > 0}
     <ul class="sui-rail-list sui-rail-foot" style:--sui-local-rail-count={foot.length}>
       {#each foot as item (key(item))}{@render tile(item)}{/each}
@@ -184,6 +205,100 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
     scrollbar-width: thin;
+  }
+
+  /* A phone's drawer over a bottom bar holds only the pages: the bar has the places, so the
+     column is no box and its places and foot are gone. */
+  .sui-rail.pages-only {
+    display: contents;
+  }
+
+  .sui-rail.pages-only > :is(.sui-rail-top, .sui-rail-foot) {
+    display: none;
+  }
+
+  /* Alone, the places' part of the column is no box of its own. */
+  .sui-rail-top {
+    display: contents;
+  }
+
+  /* Beside the shell's pages the rail is a grid: its places at the top of its column, its foot
+     at the bottom, and the pages in a column of their own beside them. Folded, the three stack
+     in one column (AppShell), so the rail and the strip are one column. */
+  .host {
+    align-items: start;
+    box-shadow: none;
+    display: grid;
+    gap: 0;
+    grid-template:
+      'top pages' auto
+      '. pages' minmax(0, 1fr)
+      'foot pages' auto
+      / var(--sui-rail-width) minmax(0, max-content);
+    inline-size: auto;
+    min-inline-size: 0;
+    padding-block: 0;
+  }
+
+  .host .sui-rail-top {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sui-space-2);
+    grid-area: top;
+    padding-block-start: var(--sui-space-3);
+  }
+
+  /* The places keep the pitch and the inset the folded column keeps, 4px apart and 4px in, so
+     they hold still when the pages fold under them and every plate in the column is 72px, the
+     room a two-word page label such as "Icon Button" needs on one line. */
+  .host .sui-rail-list {
+    gap: var(--sui-space-1);
+    padding-inline: var(--sui-space-1);
+  }
+
+  /* Beside the pages, and in the one folded column, a place's tile rounds as a page's row does,
+     so the column's plates share one corner. */
+  .host .sui-rail-tile {
+    border-radius: var(--sui-radius-control);
+  }
+
+  .host .sui-rail-foot {
+    grid-area: foot;
+    margin-block-start: 0;
+    padding-block: var(--sui-space-2) var(--sui-space-3);
+  }
+
+  @container sui-shell (min-width: 64.0625rem) {
+    .host[data-collapsed] {
+      grid-template:
+        'top' auto
+        'pages' minmax(0, 1fr)
+        'foot' auto
+        / var(--sui-rail-width);
+    }
+
+    /* One column keeps one pitch: every tile stands 4px from the next, places, pages and foot
+       alike, and the places stand 8px clear of the hairline under them, as a group's rows do. */
+    .host[data-collapsed] .sui-rail-top {
+      padding-block-end: var(--sui-space-2);
+    }
+
+    .host[data-collapsed] .sui-rail-foot {
+      padding-block-start: 0;
+    }
+  }
+
+  /* Whole beside the pages, the foot draws the hairline the pages' foot draws, on its line, and
+     its tile centres on the fold control's, so the two feet read as one band. Under 64rem the
+     pages' foot goes, so this one keeps no line either. */
+  @container sui-shell (min-width: 64.0625rem) {
+    .host:not([data-collapsed]) .sui-rail-foot {
+      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+      margin-inline: var(--sui-space-1);
+      padding: calc(var(--sui-space-3) - var(--sui-stroke)) 0
+        calc(var(--sui-space-3) - var(--sui-stroke));
+    }
   }
 
   .sui-rail:dir(rtl) {
@@ -283,6 +398,17 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     color: var(--sui-sidebar-active-glyph);
   }
 
+  /* Holding the pages, the rail marks its place on a neutral plate, so the current page's
+     accent plate is the one accent in the column and the two never compete. */
+  .host .sui-rail-tile[aria-current] {
+    background: var(--sui-sidebar-place-bg);
+  }
+
+  /* Its glyph keeps the place's own ink, so the page's glyph is the column's one accent mark. */
+  .host .sui-rail-tile[aria-current] .sui-rail-glyph {
+    color: var(--sui-sidebar-active-ink);
+  }
+
   .sui-rail-tile[aria-current]:active {
     box-shadow: var(--sui-sidebar-pressed-inset), var(--sui-sidebar-thumb-shadow-pressed);
   }
@@ -329,9 +455,9 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     font-weight: var(--sui-weight-medium);
   }
 
-  /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
-     stands over the glyph's top-end corner, a quarter of its height above the glyph and 4px over
-     its end, so it covers no more than that corner and its halo stays inside the tile. */
+  /* Something waiting is information, not a fault, so it wears the accent. The count stands 4px
+     clear of its glyph's top-end corner, where a folded page's count stands, so it covers none
+     of the glyph and a folded column's counts share one offset. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
@@ -345,7 +471,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
     inset-block-start: calc(-1 * var(--sui-space-1));
-    inset-inline-start: calc(100% - var(--sui-space-1));
+    inset-inline-start: calc(100% + var(--sui-space-1));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
     padding-inline: var(--sui-space-1);
@@ -428,19 +554,22 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   @media (forced-colors: active) {
-    /* Forced colors drop a shadow, so the column's edge is a border there. */
-    .sui-rail {
+    /* Forced colors drop a shadow, so the column's edge is a border there. Beside the pages
+       the column draws none, as it draws no shadow. */
+    .sui-rail:not(.host) {
       border-inline-end: var(--sui-stroke) solid CanvasText;
     }
 
-    .sui-rail-tile[aria-current] {
+    .sui-rail-tile[aria-current],
+    .host .sui-rail-tile[aria-current] {
       background-color: Highlight;
       color: HighlightText;
       /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
       forced-color-adjust: none;
     }
 
-    .sui-rail-tile[aria-current] .sui-rail-glyph {
+    .sui-rail-tile[aria-current] .sui-rail-glyph,
+    .host .sui-rail-tile[aria-current] .sui-rail-glyph {
       color: HighlightText;
     }
 

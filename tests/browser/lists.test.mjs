@@ -1311,43 +1311,43 @@ suite('lists', together, () => {
     );
 
     test(
-      'inline facts take a line each on a phone, values in one column, every line at the target',
+      'inline facts flow two to a line on a phone, and a line that holds a target is 44px',
       long,
       async () => {
         const page = await opened();
         const list = page.locator('#fact-list .sui-fact-list.inline').first();
         await list.scrollIntoViewIfNeeded();
         const facts = await list.evaluate((dl) =>
-          [...dl.children].map((fact) => ({
-            label: fact.querySelector('dt')?.textContent,
-            top: fact.getBoundingClientRect().top,
-            height: fact.getBoundingClientRect().height,
-            value: fact.querySelector('dd')?.getBoundingClientRect().left,
-            target: fact.querySelector('a[href], [tabindex="0"]') !== null
-          }))
+          [...dl.children].map((fact) => {
+            const box = fact.getBoundingClientRect();
+            return {
+              label: fact.querySelector('dt')?.textContent,
+              line: Math.round(
+                /** @type {Element} */ (fact.querySelector('dt')).getBoundingClientRect().bottom
+              ),
+              top: box.top,
+              bottom: box.bottom,
+              height: box.height,
+              target: fact.querySelector('a[href], [tabindex="0"]') !== null
+            };
+          })
         );
+        const targets = facts.filter((fact) => fact.target);
+        assert.ok(targets.length >= 2, 'the first inline list holds too few targets to test');
+        const lines = new Set(facts.map((fact) => fact.line));
         assert.ok(
-          facts.some((fact) => fact.target),
-          'the first inline list holds no target to test'
+          lines.size < facts.length,
+          `${facts.length} facts take ${lines.size} lines, one each`
         );
-        for (let i = 1; i < facts.length; i++)
-          assert.ok(facts[i].top > facts[i - 1].top, `${facts[i].label} shares the line above`);
-        assert.equal(
-          new Set(facts.map((fact) => fact.value)).size,
-          1,
-          'the values do not start on one column'
-        );
-        for (const fact of facts)
-          assert.equal(fact.height, 44, `${fact.label} is ${fact.height}px, off the 44px pitch`);
-        const spill = await list.evaluate((dl) => {
-          const label = /** @type {HTMLElement} */ (dl.querySelector('dt'));
-          const words = label.textContent;
-          label.textContent = 'Synchronisierungsstatus';
-          const over = label.scrollWidth - label.clientWidth;
-          label.textContent = words;
-          return over;
-        });
-        assert.equal(spill, 0, 'a long one-word label paints past its column onto its value');
+        for (const fact of targets)
+          assert.ok(fact.height >= 44, `${fact.label} is ${fact.height}px, under the 44px target`);
+        for (const one of targets)
+          for (const other of targets)
+            if (one.line < other.line)
+              assert.ok(
+                one.bottom <= other.top + 0.5,
+                `${one.label} reaches into ${other.label} on the next line`
+              );
       }
     );
   });
@@ -2071,12 +2071,12 @@ suite('lists', together, () => {
             `a value starts ${value.left - labelsEnd}px past the labels`
           );
         }
-        // A narrow aside's 20rem still holds both columns.
+        // A detail pane's narrowest aside, 18rem, still holds both columns.
         await lists.nth(1).evaluate((list) => {
-          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '20rem';
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '18rem';
         });
         for (const { label, value } of (await pairs(1)).rows)
-          assert.ok(value.top < label.bottom, 'a list 20rem wide stacks its value');
+          assert.ok(value.top < label.bottom, 'a list 18rem wide stacks its value');
         await lists.nth(1).evaluate((list) => {
           /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '';
         });

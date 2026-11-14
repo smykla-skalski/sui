@@ -5,7 +5,7 @@
   export type NavItem = {
     href: string;
     label: string;
-    /** A shorter name for the collapsed strip, taken from the words of `label` so speech input finds it. */
+    /** A shorter name for the collapsed strip, one of the words of `label` or the start of one, so speech input finds it. */
     short?: string;
     /** A glyph from the icon set, or the caller's own drawn at `--sui-icon-base` in the same family. */
     icon: IconName | Snippet;
@@ -26,7 +26,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
-  import { formatCount } from '../internal/locale.js';
+  import { boundCount, formatCount } from '../internal/locale.js';
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
   import IconButton from './IconButton.svelte';
   import Tooltip from './Tooltip.svelte';
@@ -42,6 +42,7 @@
     closeLabel = word('SideNav.closeLabel', 'Close navigation'),
     collapseLabel = word('SideNav.collapseLabel', 'Collapse Navigation'),
     expandLabel = word('SideNav.expandLabel', 'Expand Navigation'),
+    expandShort = word('SideNav.expandShort', 'Expand'),
     countLabel = word(
       'SideNav.countLabel',
       (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
@@ -76,14 +77,16 @@
     collapseLabel?: string;
     /** The fold control's word while the sidebar is a strip. */
     expandLabel?: string;
+    /** The one word under the fold control's glyph in the strip, one of `expandLabel`'s. */
+    expandShort?: string;
     /** The words a row's count is read as, after its label. */
     countLabel?: (count: number) => string;
     /** A counted row's accessible name from its label and `countLabel`, in the language's order. */
     countedName?: (label: string, count: string) => string;
     /** Content under the title that stays in view with it, such as a switch between places. */
     head?: Snippet;
-    /** Quiet content at the bottom, such as the account. */
-    foot?: Snippet;
+    /** Quiet content at the bottom, such as the account, told whether the sidebar is the folded strip, where it has a glyph's width. */
+    foot?: Snippet<[folded: boolean]>;
     /** Called when a row is followed, for a router that handles the click itself. */
     onnavigate?: (event: MouseEvent, item: NavItem) => void;
     /**
@@ -249,20 +252,23 @@ from the current row, does not slide on first paint, and glides to the next row 
 changes. Until it is measured the row paints its own plate.
 
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
-into a strip where each row is an icon over a short label, and Expand Navigation brings it back. A
-tooltip with the full name shows only where `short` replaces a label, and a count is still
-read aloud. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
+into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
+over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
+where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
+hairline marks where each group starts. A strip that stands alone keeps its `kicker` in the primary ink over a hairline,
+8px from the strip's top, the line and the rows; beside a rail the rail's places name the place instead. The `foot` is told when the
+sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the line of its title, rows are 44px, and
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
-- Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
+- Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, drawn as "99+" past 99 so it keeps its two-digit seat, its whole number in the row's name, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
-- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
+- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
@@ -336,7 +342,7 @@ following a row closes the drawer.
                 {/if}
                 {#if item.count !== undefined}
                   <span class="sui-side-nav-count" aria-hidden="true"
-                    ><Count value={formatCount(item.count)} /></span
+                    ><Count value={boundCount(item.count)} /></span
                   >
                 {/if}
               </a>
@@ -373,9 +379,13 @@ following a row closes the drawer.
             data-label={shell.collapsed ? expandLabel : collapseLabel}
             ><span>{shell.collapsed ? expandLabel : collapseLabel}</span></span
           >
+          <span class="sui-side-nav-short" aria-hidden="true">{expandShort}</span>
         </button>
+        {#if mode === 'collapsed'}
+          <Tooltip anchor={fold} text={expandLabel} side="inline-end" />
+        {/if}
       {/if}
-      {#if foot}{@render foot()}{/if}
+      {#if foot}<div class="sui-side-nav-held">{@render foot(mode === 'collapsed')}</div>{/if}
     </div>
   {/if}
 </nav>
@@ -459,9 +469,13 @@ following a row closes the drawer.
     grid-column: 1;
   }
 
-  /* The close button centres on the first line of the names (L-94): a holder with no height at
-     that line's middle lets the button reach as far over it as under it. */
+  /* The way out of the drawer takes a dialog close's 18px glyph and secondary ink, and centres
+     on the place's name, past any kicker over it, as a dialog's close does on its title (L-94):
+     a holder with no height at that line's middle lets the button reach as far over it as under
+     it. */
   .sui-side-nav-close {
+    --sui-icon-base: var(--sui-icon-md);
+    --sui-local-icon-rest: var(--sui-text-secondary);
     align-content: center;
     align-self: center;
     block-size: 0;
@@ -470,6 +484,12 @@ following a row closes the drawer.
     grid-row: 1;
   }
 
+  .sui-side-nav-kicker ~ .sui-side-nav-close {
+    grid-row: 2;
+  }
+
+  /* The kicker and the group headings are compact caps, a step under the 14px rows they head,
+     as shadcn's 12px group labels are, so they read without the strain of 11px caps. */
   .sui-side-nav-kicker {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -538,6 +558,15 @@ following a row closes the drawer.
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
+  }
+
+  /* A phone's 13px caps stand a pixel taller than 12px ones, so the head gives that pixel
+     back under the names, and its hairline stays at 56px, on the line the rail's first place
+     ends on. */
+  @media (max-width: 47.9375rem) {
+    .sui-side-nav-head {
+      padding-block-end: calc(var(--sui-space-3) - 1px);
+    }
   }
 
   .sui-side-nav-thumb + .sui-side-nav-group {
@@ -760,7 +789,10 @@ following a row closes the drawer.
     margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
   }
 
+  /* On the current row's accent plate a grey veil reads as a smudge, so the count takes a veil
+     of the accent ink instead and reads as a step of the plate in both themes. */
   .sui-side-nav-row[aria-current='page'] .sui-side-nav-count {
+    --sui-local-count-ground: color-mix(in srgb, var(--sui-sidebar-active-glyph) 18%, transparent);
     --sui-local-count-ink: var(--sui-sidebar-active-ink);
   }
 
@@ -779,6 +811,43 @@ following a row closes the drawer.
     display: grid;
     gap: var(--sui-space-4);
     padding-block-start: var(--sui-space-4);
+    position: relative;
+  }
+
+  .sui-side-nav-held {
+    display: grid;
+    gap: var(--sui-space-4);
+    min-inline-size: 0;
+  }
+
+  /* While more rows are below, the foot's hairline casts a soft shadow up over the rows, as a
+     sticky bar does over a page, so a row cut there reads as more to scroll and never fades
+     (L-107). It clears a pixel short of the end, and a list that fits, or a browser without
+     scroll timelines, casts none. */
+  @supports (animation-timeline: scroll()) {
+    .sui-side-nav-foot::before {
+      animation: sui-side-nav-more var(--sui-ease-linear) both;
+      animation-range: calc(100% - 2px) calc(100% - 1px);
+      animation-timeline: --sui-side-nav-rows;
+      block-size: var(--sui-stroke);
+      box-shadow: 0 calc(-1 * var(--sui-space-1)) var(--sui-space-2) var(--sui-shadow-color);
+      content: '';
+      inset-block-start: calc(-1 * var(--sui-stroke));
+      inset-inline: 0;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+    }
+  }
+
+  @keyframes sui-side-nav-more {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 
   [data-mode='drawer'] .sui-side-nav-row {
@@ -787,14 +856,45 @@ following a row closes the drawer.
 
   /* The strip, where a collapsed shell is wide enough to fold: the shell's own width decides it,
      so the server's render already draws it. Each row stacks its glyph over a label that wraps
-     rather than being cut, the place's names give way, and a heading's boundary stays as
+     rather than being cut, the place's names give way to its kicker, and a heading's boundary stays as
      space. */
   @container sui-shell (min-width: 64.0625rem) {
+    /* A column that joins a rail's places and foot sets its own block room, so its tiles keep
+       the places' pitch across the hairlines between them (AppShell). */
     .sui-side-nav[data-collapsed] {
+      padding-block: var(--sui-local-strip-start, var(--sui-space-4))
+        var(--sui-local-strip-end, var(--sui-space-4));
       padding-inline: var(--sui-space-1);
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-head {
+      display: none;
+    }
+
+    /* Alone, the strip keeps its kicker, the place's short name, in the primary ink, since it
+       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 8px
+       under the strip's top, so naming the place costs the list 18px. Joined to a rail, the
+       rail's places name the place, and the head leaves (AppShell). */
+    .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
+      display: var(--sui-local-strip-head, flex);
+      flex: none;
+      justify-content: center;
+      margin-block: calc(var(--sui-space-2) - var(--sui-local-strip-start, var(--sui-space-4)))
+        calc(var(--sui-space-2) - var(--sui-space-4));
+      padding-block-end: var(--sui-space-2);
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-names {
+      flex: none;
+      padding-inline-start: 0;
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-kicker {
+      color: var(--sui-sidebar-text);
+    }
+
+    .sui-side-nav[data-collapsed]
+      :is(.sui-side-nav-title, .sui-side-nav-close, .sui-side-nav-lead) {
       display: none;
     }
 
@@ -807,13 +907,26 @@ following a row closes the drawer.
       padding-inline: var(--sui-space-1);
     }
 
-    /* The column keeps the strip's width, so a long label wraps instead of widening it. */
+    /* The column keeps the strip's width, so a long label wraps instead of widening it. The
+       tiles stand 4px apart, a 48px pitch, as a rail's places do in the same column. */
     .sui-side-nav[data-collapsed] .sui-side-nav-rows {
+      gap: var(--sui-space-1);
       grid-template-columns: minmax(0, 1fr);
     }
 
+    /* The group names leave the strip, so a short hairline across the glyphs' column marks
+       where a group starts, 8px clear of the rows on each side. */
     .sui-side-nav[data-collapsed] .sui-side-nav-rows ~ .sui-side-nav-rows {
-      margin-block-start: var(--sui-space-4);
+      margin-block-start: var(--sui-space-2);
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-rows ~ .sui-side-nav-rows::before {
+      background: var(--sui-sidebar-border);
+      block-size: var(--sui-stroke);
+      content: '';
+      inline-size: var(--sui-space-6);
+      justify-self: center;
+      margin-block-end: calc(var(--sui-space-2) - var(--sui-space-1));
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-row {
@@ -824,22 +937,26 @@ following a row closes the drawer.
       gap: var(--sui-space-1);
       justify-content: center;
       min-block-size: var(--sui-touch-target);
-      padding: var(--sui-space-1);
+      /* 2px at the sides gives a label 68px of the 80px strip, room for two short words. */
+      padding: var(--sui-space-1) calc(var(--sui-space-1) / 2);
       text-align: center;
     }
 
+    /* Folded, a page's glyph takes a place's 18px tier, so the rail's places and the pages
+       under them read as one column of one glyph size. */
     .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
+      --sui-icon-base: var(--sui-icon-md);
       margin-block: 0;
     }
 
-    /* A label wraps only between its words, and a word too long for the strip only at a hyphen
-       where the page's language allows one, so no word ever breaks without it. A shorter `short`
-       label is the way to a strip label that needs neither. */
+    /* A strip label takes one line, so every row keeps one pitch: a label too wide for it
+       takes a `short`. One that still overflows wraps between its words, or at a hyphen, rather
+       than being cut, and a browser with no hyphenation breaks the word at the strip's edge. */
     .sui-side-nav[data-collapsed] :is(.sui-side-nav-label, .sui-side-nav-short) {
       flex: none;
       hyphens: auto;
       max-inline-size: 100%;
-      overflow-wrap: normal;
+      overflow-wrap: break-word;
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-short {
@@ -850,8 +967,56 @@ following a row closes the drawer.
       text-box: trim-both cap alphabetic;
     }
 
-    /* A label replaced by its short form, and a count, leave the strip but are still read. */
-    .sui-side-nav[data-collapsed] :is(.sui-side-nav-label.replaced, .sui-side-nav-count) {
+    /* In the strip the fold is a tile like the rows over it: its glyph over one short word,
+       with its whole words in a tooltip, as a row with a short label has. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-fold {
+      min-block-size: var(--sui-touch-target);
+    }
+
+    /* What the foot holds stands on the strip's centre line, as every glyph over it does. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-held {
+      justify-items: center;
+    }
+
+    /* A count rides past the glyph's top-end corner, 4px clear of it, in the count's own
+       neutral ground, so a count reads the same folded and whole and the accent stays with the
+       current page; a ring of the sidebar's ground parts it from the label under it. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-count {
+      border-radius: var(--sui-radius-pill);
+      box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
+      inset-block-start: 0;
+      inset-inline-start: calc(50% + var(--sui-space-2) + var(--sui-space-1));
+      margin: 0;
+      position: absolute;
+    }
+
+    /* On the current page's plate the ring takes the plate's ground, so it parts the count
+       from the label without a pale halo on the plate. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-row[aria-current='page'] .sui-side-nav-count {
+      box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-active-bg);
+    }
+
+    /* Anchored, the count stands 4px over the glyph's top and 4px past its end, as a place's
+       badge does on the rail, so the one folded column marks its places and pages alike. */
+    @supports (anchor-name: --a) {
+      .sui-side-nav[data-collapsed] .sui-side-nav-row {
+        anchor-scope: --sui-side-nav-glyph;
+      }
+
+      .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
+        anchor-name: --sui-side-nav-glyph;
+      }
+
+      .sui-side-nav[data-collapsed] .sui-side-nav-count {
+        inset-block-start: calc(anchor(--sui-side-nav-glyph top) - var(--sui-space-1));
+        inset-inline-start: calc(anchor(--sui-side-nav-glyph end) + var(--sui-space-1));
+      }
+    }
+
+    /* A label replaced by its short form and the fold's words leave the strip but are still
+       read. */
+    .sui-side-nav[data-collapsed]
+      :is(.sui-side-nav-label.replaced, .sui-side-nav-fold .sui-side-nav-label) {
       block-size: 1px;
       clip-path: inset(50%);
       inline-size: 1px;

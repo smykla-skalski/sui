@@ -36,7 +36,8 @@
       label: members[0].family,
       items: members.map(({ id, meta }) => ({
         href: everything ? `#${id}` : `${resolve('/(sink)/[id]', { id })}/`,
-        label: meta.title,
+        label: meta.label ?? meta.title,
+        short: meta.short,
         icon: glyphSnippet(id)
       }))
     }))
@@ -117,10 +118,16 @@
 
 <SkipLink href="#content" />
 
-<AppShell title={page.data.section?.meta.title ?? 'Kitchen Sink'} landmark="none" bind:drawerOpen>
+<AppShell
+  title={page.data.section?.meta.title ?? 'Kitchen Sink'}
+  eyebrow="SUI"
+  landmark="none"
+  bind:drawerOpen
+>
   {#snippet sidebar()}
     <!-- The sidebar stays in view at every width, in the drawer on a phone, so the theme lives
-         once, at its foot. Two choices fit the sidebar's width as a segmented control. -->
+         once, at its foot. Two choices fill the sidebar's width as a segmented control, so the
+         foot ends on the rows' edge, folded or not. -->
     <SideNav
       kicker="SUI"
       title="Kitchen Sink"
@@ -131,7 +138,11 @@
       onnavigate={follow}
       head={deployed ? picker : undefined}
     >
-      {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
+      {#snippet foot(folded: boolean)}<ThemeSwitch
+          system={false}
+          iconOnly={folded}
+          fill
+        />{/snippet}
     </SideNav>
   {/snippet}
 

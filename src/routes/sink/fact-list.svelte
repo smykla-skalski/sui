@@ -58,6 +58,23 @@
 </Example>
 
 <Example
+  title="Stats"
+  note="A few counts that answer the page, each figure before its label in tabular figures"
+  layout="stack"
+>
+  <Specimen label="A run’s outcome">
+    <FactList
+      layout="stats"
+      facts={[
+        { label: 'Match', value: '12', mono: true },
+        { label: 'Differ', value: '3', mono: true },
+        { label: 'Not checked', value: '1', mono: true }
+      ]}
+    />
+  </Specimen>
+</Example>
+
+<Example
   title="Long Values"
   note="A long value breaks inside its own fact and never pushes the row wider"
   layout="grid"

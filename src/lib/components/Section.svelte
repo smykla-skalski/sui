@@ -26,8 +26,8 @@
     level?: 2 | 3 | 4 | 5 | 6;
     /** The title's second line: one quiet sentence about what the section holds. */
     description?: string;
-    /** How many things the section holds, drawn beside the title in the page's number format. */
-    count?: number;
+    /** How many things the section holds, drawn beside the title in the page's number format; `null` while the number loads. */
+    count?: number | null;
     /** Controls at the head's end. They centre on the title's cap band and never raise the head. */
     actions?: Snippet;
     /** The heading's id, so a list inside can take it as its name or a contents link can point at it. */
@@ -55,7 +55,8 @@ section inside another one's content; the content stands 16px under the title's 
 size follows the nesting a reader sees and `level` the page's outline, so a pane whose
 sections start at h3 still draws them at the section tier. A `description` is the title's
 second line, as far below it as the title's own lines stand apart plus 8px. A `count` stands
-beside the title as a tab's does. `actions` stand at the head's end, centred on the title's
+beside the title as a tab's does, and `count={null}` holds its seat with a placeholder of a
+two-digit count's size until the number arrives. `actions` stand at the head's end, centred on the title's
 cap band, and reach above and below it rather than raise the head, so the title, the
 description and the content stand where they stand with no action. They stay there at every
 width and the copy wraps beside them, so keep them to a link or a quiet button.
@@ -68,7 +69,7 @@ its words on the title's edge.
 
 - Semantics: a `section` with no accessible name, so it is never a landmark region; the title is a heading at `level`, named with its count when it has one.
 - Content: a title, an optional description, count and head actions, and the content; the title and the description wrap.
-- States: none of its own; it draws no hover, selection or frame.
+- States: none of its own beyond a waiting count; it draws no hover, selection or frame.
 - Keyboard: none of its own; Tab reaches the actions, then the content, in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets, which grow on a phone without moving the head.
 - Focus: nothing here moves focus.
@@ -87,9 +88,10 @@ its words on the title's edge.
         this={`h${level}`}
         {id}
         class="sui-section-title"
-        aria-label={count === undefined ? undefined : countedName(title, formatCount(count))}
+        aria-label={count == null ? undefined : countedName(title, formatCount(count))}
         ><span class="sui-section-words">{title}</span>{#if count !== undefined}<span
-            class="sui-section-count"><Count value={count} /></span
+            class="sui-section-count"
+            aria-hidden={count === null ? 'true' : undefined}><Count value={count} /></span
           >{/if}</svelte:element
       >
       {#if description !== undefined}

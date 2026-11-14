@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Skip Link & Visually Hidden',
+    label: 'Skip Link',
     lead: 'Words for keyboard and screen reader users: a link past the chrome that shows on focus, and text only a screen reader reads. Words that always show are a Link or plain text.',
     components: ['SkipLink', 'VisuallyHidden']
   };

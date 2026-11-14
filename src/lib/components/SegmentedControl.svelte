@@ -39,6 +39,8 @@
     value = $bindable(null),
     name = id,
     disabled = false,
+    iconOnly = false,
+    fill = false,
     hint,
     countedLabel = word(
       'SegmentedControl.countedLabel',
@@ -60,6 +62,10 @@
     value?: string | null;
     name?: string;
     disabled?: boolean;
+    /** Draws each option's glyph alone, its word still naming it, for a box too narrow for the words, such as a folded sidebar. Every option needs an `icon`. */
+    iconOnly?: boolean;
+    /** Stretches the track over its room, its options sharing it, for a control that ends a column, such as a sidebar's foot. */
+    fill?: boolean;
     /** Help under the control, such as why an option is off, read as its description. */
     hint?: string;
     /** The fallback select's words for an option with a count, given the count already formatted. */
@@ -347,7 +353,8 @@ The thumb can be dragged: press the selected option and move, and the thumb and 
 the pointer from option to option, skipping disabled ones. Letting go chooses where it stands and
 fires `change` as a click would; Escape or a cancelled pointer puts it back.
 
-Short of room, the control draws the same choice as a native `Select`, with icons dropped and
+With `iconOnly` each option is its glyph alone, as wide as it is tall, and its word still
+names its radio, for a box as narrow as a folded sidebar. Short of room, the control draws the same choice as a native `Select`, with icons dropped and
 counts in brackets, such as "Users (24)". Both forms are drawn, and an inert, hidden copy of the
 segments, with no inputs, decides which shows: its scroll timeline is active only while it
 overflows the room, so the browser shows the right form before the first paint. A host that sets
@@ -363,7 +370,7 @@ itself, so the choice shows from the first frame.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px, also on a track a surface keeps drawn at 34px with `--sui-local-field-seat`, as a card's head does.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
-- Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
+- Responsive: as wide as its words or its room, whichever is less, or with `fill` as wide as its room, its options sharing it; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 12px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` and the hint reach the group or the select; counts are part of each option's name.
 - Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the reader's format; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
 - Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and grows by `scale` from its old width, never animating its layout, and reduced motion drops every transition.
@@ -382,7 +389,8 @@ itself, so the choice shows from the first frame.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-segmented', className, { captioned, short: !fits }]}
+  class={['sui-segmented', className, { captioned, short: !fits, glyphs: iconOnly, filled: fill }]}
+  style:--sui-local-segmented-count={fill ? options.length : undefined}
   {@attach fit}
 >
   {#if captioned}
@@ -481,6 +489,23 @@ itself, so the choice shows from the first frame.
     grid-area: 1 / 1;
   }
 
+  /* Each option takes a whole pixel share of the track and the last one the pixels left over,
+     so every edge stays whole while the track ends on its column's edge. */
+  .filled {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-self: stretch;
+  }
+
+  .filled > .sui-segmented-track > .sui-segmented-option {
+    inline-size: round(down, 100% / var(--sui-local-segmented-count), 1px);
+    justify-content: center;
+  }
+
+  .filled > .sui-segmented-track > .sui-segmented-option:last-of-type {
+    flex: auto;
+  }
+
   .sui-segmented {
     row-gap: var(--sui-field-gap);
   }
@@ -542,6 +567,15 @@ itself, so the choice shows from the first frame.
 
   .sui-segmented-ruler {
     inline-size: max-content;
+  }
+
+  /* Filled, every option takes an equal share, so the ruler measures the widest option as many
+     times as there are options: a long label then turns the control into a select before it
+     overflows its share. */
+  .filled .sui-segmented-ruler {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
   }
 
   /* Holds no width of its own, so the select never widens the box it was measured against. A
@@ -1066,6 +1100,24 @@ itself, so the choice shows from the first frame.
   /* An option's words are a button's weight and the chosen one's a current tab's, so the thumb
      leads. A hidden semibold copy shares the words' cell, so an option already holds the room
      the chosen weight needs and neither it nor the thumb resizes on a choice (L-91). */
+  /* Glyphs alone: each option is as wide as it is tall, and its words still name its radio. */
+  .glyphs .sui-segmented-label {
+    padding-inline: calc(
+      (var(--sui-control-height-compact) - 2 * var(--sui-control-inset) - var(--sui-icon-base)) / 2
+    );
+  }
+
+  .glyphs .sui-segmented-word {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+  }
+
   .sui-segmented-word {
     align-content: center;
     block-size: var(--sui-block-snap);

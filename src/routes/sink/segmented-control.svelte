@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Segmented Control',
+    short: 'Segment',
     lead: 'One choice from 2 to 5 options that all show at once. A Select holds 6 or more, and answers that need a sentence are ChoiceCards.',
     components: ['SegmentedControl']
   };
