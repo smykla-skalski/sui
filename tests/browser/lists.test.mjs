@@ -467,6 +467,27 @@ suite('lists', together, () => {
         );
     });
 
+    test('a state title stands a size over its explanation on a phone', async () => {
+      const page = await opened();
+      const pairs = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-empty-state, .sui-error-state)')].map(
+          (panel) => {
+            const size = (/** @type {string} */ part) =>
+              parseFloat(
+                getComputedStyle(/** @type {Element} */ (panel.querySelector(part))).fontSize
+              );
+            return {
+              title: size(':is(.sui-empty-state-title, .sui-error-state-title)'),
+              words: size(':is(.sui-empty-state-description, .sui-error-state-description)')
+            };
+          }
+        )
+      );
+      assert.ok(pairs.length >= 6, `only ${pairs.length} panels`);
+      for (const { title, words } of pairs)
+        assert.ok(title > words, `a ${title}px title stands over ${words}px words`);
+    });
+
     test('every danger wash on the states page starts its mark 20px inside its edge', async () => {
       const page = await opened();
       const insets = await page.evaluate(() =>

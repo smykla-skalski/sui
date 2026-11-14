@@ -602,10 +602,11 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   assert.deepEqual(
     {
       cardTitle: pixels(phone['--sui-font-size-card-title']),
+      stateTitle: pixels(phone['--sui-font-size-state-title']),
       body: pixels(phone['--sui-font-size-body'])
     },
-    { cardTitle: 18, body: 16 },
-    "on a phone a section's title stays a step over the body-sized sub-section title"
+    { cardTitle: 18, stateTitle: 17, body: 16 },
+    "on a phone a section's title stays a step over the body-sized sub-section title, and a state's title a step between them"
   );
   assert.deepEqual(
     { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
@@ -675,7 +676,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(
       styles[`src/lib/components/${path}.svelte`],
-      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-title\)/,
+      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-state-title\)/,
       `an ${path}'s title stands a step under the list heading over it`
     );
 });

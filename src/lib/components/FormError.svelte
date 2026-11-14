@@ -145,7 +145,7 @@ margins of its own; the form that holds it sets the gap above it.
   /* A summary's message heads its links, so it reads at the 16px semibold a failed line's
      title wears. */
   .summary > .sui-form-error-message {
-    font-size: var(--sui-font-size-title);
+    font-size: var(--sui-font-size-state-title);
     font-weight: var(--sui-weight-semibold);
   }
 

@@ -211,7 +211,7 @@ of them.
     align-self: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
   }
@@ -230,7 +230,7 @@ of them.
   .sui-error-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 

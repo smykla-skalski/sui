@@ -478,6 +478,8 @@
      stands half a pixel under the words beside it, so its taller x-height matches theirs. */
   --sui-font-size-input-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
+  /* A state's title: a step over the body on a phone too (L-25). */
+  --sui-font-size-state-title: var(--sui-font-size-title);
   /* Under the 11px floor on purpose: a 20px avatar's letters are a mark (L-25). */
   --sui-font-size-initials-small: 0.5625rem;
   --sui-font-size-initials-large: 1.25rem;
@@ -1250,6 +1252,7 @@
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
     --sui-font-size-body: 1rem;
+    --sui-font-size-state-title: 1.0625rem;
     --sui-font-size-card-title: 1.125rem;
 
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
