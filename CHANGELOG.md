@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `DiffBlock` with 2 empty sides draws its row on the head's ground in the head's ink, so it reads as a code surface and never as an empty field.
 - A `Rail` badge stands 4px over its glyph's end, not 8px, so its count covers only the glyph's corner.
 - A waiting chart veils only its plot's box and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
 - A chart's "View Chart Data" control stands right under its chart and stays there while its table opens, where a chart in a card stretched by its neighbour pushed it to the card's foot and it jumped up as the table opened.

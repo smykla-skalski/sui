@@ -406,13 +406,19 @@ or removed empty line. Two empty sides say `emptyLabel`.
     gap: inherit;
   }
 
-  /* Two empty sides still read as a diff and not a field: one row of the body's height, its
-     words in the line numbers' quiet ink on their 16px start rail, and in the sans, as words
-     are and code is not (L-20). */
+  /* Two empty sides still read as a diff and not a field: one row of the body's height on the
+     head's ground, a code surface no input wears, its words in the head's own ink, which holds
+     4.5:1 there where the line numbers' does not, on their 16px start rail, and in the sans, as
+     words are and code is not (L-20). */
   .sui-diff-block-empty {
     align-content: center;
+    background: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-head-ink),
+      var(--sui-surface-code)
+    );
     block-size: var(--sui-local-code-row);
-    color: var(--sui-code-gutter);
+    color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
