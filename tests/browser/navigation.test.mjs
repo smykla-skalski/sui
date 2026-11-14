@@ -298,6 +298,34 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a rail tile stands 8px in from each side of its column, its words keeping their 55px', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const found = await page.evaluate(() => {
+        const rail = /** @type {Element} */ (
+          document.querySelector('.sui-rail')
+        ).getBoundingClientRect();
+        const tile = /** @type {Element} */ (
+          document.querySelector('.sui-rail-list .sui-rail-tile')
+        );
+        const box = tile.getBoundingClientRect();
+        const look = getComputedStyle(tile);
+        return [
+          box.left - rail.left,
+          rail.right - 1 - box.right,
+          box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd)
+        ];
+      });
+      assert.deepEqual(
+        found,
+        [8, 8, 55],
+        "the tile, past the column's 1px edge, and its words' room"
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('the side nav kicker and the page header eyebrow share one cap line', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {

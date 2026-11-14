@@ -196,7 +196,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   /* The list runs the column's width, so a scrollbar narrows the tiles instead of pushing
-     them past the edge. */
+     them past the edge. Its tiles stand 8px in, clear of the column's edge as a side nav's
+     rows stand clear of theirs, and give their words the room they gave up. */
   .sui-rail-list {
     align-self: stretch;
     display: grid;
@@ -204,7 +205,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     gap: var(--sui-space-2);
     list-style: none;
     margin: 0;
-    padding: 0 var(--sui-space-1);
+    padding: 0 var(--sui-space-2);
   }
 
   .sui-rail-foot {
@@ -229,7 +230,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     justify-content: center;
     margin: 0;
     min-block-size: var(--sui-touch-target);
-    padding: var(--sui-space-1);
+    padding: var(--sui-space-1) 0;
     text-decoration: none;
     touch-action: manipulation;
     transition:
