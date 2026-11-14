@@ -83,7 +83,7 @@ full name opens beside a tile only when `short` replaces it. A badge stands 4px 
 and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
 between its places and its foot: beside them in a column of their own while the sidebar is
 whole, and stacked with them in one column once it folds. Holding them, it marks its current
-place on the inset plate, so the current page's accent plate is the column's one accent. On a phone it rides in the drawer, or,
+place on a neutral plate a step past a pressed tile's, so the current page's accent plate is the column's one accent. On a phone it rides in the drawer, or,
 in a shell with `bottomNav`, it turns into the bottom bar: the same tiles side by side, sharing
 the width.
 
@@ -356,7 +356,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   /* Holding the pages, the rail marks its place on a neutral plate, so the current page's
      accent plate is the one accent in the column and the two never compete. */
   .host .sui-rail-tile[aria-current] {
-    background: var(--sui-sidebar-item-pressed);
+    background: var(--sui-sidebar-place-bg);
   }
 
   .sui-rail-tile[aria-current]:active {

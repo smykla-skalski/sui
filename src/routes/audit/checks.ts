@@ -539,6 +539,8 @@ function palette(): Finding[] {
   const rail = t('sidebar-bg');
   if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
     found.push(finding('L-85', null, 'the current row is quieter than a pressed row'));
+  if (deltaE(t('sidebar-place-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
+    found.push(finding('L-85', null, "a rail's place is quieter than a pressed row"));
 
   for (let index = 1; index <= 5; index++)
     found.push(

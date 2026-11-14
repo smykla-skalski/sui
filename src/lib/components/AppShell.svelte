@@ -422,7 +422,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     cursor: pointer;
     display: inline-flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-2);
     justify-content: center;
