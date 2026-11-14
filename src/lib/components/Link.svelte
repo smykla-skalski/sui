@@ -54,7 +54,7 @@ the caller's choice. A link outside a sentence, such as a row of source links, t
 is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
-- Content: a few words that say where it goes, never "click here"; an external one adds a 10px arrow kept on the line of its last word.
+- Content: a few words that say where it goes, never "click here"; an external one adds a 12px arrow, its ink near the text's cap height, kept on the line of its last word.
 - States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
@@ -77,7 +77,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     .join(' ') || undefined}
   class={['sui-link', className, { standalone }]}
   >{@render children()}{#if leaves}{JOINER}<span class="sui-link-external"
-      ><Icon name="arrow-up-right" size="micro" /><span id="{uid}-external" hidden
+      ><Icon name="arrow-up-right" size="xs" /><span id="{uid}-external" hidden
         >{externalLabel}</span
       ></span
     >{/if}</a

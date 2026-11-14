@@ -357,6 +357,30 @@ suite('lists', together, () => {
       }
     });
 
+    test("an external link's arrow draws at least 7px of ink, and its line keeps its height", async () => {
+      const page = await opened();
+      const links = await page.evaluate(() =>
+        [...document.querySelectorAll('#link-list .sui-link-list a:has(.sui-link-external)')].map(
+          (link) => {
+            const ink = /** @type {SVGPathElement} */ (
+              link.querySelector('.sui-link-external path')
+            ).getBoundingClientRect();
+            const plain = /** @type {Element} */ (
+              [...document.querySelectorAll('#link-list .sui-link-list a')].find(
+                (other) => !other.querySelector('.sui-link-external')
+              )
+            ).getBoundingClientRect();
+            return [ink.width, ink.height, link.getBoundingClientRect().height, plain.height];
+          }
+        )
+      );
+      assert.ok(links.length > 0, 'the page shows an external link');
+      for (const [width, height, line, plain] of links) {
+        assert.ok(width >= 7 && height >= 7, `the arrow's ink is ${width}x${height}`);
+        assert.equal(line, plain, 'the arrow makes its line taller');
+      }
+    });
+
     test('each directional glyph stands over its mirror, centred in its row beside its label, on the icon page', async () => {
       const page = await opened();
       const lines = await page.evaluate(() =>

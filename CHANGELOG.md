@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `Link`: an external link's arrow is 12px with 7px of ink, near the text's cap height, where its 4px of ink read as a stray mark; its line keeps its height.
 - `FactLine` moves a short fact to the next line whole, where its last word could stand alone there, and each fact ends on a whole pixel, so every dot draws at one weight (two dots on one line could differ 3.76:1 against 2.50:1).
 - A fact row's pill whose words wrap grows its row, where it ran over the row under it, and a stacked pill stands one copy gap under its label.
 - A line or scatter chart whose first point has a marker stands it 8px clear of the y ticks' words, the gap they keep from a plot with none.

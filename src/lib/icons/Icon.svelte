@@ -83,7 +83,7 @@
    */
   const INK_BEARING: Record<IconName, number | [number, number]> = {
     admin: [4, 3],
-    'arrow-up-right': 7,
+    'arrow-up-right': 5,
     alert: 3.5,
     ban: 3.5,
     book: 4,
@@ -265,7 +265,7 @@ word would start.
   aria-hidden="true"
 >
   {#if name === 'arrow-up-right'}
-    <path d="M7 17 17 7M9 7h8v8" />
+    <path d="M5 19 19 5M8 5h11v11" />
   {:else if name === 'settings'}
     {#if size === 'micro'}
       <!-- Three rails 5 units apart merge at 12px and under, so the small tiers keep two, with
