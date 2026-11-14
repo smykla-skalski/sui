@@ -6,7 +6,6 @@
 - An `ErrorState` over its rows keeps 16px inside its tint above and below on a phone, as at its sides, once its 44px retry wraps under the words, where 9px held the wrapped line tight against the tint.
 - An `Icon` named `github` scales its solid mark to 0.87 about the centre, so it reaches 2 to 22 units as the outline glyphs do with their stroke, where the full 23-unit mark outweighed every glyph beside it.
 - The kit's icon page sets each directional glyph in a row of its own, facing left to right beside right to left, so each pair reads at a glance, where two mirrored rows put a glyph and its mirror at opposite ends. The two columns stay side by side on a phone too.
-- A hovered copy control in a `CodeBlock`'s head takes a 4% veil of the ink on light, so it stays lighter than the head, where the shared 9% veil sank it under the head as if pressed.
 - The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
 - An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under. Each rail runs through the middle of a pixel row, so it draws as one sharp line at 10px and 12px.
 - The kit's icon page names each glyph at 13px on a 20px line, where the 11px names asked for a close look; no name wraps at 320px.

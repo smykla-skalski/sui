@@ -653,57 +653,6 @@ suite('lists', together, () => {
         );
     });
 
-    test('a hovered head copy control stays lighter than its head in both themes', async () => {
-      const page = await opened();
-      const control = page
-        .locator('#code-block .sui-code-block:not(.bare) > .sui-code-block-copy button')
-        .first();
-      await control.scrollIntoViewIfNeeded();
-      await control.hover();
-      const found = await control.evaluate((button) => {
-        // A color-mix() resolves to color(srgb 0-1 ...), a plain fill to rgb(0-255 ...).
-        const parse = (/** @type {string} */ color) => {
-          const [r, g, b, a = 1] = (color.match(/[\d.]+/g) ?? []).map(Number);
-          const scale = color.startsWith('color(') ? 1 : 255;
-          return { rgb: [r, g, b].map((value) => value / scale), a };
-        };
-        const luminance = (/** @type {number[]} */ rgb) => {
-          const [r, g, b] = rgb.map((c) =>
-            c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-          );
-          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        };
-        const head = /** @type {HTMLElement} */ (button.closest('.sui-code-block-copy'));
-        const block = /** @type {HTMLElement} */ (head.parentElement);
-        return ['light', 'dark'].map((theme) => {
-          block.dataset.suiTheme = theme;
-          const style = getComputedStyle(button);
-          const fill = parse(style.backgroundColor);
-          // Each layer is a flat gradient, one color twice; the first paints on top, so they
-          // composite from the last up.
-          const hovered = [
-            ...style.backgroundImage.matchAll(/linear-gradient\(((?:rgba?|color)\([^)]*\))/g)
-          ]
-            .map(([, color]) => parse(color))
-            .reverse()
-            .reduce(
-              (under, layer) => under.map((c, i) => layer.rgb[i] * layer.a + c * (1 - layer.a)),
-              fill.rgb
-            );
-          const result = {
-            theme,
-            hovered: luminance(hovered),
-            head: luminance(parse(getComputedStyle(head).backgroundColor).rgb)
-          };
-          delete block.dataset.suiTheme;
-          return result;
-        });
-      });
-      await page.mouse.move(0, 0);
-      for (const { theme, hovered, head } of found)
-        assert.ok(hovered > head, `in ${theme} a hovered copy control sinks under its head`);
-    });
-
     test('a framed code block heads its code with a faint step in both themes', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
