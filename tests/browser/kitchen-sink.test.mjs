@@ -411,6 +411,30 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  test(
+    'a desktop shows the Times and Days timelines wide enough to keep their time column',
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'timeline');
+      try {
+        const widths = await page.evaluate(() =>
+          [...document.querySelectorAll('#timeline .example')]
+            .filter((example) =>
+              /^(Times|Days)$/.test(example.querySelector('h3')?.textContent ?? '')
+            )
+            .flatMap((example) => [...example.querySelectorAll('.sui-timeline')])
+            .map((timeline) => timeline.getBoundingClientRect().width)
+        );
+        assert.equal(widths.length, 4);
+        // Under 25rem a timeline stands each time over its words, which the Times note denies.
+        for (const width of widths)
+          assert.ok(width > 400, `a ${width}px timeline drops its time column`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {
