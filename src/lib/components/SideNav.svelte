@@ -225,6 +225,39 @@
     return () => observer.disconnect();
   });
 
+  // The room the foot takes from the bottom of the rows, so the foot's hairline cuts the list
+  // in a gap between rows at rest, never through a row's or a heading's words.
+  let slack = $state(0);
+
+  function fitFoot() {
+    if (!scroller || !tree) return;
+    const full = scroller.clientHeight + slack;
+    const top = scroller.getBoundingClientRect().top - scroller.scrollTop;
+    let cut = full;
+    if (scroller.scrollHeight > full) {
+      const parts = [...tree.querySelectorAll<HTMLElement>('.sui-side-nav-group, li')];
+      for (const [index, part] of parts.entries()) {
+        const box = part.getBoundingClientRect();
+        if (box.bottom - top <= full) continue;
+        // A heading never stands over the cut without a row under it.
+        const lead = parts[index - 1]?.matches('.sui-side-nav-group') ? parts[index - 1] : part;
+        cut = Math.min(full, lead.getBoundingClientRect().top - top);
+        break;
+      }
+    }
+    slack = Math.max(0, Math.floor(full - cut));
+  }
+
+  $effect(() => {
+    void mode;
+    if (!scroller || !tree) return;
+    untrack(fitFoot);
+    const observer = new ResizeObserver(() => fitFoot());
+    observer.observe(scroller);
+    observer.observe(tree);
+    return () => observer.disconnect();
+  });
+
   /* The fold control leaves when the shell grows too narrow to fold. If it held focus, the
      current page's row takes it, so focus never falls to the page. */
   $effect.pre(() => {
@@ -266,10 +299,10 @@ following a row closes the drawer.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below and, at rest, standing in the gap above the first row or heading that would not fit, never through its words, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
-- Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
+- Performance: one resize observer measures the plate, which glides with a transform, and one fits the foot to the rows, only when their sizes change; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
 -->
@@ -360,7 +393,7 @@ following a row closes the drawer.
        drawn wherever there is a shell, so the server's render has it; the shell's own width
        shows it only where the shell can fold. -->
   {#if shell || foot}
-    <div class="sui-side-nav-foot">
+    <div class="sui-side-nav-foot" style:--sui-local-slack={slack ? `${slack}px` : undefined}>
       {#if shell}
         <button
           bind:this={fold}
@@ -810,7 +843,7 @@ following a row closes the drawer.
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
-    padding-block-start: var(--sui-space-4);
+    padding-block-start: calc(var(--sui-space-4) + var(--sui-local-slack, 0px));
     position: relative;
   }
 

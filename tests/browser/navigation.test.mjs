@@ -2338,7 +2338,7 @@ suite('navigation', together, () => {
 
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each side of them a gap clear (L-107)',
+      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both and at rest only between rows, and rests each side of them a gap clear (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -2360,12 +2360,18 @@ suite('navigation', together, () => {
             const rule = () => getComputedStyle(head, '::after');
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
+            const cut = [...list.querySelectorAll('.sui-side-nav-group, li')]
+              .map((part) => part.getBoundingClientRect())
+              .filter((part) => part.top < box().bottom && part.bottom > box().bottom + 0.5)
+              .map((part) => [part.top, part.bottom]);
             const more = shadow();
             const resting = rule().opacity;
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
             return {
               scrolls: tree.scrollHeight - tree.clientHeight,
+              cut,
+              slack: parseFloat(getComputedStyle(next).getPropertyValue('--sui-local-slack')) || 0,
               top,
               bottom,
               underHead: box().top - head.getBoundingClientRect().bottom,
@@ -2383,6 +2389,7 @@ suite('navigation', together, () => {
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
+          assert.deepEqual(found.cut, [], 'at rest the hairline under the rows cuts through a row');
           assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
           assert.deepEqual(
             found.shadows,
@@ -2413,7 +2420,7 @@ suite('navigation', together, () => {
             `the last row rests ${found.bottom}px up`
           );
           assert.ok(
-            Math.abs(found.underNext - found.gap) <= 0.5,
+            Math.abs(found.underNext - found.gap - found.slack) <= 0.5,
             `the part under the rows starts ${found.underNext}px under its hairline`
           );
         } finally {
