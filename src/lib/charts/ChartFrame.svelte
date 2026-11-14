@@ -497,6 +497,7 @@
   .sui-chart-table :global(:is(th, td)) {
     border-block-end: var(--sui-stroke) solid var(--sui-chart-grid);
     padding: var(--sui-space-2);
+    text-align: start;
   }
 
   /* Numbers line up at their end, and so do their headings. */

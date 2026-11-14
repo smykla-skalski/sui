@@ -1667,6 +1667,39 @@ suite('navigation', together, () => {
   suite('one page of charts at each width', { concurrency: 1 }, () => {
     const charts = shared(() => open(1440));
 
+    test('a line breaks at a missing value, and a table names its series from the start edge', async () => {
+      const page = await charts();
+      // A chart draws its table only once its disclosure is open.
+      await page.evaluate(async () => {
+        for (const details of document.querySelectorAll('#charts .sui-chart details'))
+          /** @type {HTMLDetailsElement} */ (details).open = true;
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+      });
+      const { runs, aligns } = await page.evaluate(() => {
+        const partial = /** @type {Element} */ (
+          [...document.querySelectorAll('#charts .sui-chart')].find((chart) =>
+            chart.textContent?.includes('Daily Readings')
+          )
+        );
+        return {
+          runs: partial.querySelector('path.line')?.getAttribute('d')?.match(/M/g)?.length,
+          aligns: [
+            ...new Set(
+              [...document.querySelectorAll('#charts .sui-chart-table tbody th')].map(
+                (cell) => getComputedStyle(cell).textAlign
+              )
+            )
+          ]
+        };
+      });
+      await page.evaluate(() => {
+        for (const details of document.querySelectorAll('#charts .sui-chart details'))
+          /** @type {HTMLDetailsElement} */ (details).open = false;
+      });
+      assert.equal(runs, 2, 'the line draws one run on each side of its gap');
+      assert.deepEqual(aligns, ['start']);
+    });
+
     test(
       'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not (L-66)',
       long,

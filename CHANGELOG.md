@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `LineChart` breaks its line where a value is missing, where it drew straight across the gap as if the value were there. A chart's table names each series from the start edge, where its row headings took the browser's centring.
 - A `DiffBlock` keeps its air above its first line and under its last on the code ground, outside the lines, so every tone is one line tall, and its head's words centre on their capitals in the row. L-65 now asks a diff block for the same air as a code block.
 - On dark, a `CodeBlock`'s comments and line numbers and a `DiffBlock`'s line numbers take the whole muted ink, which reads Lc 60 on the code ground, where 85% of it read Lc 48.
 - The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.

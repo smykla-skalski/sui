@@ -69,8 +69,15 @@
   let validSeries = $derived(
     series.map((item, index) => {
       const points = item.points.filter(finite);
+      // A line breaks where a value is missing, so it never draws a value the data does not hold.
+      const runs: ChartPoint[][] = [[]];
+      for (const point of item.points) {
+        if (finite(point)) runs.at(-1)!.push(point);
+        else runs.push([]);
+      }
       return {
         ...item,
+        runs: runs.filter((run) => run.length > 1),
         color: chartColor(index),
         marker: chartMarker(index),
         dash: chartDash(index),
@@ -234,10 +241,10 @@
         >
       {/if}
       {#each validSeries as item (item.id)}
-        {#if kind === 'line' && item.points.length > 1}
+        {#if kind === 'line' && item.runs.length > 0}
           <path
             class="line"
-            d={path(item.points)}
+            d={item.runs.map(path).join(' ')}
             fill="none"
             stroke={item.color}
             stroke-dasharray={item.dash}
