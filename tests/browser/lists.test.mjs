@@ -1461,7 +1461,7 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test('a failed refresh over its rows keeps its words 13px inside its tint above and below', async () => {
+    test('a failed refresh over its rows keeps its words 16px inside its tint, as a form error does, above and below', async () => {
       const page = await opened();
       const strip = page
         .locator('#states .specimen', { hasText: 'Refresh failed' })
@@ -1480,7 +1480,7 @@ suite('lists', together, () => {
         };
       });
       for (const [where, value] of Object.entries(inset))
-        assert.ok(Math.abs(value - 13) < 0.5, `the strip keeps ${value}px ${where} its words`);
+        assert.ok(Math.abs(value - 16) < 0.5, `the strip keeps ${value}px ${where} its words`);
     });
 
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {

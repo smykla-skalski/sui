@@ -258,7 +258,9 @@ of them.
      retry a step inside its tint, so they never crowd the tint's edge. Its tint, with a panel's
      edge, meets the list's rails at its sides, where the rows' rules and the heading stand, so
      the line never steps 2px in from the list it heads, and stands 2px inside its box above and
-     below, its words 13px inside the tint there, so a two-line failure never meets its edge. It stands 8px clear of the first row, so the failure never reads as that row's state. Its retry ends
+     below, its words 16px inside the tint there, as a form error's stand in its own, so a
+     two-line failure never meets its edge. It stands 8px clear of the first row, so the failure
+     never reads as that row's state. Its retry ends
      the line, where a reader looks for a line's action, and a line too narrow for both wraps it
      under its words (L-90), at any width. */
   .over {
@@ -273,8 +275,10 @@ of them.
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
     /* The edge is drawn on the tint, outside the flow, so the sides add its stroke to stand
-       20px inside it, on the rail an error panel's and a form error's words stand on. */
-    padding: var(--sui-space-4) calc(var(--sui-space-5) + var(--sui-stroke));
+       20px inside it, on the rail an error panel's and a form error's words stand on, and the
+       block adds the tint's inset too. */
+    padding: calc(var(--sui-space-4) + var(--sui-space-1) / 2 + var(--sui-stroke))
+      calc(var(--sui-space-5) + var(--sui-stroke));
     position: relative;
   }
 

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `ErrorState` over its rows pads its words 16px inside its tint above and below on a wide screen, as a `FormError` stands its words in its own, up from 13px.
 - An `ErrorState` over its rows pads its words 13px inside its tint above and below on a wide screen, up from 9px, so a two-line failure never meets its edge.
 - A `CodeBlock` parts its head row from its code in its frame's own edge, where a row divider's 75% of it left the line about 1.2:1 on light and the head standing on its ground alone.
 - A comment in a `CodeBlock` steps back past the punctuation, as far as 4.5:1 on the code ground lets it (about 4.9:1 light and 6.8:1 dark), where it stood darker than the punctuation on light and level with it on dark. A `DiffBlock` keeps the shared comment ink, which its tinted rows need.
