@@ -190,16 +190,17 @@
     <p>{description}</p>
   </figcaption>
   {#if note}
-    <p
-      class="sui-chart-note"
-      data-status={status === 'loading' ? undefined : (status ?? 'partial')}
-      aria-hidden="true"
-    >
-      {#if status === 'stale'}<Icon name="alert" size="sm" /><span>{note}</span
-        >{:else if status === 'refreshing'}<Icon name="refresh" size="sm" /><span>{note}</span
-        >{:else if status === 'loading'}{note}{:else}<Icon name="info" size="sm" /><span
-          >{note}</span
-        >{/if}
+    <p class="sui-chart-note" data-status={status ?? 'partial'} aria-hidden="true">
+      <Icon
+        name={status === 'stale'
+          ? 'alert'
+          : status === 'refreshing'
+            ? 'refresh'
+            : status === 'loading'
+              ? 'pending'
+              : 'info'}
+        size="sm"
+      /><span>{note}</span>
     </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
@@ -336,7 +337,8 @@
 
   /* A plot on its way, out of date or with points left out leads its note with the state's mark
      in its hue, as a table's failed line leads with the danger mark, and its words keep their
-     ink: the refresh and the info mark in the info hue, the warning mark in the warning hue.
+     ink: the refresh and the info mark in the info hue, the warning mark in the warning hue, and
+     a loading plot's clock in the muted ink, so every note's words start on one edge.
      The mark reaches a pixel past the words' capitals, so the note keeps their height. */
   .sui-chart-note[data-status] {
     align-items: center;
@@ -360,6 +362,11 @@
 
   .sui-chart-note[data-status='stale'] > :global(svg) {
     color: var(--sui-warning);
+  }
+
+  /* Values on their way are no news yet, so their clock stays in the note's muted ink. */
+  .sui-chart-note[data-status='loading'] > :global(svg) {
+    color: inherit;
   }
 
   /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.

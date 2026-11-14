@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A loading chart's note leads with the clock mark in its muted ink, so its words start where every other chart note's do, where they stood 21px further in; on dark a `HeatmapChart` prints every value under its peak in white, where only the step under the peak was white.
 - The rail and a collapsed side nav are 5rem wide, where 4.5rem left a tile's words 55px and "Personal" 4px of room each side; `--sui-rail-width` and `--sui-sidebar-width-collapsed` change.
 - A sortable `DataTable` heading is a 28px control whose ground reaches 8px past its words, with a 16px arrow, where it was a 24px chip 4px past them with a 12px arrow that drew 8 by 4px of ink; the heading row keeps its height.
 - A `HeatmapChart`'s four upper steps stand evenly apart, at 27.5, 43.5, 59.5 and 75.5% of the series color, where the top leapt 1.79:1 from steps 1.26:1 apart and two middle steps read as one; on dark the value on the step under the peak is white, where the text ink fell under 4.5:1. L-66 and its audit ask the widest step at most 1.25 times the narrowest.

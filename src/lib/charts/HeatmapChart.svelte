@@ -245,9 +245,10 @@ container.
     fill: var(--sui-text-secondary);
   }
   /* Tabular figures, which the face's table measures too, so values of one length stand as wide
-     as each other and a cell grown to its widest value holds it. */
+     as each other and a cell grown to its widest value holds it. On dark every value is white,
+     since the text ink falls under 4.5:1 on the step under the peak, so the cells keep one ink. */
   .value {
-    fill: var(--sui-text-primary);
+    fill: light-dark(var(--sui-text-primary), var(--sui-on-brand-action));
     font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-medium);
   }
@@ -268,10 +269,6 @@ container.
   }
   .step-4 {
     --sui-local-heat: var(--sui-chart-1);
-  }
-  /* Dark's text ink falls under 4.5:1 on the step under the peak, where white still holds. */
-  .value.step-3 {
-    fill: light-dark(var(--sui-text-primary), var(--sui-on-brand-action));
   }
   .value.step-4 {
     fill: var(--sui-surface-base);

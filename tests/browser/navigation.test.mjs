@@ -2394,7 +2394,7 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a refreshing, stale or partial chart’s note leads with its mark in its hue, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
+    test('a loading, refreshing, stale or partial chart’s note leads with its mark in its hue, a loading one’s clock in the note’s muted ink, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
       const page = await charts();
       const read = await page.evaluate(() => {
         const note = (/** @type {string} */ status) =>
@@ -2424,14 +2424,18 @@ suite('navigation', together, () => {
         details.open = true;
         const opened = turn();
         details.open = false;
-        const muted = /** @type {HTMLElement} */ (
-          document.querySelector('#charts .sui-chart-note:not([data-status])')
-        );
+        const loading = note('loading');
         return {
+          loading: marked(loading, '--sui-text-muted'),
+          start: [note('stale'), note('refreshing'), note('partial'), loading].map(
+            (host) =>
+              /** @type {Element} */ (host.querySelector(':scope > span')).getBoundingClientRect()
+                .left - host.getBoundingClientRect().left
+          ),
           stale: marked(note('stale'), '--sui-warning'),
           refreshing: marked(note('refreshing'), '--sui-info'),
           partial: marked(note('partial'), '--sui-info'),
-          heights: [note('stale'), note('refreshing'), note('partial'), muted].map(
+          heights: [note('stale'), note('refreshing'), note('partial'), loading].map(
             (host) => host.getBoundingClientRect().height
           ),
           chevron: [Boolean(chevron), closed, opened]
@@ -2440,8 +2444,27 @@ suite('navigation', together, () => {
       assert.ok(read.stale, 'the stale note has no mark in the warning hue');
       assert.ok(read.refreshing, 'the refreshing note has no mark in the info hue');
       assert.ok(read.partial, 'the partial note has no mark in the info hue');
+      assert.ok(read.loading, 'the loading note has no mark in its muted ink');
+      assert.equal(new Set(read.start).size, 1, `the notes' words start apart: ${read.start}`);
       assert.equal(new Set(read.heights).size, 1, `a mark grows its note: ${read.heights}`);
       assert.deepEqual(read.chevron, [true, 'none', '90deg'], 'the data control’s chevron');
+    });
+
+    test('a dark heatmap prints every value under its peak in one ink, white, as the step under the peak needs', async () => {
+      const page = await charts();
+      try {
+        await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'));
+        const inks = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#charts .sui-chart text.value:not(.none, .step-4)')].map(
+              (value) => getComputedStyle(value).fill
+            )
+          )
+        ]);
+        assert.deepEqual(inks, ['rgb(255, 255, 255)']);
+      } finally {
+        await page.evaluate(() => delete document.documentElement.dataset.theme);
+      }
     });
 
     test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {
