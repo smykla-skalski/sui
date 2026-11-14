@@ -707,7 +707,7 @@ suite('lists', together, () => {
       await page.emulateMedia({ colorScheme: null });
     });
 
-    test('a code block parts its head from its code in its frame’s own edge in both themes', async () => {
+    test('a code block draws its head line and its gutter rule in its frame’s own edge in both themes', async () => {
       const page = await opened();
       for (const scheme of /** @type {const} */ (['light', 'dark'])) {
         await page.emulateMedia({ colorScheme: scheme });
@@ -715,16 +715,35 @@ suite('lists', together, () => {
         const lines = await page.evaluate(() =>
           [...document.querySelectorAll('#code-block .sui-code-block:not(.bare)')].flatMap(
             (block) => {
-              const code = /** @type {Element} */ (block.querySelector('.sui-code-block-scroll'));
-              const line = getComputedStyle(code);
-              if (line.borderTopStyle !== 'solid') return [];
-              return [{ frame: getComputedStyle(block).borderTopColor, line: line.borderTopColor }];
+              const frame = getComputedStyle(block).borderTopColor;
+              const head = getComputedStyle(
+                /** @type {Element} */ (block.querySelector('.sui-code-block-scroll'))
+              );
+              const gutter = block.querySelector('.no');
+              return [
+                ...(head.borderTopStyle === 'solid'
+                  ? [{ what: 'head line', frame, line: head.borderTopColor }]
+                  : []),
+                ...(gutter
+                  ? [
+                      {
+                        what: 'gutter rule',
+                        frame,
+                        line: getComputedStyle(gutter).borderInlineEndColor
+                      }
+                    ]
+                  : [])
+              ];
             }
           )
         );
-        assert.ok(lines.length >= 3, `in ${scheme} only ${lines.length} heads were found`);
-        for (const { frame, line } of lines)
-          assert.equal(line, frame, `in ${scheme} the head line is ${line}, the frame ${frame}`);
+        for (const what of ['head line', 'gutter rule'])
+          assert.ok(
+            lines.some((each) => each.what === what),
+            `in ${scheme} no ${what} was found`
+          );
+        for (const { what, frame, line } of lines)
+          assert.equal(line, frame, `in ${scheme} the ${what} is ${line}, the frame ${frame}`);
       }
       await page.emulateMedia({ colorScheme: null });
     });

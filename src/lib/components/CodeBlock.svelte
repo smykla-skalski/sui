@@ -538,7 +538,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
 
   .no {
     background: var(--sui-surface-code);
-    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-subtle);
     color: var(--sui-code-gutter);
     inset-inline-start: 0;
     padding-inline: var(--sui-space-4) var(--sui-space-3);
