@@ -19,10 +19,18 @@
   ];
 
   let loading = $state(true);
+  let settling: ReturnType<typeof setTimeout> | undefined;
+
+  /* Each load owns its timer, so an earlier load's never ends a later one early. */
+  function settle() {
+    clearTimeout(settling);
+    loading = false;
+  }
 
   function reload() {
+    clearTimeout(settling);
     loading = true;
-    setTimeout(() => (loading = false), 1500);
+    settling = setTimeout(settle, 1500);
   }
 </script>
 
@@ -77,7 +85,7 @@
   <Specimen label={loading ? 'Loading' : 'Loaded'}>
     <Section title="Repositories" level={4}>
       {#snippet actions()}
-        <Button onclick={() => (loading ? (loading = false) : reload())}>
+        <Button onclick={() => (loading ? settle() : reload())}>
           {loading ? 'Show Rows' : 'Load Again'}
         </Button>
       {/snippet}
