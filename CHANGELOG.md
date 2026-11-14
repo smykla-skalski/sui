@@ -32,6 +32,7 @@
 - DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
 - EmptyState and ErrorState: the explanation wraps as every message's copy does (`text-wrap: pretty`), and balanced where a chart centres it, as its title is, read through `--sui-state-copy-wrap`, so a centred sentence no longer leaves its first word alone at a line's end.
 - Rail: on its own, with no pages beside it, the column is 81px, 80px of tiles and their room past its 1px edge, so a 64px tile stands 8px from the edge as from the column's start, where it stood 7px from the edge.
+- Skeleton: `widths` sets each one-line row's bar to the length its loaded words will take, such as a header's description, never past the row.
 - EmptyState: `final` draws the panel's edge as a solid hairline, for room nothing will fill, such as a record that does not exist, where the dashed edge promises content to come; L-59 names it.
 - AppShell: a `rail` of the caller's own markup keeps the pages beside it, where only `Rail` drew them; a phone's bottom bar sticks to the foot of the view again; and the bar finds a page heading that the content brings in or renames after it opens.
 - Rail: with `bottomNav`, the drawer's pages keep one render site, so crossing the phone width no longer mounts the sidebar afresh. A badge past 99 draws "99+" so it stays in the column, as does a folded `SideNav` count; the names still say the whole number.

@@ -160,12 +160,13 @@
 {#snippet bar()}<span class="value-wait"></span>{/snippet}
 {#snippet shortBar()}<span class="value-wait short"></span>{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
-{#snippet wait(rows: number, rowHeight: string)}
+{#snippet wait(rows: number, rowHeight: string, widths?: string[])}
   <Skeleton
     {rows}
     bars={false}
     ruled={false}
     {rowHeight}
+    {widths}
     patience={Infinity}
     label=""
     loadedLabel=""
@@ -257,17 +258,20 @@
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
-           the description's lines and the facts' lines will: one of each where the description
-           fits a line, and two lines of description over the facts' one line where it wraps. -->
+           the description's lines and the facts' lines will, as long as those lines: one of each
+           where the description fits a line, and two lines of description over the facts' one
+           line where it wraps. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render with the state it has, a loading
              word, so the check's own state is read once it arrives. -->
         {#snippet status()}<Pill tone="neutral">Loading</Pill>{/snippet}
         {#snippet facts()}
-          <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
+          <div class="from-ink one-line">
+            {@render wait(2, '2.25rem', ['25.3125rem', '18.6875rem'])}
+          </div>
           <div class="from-ink two-lines">
-            {@render wait(2, '1.375rem')}
-            <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
+            {@render wait(2, '1.375rem', ['20rem', '6.875rem'])}
+            <div class="fact-lines">{@render wait(1, '2.125rem', ['18.6875rem'])}</div>
           </div>
         {/snippet}
       </PageHeader>

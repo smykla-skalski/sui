@@ -972,6 +972,36 @@ suite('navigation', together, () => {
     );
   });
 
+  test("a detail pane's waiting header draws a bar as long as each line of its description", async () => {
+    for (const width of [1440, 390]) {
+      const lines = async (/** @type {string} */ path) => {
+        const page = await openLayout(path, width);
+        try {
+          return await page.evaluate(() => {
+            const header = /** @type {Element} */ (document.querySelector('main .sui-page-header'));
+            const words = header.querySelector('.sui-page-header-description');
+            if (!words)
+              return [...header.querySelectorAll('.bar')]
+                .filter((bar) => bar.checkVisibility())
+                .map((bar) => bar.getBoundingClientRect().width);
+            const range = document.createRange();
+            range.selectNodeContents(words);
+            return [...range.getClientRects()].map((line) => line.width);
+          });
+        } finally {
+          await page.close();
+        }
+      };
+      const loaded = await lines('layouts/detail-pane/');
+      const waiting = (await lines('layouts/detail-pane/loading/')).slice(0, loaded.length);
+      for (const [index, line] of loaded.entries())
+        assert.ok(
+          Math.abs(line - waiting[index]) <= 2,
+          `at ${width}px line ${index + 1} is ${line}px and its bar ${waiting[index]}px`
+        );
+    }
+  });
+
   test("a section's waiting count holds a two-digit count's box and leaves the heading its title", async () => {
     const count = async (/** @type {string} */ path, /** @type {string} */ name) => {
       const page = await openLayout(path, 1440);
