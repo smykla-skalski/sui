@@ -6,6 +6,7 @@
   import {
     AppShell,
     ServiceWorkerStatus,
+    IconButton,
     Select,
     SideNav,
     SkipLink,
@@ -18,7 +19,7 @@
   import { exposeAudit } from '../audit/expose.js';
   import { glyphSnippet } from '../kit/glyphs';
   import { families } from '../kit/sections';
-  import { previewOf, previewOptions, previewUrl, type Preview } from './previews';
+  import { previewOf, previewOptions, previewSource, previewUrl, type Preview } from './previews';
 
   let { children } = $props();
 
@@ -96,12 +97,22 @@
 </script>
 
 {#snippet picker()}
-  <Select
-    aria-label="Preview"
-    value={here}
-    options={choices}
-    onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
-  />
+  <div class="preview-picker">
+    <Select
+      aria-label="Preview"
+      value={here}
+      options={choices}
+      onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
+    />
+    <IconButton
+      icon="github"
+      toolbar
+      href={previewSource(here)}
+      label={here
+        ? `Open pull request #${here.slice('/pr-'.length)} on GitHub`
+        : 'Open the repository on GitHub'}
+    />
+  </div>
 {/snippet}
 
 <SkipLink href="#content" />
@@ -128,3 +139,12 @@
 </AppShell>
 
 <ServiceWorkerStatus {worker} />
+
+<style>
+  .preview-picker {
+    align-items: center;
+    display: grid;
+    gap: var(--sui-space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+</style>

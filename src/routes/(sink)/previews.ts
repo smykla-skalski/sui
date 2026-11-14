@@ -3,6 +3,8 @@
 
 export type Preview = { number: number; title: string };
 
+const REPOSITORY = 'https://github.com/smykla-skalski/sui';
+
 /** The preview a path is in: `/pr-<number>`, or '' for main at the root. */
 export const previewOf = (pathname: string) => /^\/pr-\d+(?=\/|$)/.exec(pathname)?.[0] ?? '';
 
@@ -21,3 +23,7 @@ export function previewOptions(previews: readonly Preview[]) {
 export function previewUrl(target: string, at: Pick<Location, 'pathname' | 'search' | 'hash'>) {
   return target + at.pathname.slice(previewOf(at.pathname).length) + at.search + at.hash;
 }
+
+/** Where a preview's code lives on GitHub: the repository for main, or the preview's pull request. */
+export const previewSource = (preview: string) =>
+  preview ? `${REPOSITORY}/pull/${preview.slice('/pr-'.length)}` : REPOSITORY;

@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { previewOptions, previewUrl } from '../src/routes/(sink)/previews.ts';
+import { previewOptions, previewSource, previewUrl } from '../src/routes/(sink)/previews.ts';
 
 const script = new URL('../preview/previews.sh', import.meta.url).pathname;
 const entry = (/** @type {number} */ pr) => ({ number: pr, title: `"Title" of ${pr}` });
@@ -117,4 +117,9 @@ test('the open pull requests reach the machine as bare numbers and titled entrie
     { number: 8, title: 'drop a guard' },
     { number: 9, title: 'Plain title: with a colon' }
   ]);
+});
+
+test('the source link opens the repository from main and the pull request from its preview', () => {
+  assert.equal(previewSource(''), 'https://github.com/smykla-skalski/sui');
+  assert.equal(previewSource('/pr-75'), 'https://github.com/smykla-skalski/sui/pull/75');
 });
