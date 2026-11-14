@@ -114,9 +114,9 @@
   ];
 
   const counts: Fact[] = [
-    { label: 'Match', value: '12', mono: true },
-    { label: 'Differ', value: '3', mono: true },
-    { label: 'Not checked', value: '1', mono: true }
+    { label: 'Match', value: '12', mono: true, tone: 'success' },
+    { label: 'Differ', value: '3', mono: true, tone: 'warning' },
+    { label: 'Not checked', value: '1', mono: true, tone: 'neutral' }
   ];
 
   const details: Fact[] = [
@@ -300,7 +300,7 @@
             <Section title="Outcome">
               <!-- Each stat waits as one bar, as wide as its figure and label. -->
               <div class="counts-wait" aria-hidden="true">
-                {#each ['4.9375rem', '3.8125rem', '6.875rem'] as width (width)}
+                {#each ['5.5625rem', '4.4375rem', '7.5rem'] as width (width)}
                   <span style:inline-size={width}></span>
                 {/each}
               </div>
@@ -362,7 +362,8 @@
         {#if view === 'stale'}
           <!-- Stale words stand behind everything under the header, so the notice spans both
                columns, and its retry stands at its end as any notice's action does. It is one
-               compact line, so the warning about the check itself still leads. -->
+               compact line, so the warning about the check itself still leads. Its action
+               names the data, so it never reads as the header's Check Again. -->
           <Callout compact>
             <!-- A history glyph says the data is old; a refresh glyph would read as a second
                  Reload. The failure leads at a title's weight, so it reads before its reason. -->
@@ -370,7 +371,7 @@
             <span class="lead">The refresh failed</span>, so this page shows data from a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
-                {refreshing ? 'Reloading…' : 'Reload'}
+                {refreshing ? 'Reloading Data…' : 'Reload Data'}
               </Button>
             {/snippet}
           </Callout>

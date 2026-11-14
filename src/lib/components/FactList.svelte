@@ -13,6 +13,11 @@
     /** For a technical value: an ID, a path, a version or a count. */
     mono?: boolean;
     /**
+     * In `stats`, a dot in this tone's ink before the label, for a count of a state that pills
+     * on the same page show in that tone. The label still says the state.
+     */
+    tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+    /**
      * In `rows`, a control at the row's end that changes this fact, such as a "Change" link
      * whose name also says which fact it changes.
      */
@@ -94,7 +99,9 @@ they wrap one by one.
 <dl {...rest} class={['sui-fact-list', layout, className]}>
   {#each facts as fact, index (index)}
     <div class="sui-fact-list-fact">
-      <dt class="sui-fact-list-label">{fact.label}</dt>
+      <dt class="sui-fact-list-label" data-tone={layout === 'stats' ? fact.tone : undefined}>
+        {fact.label}
+      </dt>
       <dd
         class="sui-fact-list-value"
         class:mono={fact.mono && !absent(fact)}
@@ -330,6 +337,40 @@ they wrap one by one.
     column-gap: var(--sui-space-2);
     display: flex;
     inline-size: var(--sui-inline-snap);
+  }
+
+  /* A toned stat ties its count to the pills that show the same state: a pill's 6px dot in the
+     tone's ink stands 4px before the label, as in a pill, centred on the label's cap band on a
+     whole pixel. */
+  .stats .sui-fact-list-label[data-tone]::before {
+    background: var(--sui-local-stat-tone);
+    block-size: 0.375rem;
+    border-radius: var(--sui-radius-pill);
+    content: '';
+    display: inline-block;
+    inline-size: 0.375rem;
+    margin-inline-end: var(--sui-space-1);
+    vertical-align: round(calc((1cap - 0.375rem) / 2), 1px);
+  }
+
+  .stats .sui-fact-list-label[data-tone='neutral'] {
+    --sui-local-stat-tone: var(--sui-text-muted);
+  }
+
+  .stats .sui-fact-list-label[data-tone='info'] {
+    --sui-local-stat-tone: var(--sui-info);
+  }
+
+  .stats .sui-fact-list-label[data-tone='success'] {
+    --sui-local-stat-tone: var(--sui-success);
+  }
+
+  .stats .sui-fact-list-label[data-tone='warning'] {
+    --sui-local-stat-tone: var(--sui-warning);
+  }
+
+  .stats .sui-fact-list-label[data-tone='danger'] {
+    --sui-local-stat-tone: var(--sui-danger);
   }
 
   /* The figure's width rounds up to the pixel, so its label starts on a whole pixel. */
