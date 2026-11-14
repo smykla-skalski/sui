@@ -296,11 +296,14 @@ of them.
     max-inline-size: var(--sui-measure);
   }
 
+  /* Wrapped as every message's copy is, and balanced where a holder centres it, as the title
+     is, so a centred sentence never leaves its first word alone at a line's end. */
   .sui-error-state-description {
     color: var(--sui-text-secondary);
     max-inline-size: var(--sui-measure);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    text-wrap: var(--sui-state-copy-wrap, pretty);
   }
 
   /* Over a list the failure is a line of its own inside the list's edges, its words and its

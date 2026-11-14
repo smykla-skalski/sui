@@ -2482,6 +2482,39 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a state’s explanation wraps as message copy does, balanced where a chart centres it', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const wraps = await page.evaluate(() => {
+          const wrap = (/** @type {Element} */ element) => getComputedStyle(element).textWrapStyle;
+          const centred = [
+            ...document.querySelectorAll(
+              '.plot-band.standing :is(.sui-empty-state-description, .sui-error-state-description)'
+            )
+          ].map(wrap);
+          return { centred };
+        });
+        assert.deepEqual(wraps.centred, ['balance', 'balance']);
+      } finally {
+        await page.close();
+      }
+      const states = await openLayout('states/', 1440);
+      try {
+        const wraps = await states.evaluate(() => [
+          ...new Set(
+            [
+              ...document.querySelectorAll(
+                '#states :is(.sui-empty-state-description, .sui-error-state-description)'
+              )
+            ].map((element) => getComputedStyle(element).textWrapStyle)
+          )
+        ]);
+        assert.deepEqual(wraps, ['pretty'], 'a state on its own wraps as message copy');
+      } finally {
+        await states.close();
+      }
+    });
+
     test('a failed chart’s mark leads its title on one centred line, 8px before it, on whole pixels', async () => {
       for (const width of [1440, 390]) {
         const page = await openLayout('charts/', width);
