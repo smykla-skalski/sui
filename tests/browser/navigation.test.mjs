@@ -2014,7 +2014,44 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a refreshing or stale chart’s note leads with its mark in its hue, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
+    test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const band = page.locator('.plot-band:has(> .sui-chart-wait)').first();
+        const shot = await band.screenshot({ scale: 'css' });
+        const pad = await band.evaluate((band) => parseFloat(getComputedStyle(band).paddingTop));
+        const [room, plot, corner] = await page.evaluate(
+          async ({ url, pad }) => {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            const canvas = new OffscreenCanvas(image.width, image.height);
+            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+              canvas.getContext('2d')
+            );
+            context.drawImage(image, 0, 0);
+            const at = (/** @type {number} */ x, /** @type {number} */ y) =>
+              [...context.getImageData(Math.round(x), Math.round(y), 1, 1).data].join();
+            // The band's room above the plot, the plot between its top and its first grid line,
+            // and the plot's own corner pixel.
+            return [
+              at(image.width / 2, pad / 2),
+              at(image.width / 2, pad + (image.height - 2 * pad) / 8),
+              at(pad, pad)
+            ];
+          },
+          { url: `data:image/png;base64,${shot.toString('base64')}`, pad }
+        );
+        assert.ok(pad > 0, 'the band has no room round its plot');
+        assert.notEqual(room, plot, 'the veil fills the band’s room round the plot');
+        assert.equal(corner, room, 'the veil’s corner is square');
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a refreshing, stale or partial chart’s note leads with its mark in its hue, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
       const page = await charts();
       const read = await page.evaluate(() => {
         const note = (/** @type {string} */ status) =>
@@ -2050,7 +2087,8 @@ suite('navigation', together, () => {
         return {
           stale: marked(note('stale'), '--sui-warning'),
           refreshing: marked(note('refreshing'), '--sui-info'),
-          heights: [note('stale'), note('refreshing'), muted].map(
+          partial: marked(note('partial'), '--sui-info'),
+          heights: [note('stale'), note('refreshing'), note('partial'), muted].map(
             (host) => host.getBoundingClientRect().height
           ),
           chevron: [Boolean(chevron), closed, opened]
@@ -2058,6 +2096,7 @@ suite('navigation', together, () => {
       });
       assert.ok(read.stale, 'the stale note has no mark in the warning hue');
       assert.ok(read.refreshing, 'the refreshing note has no mark in the info hue');
+      assert.ok(read.partial, 'the partial note has no mark in the info hue');
       assert.equal(new Set(read.heights).size, 1, `a mark grows its note: ${read.heights}`);
       assert.deepEqual(read.chevron, [true, 'none', '90deg'], 'the data control’s chevron');
     });

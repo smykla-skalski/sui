@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A waiting chart veils only its plot's box, round at a control's corner, and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
+- A chart's grid lines and table rows draw the hairline that frames a surface, `--sui-border-subtle`, where they stood 65% of the way to a control's edge, so the series lead over the grid.
+- A chart whose points were left out leads its note with the info mark in the info hue, as a stale chart leads with the warning mark, and its words keep the muted ink.
 - On a phone a `Skeleton` row keeps its side bar beside its bars while both fit at their full length, as an `ObjectRow` keeps its side, and its meta bars are 13.5rem and 12rem long, about a short row's meta line, so the list keeps its height when the rows arrive.
 - A `DiffBlock` with 2 empty sides draws its row on the head's ground in the head's ink, so it reads as a code surface and never as an empty field.
 - A `Rail` badge stands 4px over its glyph's end, not 8px, so its count covers only the glyph's corner.

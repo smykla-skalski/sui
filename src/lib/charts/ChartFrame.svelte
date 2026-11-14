@@ -174,12 +174,14 @@
   {#if note}
     <p
       class="sui-chart-note"
-      data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
+      data-status={status === 'loading' ? undefined : (status ?? 'partial')}
       aria-hidden="true"
     >
       {#if status === 'stale'}<Icon name="alert" size="sm" /><span>{note}</span
         >{:else if status === 'refreshing'}<Icon name="refresh" size="sm" /><span>{note}</span
-        >{:else}{note}{/if}
+        >{:else if status === 'loading'}{note}{:else}<Icon name="info" size="sm" /><span
+          >{note}</span
+        >{/if}
     </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
@@ -188,10 +190,12 @@
   {:else if status === 'loading'}
     <div
       bind:this={band}
-      class="plot-band sui-chart-wait"
+      class="plot-band waiting"
       style:--sui-local-plot={css(inlined(plotSize(measure)))}
       aria-hidden="true"
-    ></div>
+    >
+      <div class="sui-chart-wait"></div>
+    </div>
   {:else if empty}
     <EmptyState
       title={emptyTitle}
@@ -293,38 +297,37 @@
   /* Values on their way or out of date are a state of the whole plot, so its note reads a step
      over a count of missing points. The marks keep their full strength, as a dimmed plot would
      drop them under the 3:1 they hold (L-66). */
-  .sui-chart-note[data-status] {
+  .sui-chart-note:is([data-status='refreshing'], [data-status='stale']) {
     color: var(--sui-text-secondary);
     font-weight: var(--sui-weight-medium);
   }
 
-  /* A plot on its way or out of date leads its note with the state's mark in its hue, as a
-     table's failed line leads with the danger mark, and its words keep their ink: the refresh
-     mark in the info hue, the warning mark in the warning hue. The mark reaches a pixel past
-     the words' capitals, so the note keeps their height. */
+  /* A plot on its way, out of date or with points left out leads its note with the state's mark
+     in its hue, as a table's failed line leads with the danger mark, and its words keep their
+     ink: the refresh and the info mark in the info hue, the warning mark in the warning hue.
+     The mark reaches a pixel past the words' capitals, so the note keeps their height. */
   .sui-chart-note[data-status] {
     align-items: center;
     block-size: auto;
-    color: var(--sui-info);
     display: flex;
     gap: var(--sui-space-2);
     padding-block: 0;
   }
 
-  .sui-chart-note[data-status='stale'] {
-    color: var(--sui-warning);
-  }
-
   .sui-chart-note[data-status] > span {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-chart-note[data-status] > :global(svg) {
+    color: var(--sui-info);
     margin-block: calc(-1 * var(--sui-space-1));
+  }
+
+  .sui-chart-note[data-status='stale'] > :global(svg) {
+    color: var(--sui-warning);
   }
 
   /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.
@@ -378,23 +381,27 @@
     }
   }
 
-  /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
-     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
-     that crosses every placeholder crosses it. Three grid lines at the quarters of the plot
-     stand under the light, so the wait reads as the chart to come, never a blank block, and they
-     draw no mark a reader could take for data (L-64). Only the light moves, by transform, so the
-     compositor runs it. */
+  /* While the data loads, the band keeps its place, size and shape, so nothing moves when the
+     plot arrives, and the plot's own box inside it is the placeholder: it takes the placeholder
+     veil, round at a control's corner, and the light that crosses every placeholder crosses it,
+     while the band's room round it stays on the band's ground. Three grid lines at the quarters
+     of the plot stand under the light, so the wait reads as the chart to come, never a blank
+     block, and they draw no mark a reader could take for data (L-64). Only the light moves, by
+     transform, so the compositor runs it. */
+  .waiting {
+    padding: var(--sui-local-band-pad);
+  }
+
   .sui-chart-wait {
     --sui-local-wait-line: linear-gradient(var(--sui-chart-grid), var(--sui-chart-grid));
     background:
-      var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat content-box,
-      var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat content-box,
-      var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat content-box,
+      var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat,
+      var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat,
+      var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat,
       var(--sui-placeholder);
-    block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
-    box-sizing: border-box;
+    block-size: var(--sui-local-plot);
+    border-radius: var(--sui-radius-control);
     overflow: clip;
-    padding-block: var(--sui-local-band-pad);
     position: relative;
   }
 
@@ -422,21 +429,16 @@
     }
   }
 
-  /* Forced colors drop the veil, so the waiting band keeps its shape by an outline, as every
-     placeholder does. A band that reaches its holder's edges keeps only the lines above and
-     below it, since the holder's own keyline closes its sides. */
+  /* Forced colors drop the veil, so the plot's box keeps its shape by an outline, as every
+     placeholder does, inside the band's lines. */
   @media (forced-colors: active) {
-    .sui-chart-wait {
-      border-block: 0;
-      outline: var(--sui-stroke) solid GrayText;
-      outline-offset: calc(-1 * var(--sui-stroke));
+    .waiting {
+      padding-block: calc(var(--sui-local-band-pad) - var(--sui-stroke));
     }
 
-    @container not style(--sui-local-bleed: 0px) {
-      .sui-chart-wait {
-        border-block: var(--sui-stroke) solid GrayText;
-        outline: none;
-      }
+    .sui-chart-wait {
+      outline: var(--sui-stroke) solid GrayText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 

@@ -299,15 +299,12 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   );
 });
 
-test('L-66 a chart grid draws 65% of the way to a control edge, and every legend at one size', () => {
+test('L-66 a chart grid draws the hairline that frames a surface, and every legend at one size', () => {
   const grids = [...stripComments(palette).matchAll(/--sui-chart-grid:\s*([^;]+);/g)].map((match) =>
     match[1].trim()
   );
   assert.ok(grids.length > 0);
-  assert.deepEqual(
-    new Set(grids),
-    new Set(['color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control))'])
-  );
+  assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
   const legends = Object.entries(styles)
     .filter(([path]) => path.includes('/charts/'))
     .flatMap(([path, css]) =>
