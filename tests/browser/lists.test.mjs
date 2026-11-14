@@ -1218,8 +1218,8 @@ suite('lists', together, () => {
             !!line?.checkVisibility(),
             mark ? getComputedStyle(mark).color === info : false,
             Math.abs(baseline(line?.querySelector('.refreshing-words')) - baseline(caption)) <= 0.5,
-            line?.parentElement?.getBoundingClientRect().height ===
-              caption?.getBoundingClientRect().height
+            (line?.getBoundingClientRect().top ?? NaN) >=
+              (caption?.getBoundingClientRect().top ?? NaN)
           ];
         });
       assert.deepEqual(read, ['Refreshing…', true, true, true, true]);
@@ -2327,6 +2327,26 @@ suite('lists', together, () => {
         ];
       });
       assert.deepEqual(found, [28, 16, 8, true, 16]);
+    });
+
+    test('a table that scrolls says so on its caption’s baseline where the line has room', async () => {
+      const page = await opened();
+      const lines = await page.locator('#data-table .sui-data-table').evaluateAll((tables) =>
+        tables.flatMap((table) => {
+          const hint = table.querySelector('.hint');
+          const caption = table.querySelector('.caption:not(.hint)');
+          if (!caption || !hint?.checkVisibility({ visibilityProperty: true })) return [];
+          const words = caption.getBoundingClientRect();
+          const line = hint.getBoundingClientRect();
+          return [{ under: line.bottom - words.bottom, gap: line.left - words.right }];
+        })
+      );
+      assert.ok(lines.length > 0, 'no table on the page scrolls');
+      assert.deepEqual(
+        lines.filter(({ under, gap }) => under !== 0 || gap !== 12),
+        [],
+        'a hint stands under a caption it fits beside'
+      );
     });
 
     test('tables side by side keep their rules apart', long, async () => {

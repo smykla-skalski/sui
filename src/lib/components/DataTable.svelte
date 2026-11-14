@@ -170,6 +170,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     ><VisuallyHidden>{missingLabel}</VisuallyHidden>{:else}{plain(row[column.key])}{/if}
 {/snippet}
 
+{#snippet hint()}
+  <p class="caption hint" aria-hidden="true">{scrollHint}</p>
+{/snippet}
+
 {#snippet retry()}
   {#if onretry}<Button onclick={onretry}>{retryLabel}</Button>{/if}
 {/snippet}
@@ -185,9 +189,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
           >
         </p>
       {/if}
+      {@render hint()}
     </div>
+  {:else}
+    {@render hint()}
   {/if}
-  <p class="caption hint" aria-hidden="true">{scrollHint}</p>
   {#if error && rows.length > 0}
     <div class="problem" role="alert">
       <Icon name="alert" size="base" />
@@ -365,13 +371,20 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   /* Rows on their way say so on the caption's line, led by the refresh mark in the info hue as a
      refreshing chart's note is, so the table does not move; the status region says it to a
-     screen reader. Both lines are trimmed to their baseline, so ending them together sets the
-     smaller words on the caption's baseline by whole pixels. */
+     screen reader. The scroll hint stands there too where the line has room, and wraps under it
+     where it has none, so a short caption never spends a line on it. Each line is trimmed to its
+     baseline, so ending them together sets the smaller words on the caption's baseline by whole
+     pixels. */
   .head {
     align-items: end;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-row-copy-gap) var(--sui-space-3);
+  }
+
+  /* Whole-pixel widths, so the words after the caption start on a whole pixel (L-95). */
+  .head > * {
+    inline-size: var(--sui-inline-snap);
   }
 
   .refreshing {
