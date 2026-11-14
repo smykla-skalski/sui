@@ -3,7 +3,6 @@
 ## Unreleased
 
 - A `CodeBlock` head steps 4% ink off the code on light, down from 6%, so five heads on a page weigh less than the code under them, and its copy control on dark takes 10% ink, up from 7%, so it lifts off the head as far as the white control does on light.
-- An `EmptyState`, an `ErrorState` (over its rows too) and a `FormError` stand their words 24px inside their sides on a wide screen, up from 20px, so a panel no longer reads tight at the sides and airy above and below. A phone keeps 20px all round.
 - A `CodeBlock` draws its line numbers in a comment's ink, so a number never outranks the code it counts, where the secondary ink stood them over the comments (6.3:1 light, 10.4:1 dark).
 - The marks inside the `file-` icons span the same 5 units and stand a clear pixel inside the document at the 18px tier, so the invalid cross and the bypassed zigzag no longer close up, where they spanned 4 and the check and the missing dashes stood 0.75px off the outline.
 - A retry inside an `ErrorState` hovers in 16% of the danger hue on dark too, as on light, where 12% left the step easy to miss on the tinted panel.

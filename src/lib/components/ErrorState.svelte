@@ -167,10 +167,10 @@ of them.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-8) var(--sui-space-6);
+    padding: var(--sui-space-8) var(--sui-space-5);
   }
 
-  /* A phone's short screen takes the room around the words down to 20px all round.
+  /* A phone's short screen takes the room above and below the words down to the sides' 20px.
      The row over content keeps its row's inset, below. */
   @media (max-width: 47.9375rem) {
     .sui-error-state {
@@ -272,10 +272,10 @@ of them.
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
     /* The edge is drawn on the tint, outside the flow, so the sides add its stroke to stand
-       24px inside it, on the rail an error panel's and a form error's words stand on, and the
+       20px inside it, on the rail an error panel's and a form error's words stand on, and the
        block adds the tint's inset too. */
     padding: calc(var(--sui-space-4) + var(--sui-space-1) / 2 + var(--sui-stroke))
-      calc(var(--sui-space-6) + var(--sui-stroke));
+      calc(var(--sui-space-5) + var(--sui-stroke));
     position: relative;
   }
 
@@ -298,11 +298,11 @@ of them.
   }
 
   /* A phone wraps the 44px retry under the words, so the line stands as a small panel: its tint
-     holds 20px all round, as a phone's panels do, past the tint's 2px inset and its edge. */
+     keeps the 20px it holds at its sides above and below too, past the tint's 2px inset and its
+     edge. */
   @media (max-width: 47.9375rem) {
     .over {
       padding-block: calc(var(--sui-space-5) + var(--sui-space-1) / 2 + var(--sui-stroke));
-      padding-inline: calc(var(--sui-space-5) + var(--sui-stroke));
     }
   }
 </style>
