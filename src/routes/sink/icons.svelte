@@ -7,9 +7,10 @@
 </script>
 
 <script lang="ts">
-  import { Icon, iconNames } from '#lib';
+  import { Icon, VisuallyHidden, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
   import Variants from '../kit/Variants.svelte';
+  import '#lib/internal/scroll-edge.css';
 
   const directional = [
     'chevron-left',
@@ -20,6 +21,19 @@
   ] as const;
 
   const directions = ['ltr', 'rtl'] as const;
+
+  // Pairs too wide for their stage, as at 320px with text at twice its size, scroll in their
+  // own box, which is then a tab stop, so a keyboard reaches the pairs past its edge.
+  let facingsScroll = $state(false);
+
+  function measureFacings(box: HTMLElement) {
+    const observer = new ResizeObserver(() => {
+      facingsScroll = box.scrollWidth > box.clientWidth;
+    });
+    observer.observe(box);
+    observer.observe(box.firstElementChild!);
+    return () => observer.disconnect();
+  }
 
   const glyphs = ['settings', 'refresh', 'check'] as const;
   const sizes = ['micro', 'xs', 'sm', 'base', 'md'] as const;
@@ -67,20 +81,75 @@
   title="Direction"
   note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
 >
-  <Variants
-    rows={directional}
-    columns={directions}
-    axis="name"
-    rowLabel={(name) => `"${name}"`}
-    columnLabel={(direction) => (direction === 'ltr' ? 'Left to right' : 'Right to left')}
+  <!-- Each glyph stands over its mirror in one 32px column, so a pair reads at a glance at
+       every width and the two directions take two short lines. The names head the columns
+       for assistive technology; the set above shows them to the eye. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div
+    class="facings-scroll sui-scroll-edge"
+    role={facingsScroll ? 'region' : undefined}
+    tabindex={facingsScroll ? 0 : undefined}
+    aria-label={facingsScroll ? 'Directional glyphs' : undefined}
+    {@attach measureFacings}
   >
-    {#snippet cell(name, direction)}
-      <span class="facing" dir={direction}><Icon {name} size="md" /></span>
-    {/snippet}
-  </Variants>
+    <table class="facings">
+      <thead>
+        <tr>
+          <td></td>
+          {#each directional as name (name)}
+            <th scope="col"><VisuallyHidden>{name}</VisuallyHidden></th>
+          {/each}
+        </tr>
+      </thead>
+      <tbody>
+        {#each directions as direction (direction)}
+          <tr>
+            <th scope="row">{direction === 'ltr' ? 'Left to right' : 'Right to left'}</th>
+            {#each directional as name (name)}
+              <td><span class="facing" dir={direction}><Icon {name} size="md" /></span></td>
+            {/each}
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 </Example>
 
 <style>
+  /* It reaches a focus ring's room past the table and hands it back, as a scrolling variant
+     matrix does, so the ring on the box stays whole. */
+  .facings-scroll {
+    margin: calc(-1 * var(--sui-space-1));
+    max-inline-size: calc(100% + 2 * var(--sui-space-1));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: var(--sui-space-1);
+    scrollbar-width: thin;
+  }
+
+  .facings {
+    border-collapse: collapse;
+  }
+
+  .facings :is(th, td) {
+    padding: 0;
+  }
+
+  .facings tbody th {
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
+      var(--sui-sans);
+    padding-inline-end: var(--sui-space-4);
+    text-align: start;
+  }
+
+  .facings tbody td {
+    block-size: var(--sui-space-8);
+    inline-size: var(--sui-space-8);
+    text-align: center;
+    vertical-align: middle;
+  }
+
   /* A block of its own, so the glyph centres in its cell and never rides on a line's baseline
      above the label's capitals. */
   .facing {

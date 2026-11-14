@@ -949,17 +949,31 @@ p { margin-block-end: 2em !important; }`;
     );
 
   test(
-    'the icon page reflows its direction pairs in 320px with text at twice its size',
+    'the icon page scrolls its direction pairs in their own stop in 320px with text at twice its size',
     long,
     async () => {
       const page = await open(320, 'light');
       try {
         await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
-        const past = await page
+        await page.waitForFunction(() =>
+          document.querySelector('#icons .facings-scroll')?.hasAttribute('tabindex')
+        );
+        const [past, scroller] = await page
           .locator('#icons .example', { has: page.locator('.title', { hasText: 'Direction' }) })
-          .locator('.stage')
-          .evaluate((stage) => stage.scrollWidth - stage.clientWidth);
-        assert.ok(past <= 1, `the pairs run ${past}px past their frame`);
+          .evaluate((node) => {
+            const stage = /** @type {Element} */ (node.querySelector('.stage'));
+            const box = /** @type {Element} */ (node.querySelector('.facings-scroll'));
+            return [
+              stage.scrollWidth - stage.clientWidth,
+              [
+                box.scrollWidth > box.clientWidth,
+                box.getAttribute('role'),
+                box.getAttribute('tabindex')
+              ]
+            ];
+          });
+        assert.ok(Number(past) <= 1, `the pairs run ${past}px past their frame`);
+        assert.deepEqual(scroller, [true, 'region', '0']);
       } finally {
         await page.close();
       }
