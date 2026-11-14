@@ -1936,6 +1936,44 @@ suite('navigation', together, () => {
 
     // A line with more than 12 values draws no markers, so a value with a gap on each side has
     // no run to stand on.
+    test('a range chart with the widest label it allows keeps its axis the right way round in a narrow box', async () => {
+      const page = await openMount(browser, url);
+      try {
+        const rows = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.createElement('div');
+          target.style.inlineSize = '240px';
+          document.body.append(target);
+          mount(lib.RangeChart, {
+            target,
+            props: {
+              title: 'Windows',
+              description: 'Each team’s window',
+              valueLabel: 'Hours',
+              data: [
+                { label: 'W'.repeat(18), start: 2, end: 8 },
+                { label: 'B', start: 1, end: 9 }
+              ]
+            }
+          });
+          flushSync();
+          const labels = [...target.querySelectorAll('svg.plot text.axis[text-anchor="end"]')];
+          const gutter = Math.max(...labels.map((label) => label.getBoundingClientRect().right));
+          return [...target.querySelectorAll('svg.plot rect.range')].map((bar) => {
+            const box = bar.getBoundingClientRect();
+            return { width: Math.round(box.width), clear: box.left > gutter };
+          });
+        });
+        assert.equal(rows.length, 2);
+        for (const row of rows) {
+          assert.ok(row.width > 40, `a bar is ${row.width}px wide`);
+          assert.ok(row.clear, 'a bar starts under the labels');
+        }
+      } finally {
+        await page.close();
+      }
+    });
+
     test('a value alone between two gaps keeps its marker on a line too long to mark', async () => {
       const page = await openMount(browser, url);
       try {
