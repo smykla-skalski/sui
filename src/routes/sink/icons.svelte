@@ -102,13 +102,11 @@
   }
 
   .facings tbody th {
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.06em;
     padding-inline-end: var(--sui-space-4);
     text-align: start;
-    text-transform: uppercase;
     white-space: nowrap;
   }
 
