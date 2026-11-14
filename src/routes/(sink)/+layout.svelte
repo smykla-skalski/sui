@@ -26,16 +26,11 @@
   // register none, so a frame never shows a notice of its own.
   const worker = registerServiceWorker(`${resolve('/(sink)')}service-worker.js`, { dev });
 
-  // Each row opens its component's page. On the page of every section the rows follow the
-  // sections in place instead, and mark the one the reader has scrolled to.
+  // Each row opens its component's page. On the page of every section, which the tests read and
+  // no row opens, the rows follow the sections in place instead, and mark the one in view.
   const everything = $derived(page.route.id === '/(sink)/all');
   const index: NavSection[] = $derived([
-    {
-      items: [
-        { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
-        { href: `${resolve('/(sink)/all')}/`, label: 'All Components', icon: glyphSnippet('all') }
-      ]
-    },
+    { items: [{ href: resolve('/(sink)'), label: 'Overview', icon: 'book' }] },
     ...families.map((members) => ({
       label: members[0].family,
       items: members.map(({ id, meta }) => ({
@@ -79,15 +74,20 @@
     heading.focus({ preventScroll: true });
   }
 
-  // Only a build deployed as a preview has a list of the previews to fetch.
+  // Only a build deployed as a preview has a list of the previews to fetch. The picker is drawn
+  // from the first paint with this preview alone, so the list's arrival never moves the sidebar.
+  const deployed = !!import.meta.env.VITE_PREVIEWS;
   let previews = $state<Preview[]>([]);
-  let here = $state('');
-  const choices = $derived(previewOptions(previews));
+  const here = $derived(previewOf(page.url.pathname));
+  const choices = $derived(
+    previews.length
+      ? previewOptions(previews)
+      : [{ value: here, label: here ? `#${here.slice('/pr-'.length)}` : 'main' }]
+  );
 
   onMount(() => {
     exposeAudit();
-    if (!import.meta.env.VITE_PREVIEWS) return;
-    here = previewOf(location.pathname);
+    if (!deployed) return;
     fetch('/previews.json')
       .then((response) => (response.ok ? response.json() : []))
       .then((list: Preview[]) => (previews = list))
@@ -118,7 +118,7 @@
       {current}
       scrollTargets={everything}
       onnavigate={follow}
-      head={choices.length ? picker : undefined}
+      head={deployed ? picker : undefined}
     >
       {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
     </SideNav>

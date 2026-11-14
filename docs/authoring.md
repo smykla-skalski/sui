@@ -6,7 +6,7 @@ Read [laws.md](laws.md) first. A component is done when it meets every law there
 
 - The component lives in `src/lib/components/<Name>.svelte`. Glyphs live in `src/lib/icons/`. Shared behaviour that is not a component (placement, focus, timing) lives in `src/lib/internal/`.
 - Export it from `src/lib/index.ts`, with its public types.
-- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The sink finds every file in that folder and gives it a page at `/<name>/`, a card on the overview, a row in the index with a symbol from `src/routes/kit/glyphs.ts`, and a place on `/all/`. A running dev server does not always notice a new file; save `src/routes/kit/sections.ts` once to make it look again.
+- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The sink finds every file in that folder and gives it a page at `/<name>/`, a card on the overview, a row in the index with a symbol from `src/routes/kit/glyphs.ts`, and a place on `/all/`, the page the tests read. A running dev server does not always notice a new file; save `src/routes/kit/sections.ts` once to make it look again.
 
 ## Kitchen sink sections
 

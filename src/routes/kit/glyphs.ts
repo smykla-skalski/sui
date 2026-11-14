@@ -6,8 +6,6 @@ import { createRawSnippet } from 'svelte';
  * anything an app draws, so they stay here and the icon set's closed list stays as it is.
  */
 const DRAWN: Record<string, string> = {
-  all: '<path d="M12 3.5 3.5 8 12 12.5 20.5 8z"/><path d="m3.5 12 8.5 4.5 8.5-4.5"/><path d="m3.5 16 8.5 4.5 8.5-4.5"/>',
-
   buttons: '<rect x="3" y="7" width="18" height="10" rx="3"/><path d="M8 12h8"/>',
   'icon-buttons': '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
   navigation: '<circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
