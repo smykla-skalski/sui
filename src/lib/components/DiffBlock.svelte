@@ -128,24 +128,28 @@
    * subsequence over whole words, so a changed word is marked whole and the quotes and brackets
    * both sides keep stay plain. Changes split only by space read as one stretch, and a line
    * with more than three stretches marks one from its first change to its last. A line too long
-   * for the table is drawn without marks.
+   * for the table is drawn without marks. Both lines of a pair read one alignment, from the
+   * removed line to the added one, so a tie never leaves different words plain on each side.
    */
   function withEmphasis(op: '+' | '-', text: string, other: string | null): DiffLine {
     if (other === null || other === text) return { op, text };
     const a = wordRuns(text);
     const b = wordRuns(other);
     if ((a.length + 1) * (b.length + 1) > TABLE_LIMIT) return { op, text };
-    const table = Array.from({ length: a.length + 1 }, () =>
-      new Array<number>(b.length + 1).fill(0)
+    const [removed, added] = op === '-' ? [a, b] : [b, a];
+    const table = Array.from({ length: removed.length + 1 }, () =>
+      new Array<number>(added.length + 1).fill(0)
     );
-    for (let i = a.length - 1; i >= 0; i -= 1)
-      for (let j = b.length - 1; j >= 0; j -= 1)
+    for (let i = removed.length - 1; i >= 0; i -= 1)
+      for (let j = added.length - 1; j >= 0; j -= 1)
         table[i][j] =
-          a[i] === b[j] ? table[i + 1][j + 1] + 1 : Math.max(table[i + 1][j], table[i][j + 1]);
+          removed[i] === added[j]
+            ? table[i + 1][j + 1] + 1
+            : Math.max(table[i + 1][j], table[i][j + 1]);
     const shared = new Array<boolean>(a.length).fill(false);
-    for (let i = 0, j = 0; i < a.length && j < b.length;) {
-      if (a[i] === b[j]) {
-        shared[i] = true;
+    for (let i = 0, j = 0; i < removed.length && j < added.length;) {
+      if (removed[i] === added[j]) {
+        shared[op === '-' ? i : j] = true;
         i += 1;
         j += 1;
       } else if (table[i + 1][j] >= table[i][j + 1]) i += 1;

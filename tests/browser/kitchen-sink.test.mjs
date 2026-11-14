@@ -123,6 +123,9 @@ suite('the kitchen sink', together, () => {
             .unifiedDiff('"labels": ["dependencies"]', '"schedule": ["before 6am on monday"]')
             .map((/** @type {{ emphasis: unknown }} */ line) => line.emphasis),
           many: diff.unifiedDiff('a,b,c,d', 'w,x,y,z')[0].emphasis,
+          swapped: diff
+            .unifiedDiff('red blue', 'blue red')
+            .map((/** @type {{ emphasis: unknown }} */ line) => line.emphasis),
           marked: diff
             .emphasize([{ text: 'x😀y' }], both[0].emphasis)
             .filter((/** @type {{ word?: boolean }} */ piece) => piece.word)
@@ -161,6 +164,8 @@ suite('the kitchen sink', together, () => {
         ]
       ]);
       assert.deepEqual(result.many, [[0, 7]], 'four stretches read as one');
+      // Both lines of a pair leave the same word plain, blue, where a tie could split them.
+      assert.deepEqual(result.swapped, [[[0, 4]], [[4, 8]]]);
       assert.deepEqual(result.marked, ['😀']);
       assert.deepEqual(result.toml, [
         [{ cls: 'tok-head', text: '[owner]' }],
