@@ -374,7 +374,7 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a rail tile stands 8px in from each side of its 80px column, its words given 64px and its glyph a whole pixel', async () => {
+  test('a rail tile stands 8px in from each side of its column and its 1px edge, its words given 64px and its glyph a whole pixel', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       const found = await page.evaluate(() => {
@@ -391,7 +391,7 @@ suite('navigation', together, () => {
         ).getBoundingClientRect();
         return [
           box.left - rail.left,
-          rail.right - box.right,
+          rail.right - 1 - box.right,
           box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd),
           Number.isInteger(glyph.left) && Number.isInteger(glyph.top)
         ];

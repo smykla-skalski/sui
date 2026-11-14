@@ -69,7 +69,7 @@
 
 <!--
 @component
-The outermost navigation: an 80px column of tiles, one per place, such as a workspace or a
+The outermost navigation: an 81px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place.
 
@@ -170,19 +170,20 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     align-items: center;
     background: var(--sui-sidebar-bg);
     block-size: 100%;
-    /* The edge is drawn inside the column, not beside its room, so the tiles keep an even 64px
-       and a glyph centres on a whole pixel, where a border left 63px and a half-pixel glyph. */
+    /* The edge is drawn inside the column, past the tiles' 80px, so each tile keeps an even 64px
+       with 8px on each side and a glyph centres on a whole pixel. */
     box-shadow: inset var(--sui-local-rail-edge) 0 var(--sui-sidebar-border);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-2);
-    /* The column is 80px at the default text size and widens with a reader's larger text, so
-       a label keeps its words on a line instead of breaking letter by letter. */
-    inline-size: var(--sui-rail-width);
+    /* The column is 80px past its edge at the default text size and widens with a reader's
+       larger text, so a label keeps its words on a line instead of breaking letter by letter. */
+    inline-size: calc(var(--sui-rail-width) + var(--sui-stroke));
     overflow: hidden auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
+    padding-inline-end: var(--sui-stroke);
     scrollbar-width: thin;
   }
 
@@ -431,6 +432,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     /* Forced colors drop a shadow, so the column's edge is a border there. */
     .sui-rail {
       border-inline-end: var(--sui-stroke) solid CanvasText;
+      padding-inline-end: 0;
     }
 
     .sui-rail-tile[aria-current] {
