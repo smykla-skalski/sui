@@ -69,7 +69,7 @@
 
 <!--
 @component
-The outermost navigation: a 72px column of tiles, one per place, such as a workspace or a
+The outermost navigation: an 80px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place.
 
@@ -165,21 +165,29 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
 <style>
   .sui-rail {
+    --sui-local-rail-edge: calc(-1 * var(--sui-stroke));
+
     align-items: center;
     background: var(--sui-sidebar-bg);
     block-size: 100%;
-    border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
+    /* The edge is drawn inside the column, not beside its room, so the tiles keep an even 64px
+       and a glyph centres on a whole pixel, where a border left 63px and a half-pixel glyph. */
+    box-shadow: inset var(--sui-local-rail-edge) 0 var(--sui-sidebar-border);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-2);
-    /* The column is 72px at the default text size and widens with a reader's larger text, so
+    /* The column is 80px at the default text size and widens with a reader's larger text, so
        a label keeps its words on a line instead of breaking letter by letter. */
     inline-size: var(--sui-rail-width);
     overflow: hidden auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
     scrollbar-width: thin;
+  }
+
+  .sui-rail:dir(rtl) {
+    --sui-local-rail-edge: var(--sui-stroke);
   }
 
   .sui-rail-brand {
@@ -286,9 +294,11 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   /* A hidden copy of the words at the current weight shares their cell, so every tile already
      holds the room its words take once current, and turning current never rewraps them (L-85). */
+  /* The label's box is an even height, so the glyph over it centres in the tile on a whole
+     pixel. */
   .sui-rail-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
@@ -302,10 +312,10 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   .sui-rail-label > span,
   .sui-rail-label::after {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     grid-area: 1 / 1;
     min-inline-size: 0;
-    padding-block: var(--sui-block-snap-room);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -362,6 +372,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       block-size: auto;
       border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
       border-inline-end: 0;
+      box-shadow: none;
       flex-direction: row;
       flex-wrap: wrap;
       gap: 0;
@@ -417,6 +428,11 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   @media (forced-colors: active) {
+    /* Forced colors drop a shadow, so the column's edge is a border there. */
+    .sui-rail {
+      border-inline-end: var(--sui-stroke) solid CanvasText;
+    }
+
     .sui-rail-tile[aria-current] {
       background-color: Highlight;
       color: HighlightText;
