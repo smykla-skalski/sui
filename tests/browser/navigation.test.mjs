@@ -2588,6 +2588,33 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a stale chart draws its series a step quieter, its axes and words at full ink', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const charts = await page.evaluate(() =>
+          [...document.querySelectorAll('.sui-chart:has(.plot)')].map((chart) => {
+            const series = [...chart.querySelectorAll('.plot .series')];
+            const opacity = (/** @type {Element | null} */ node) =>
+              node ? Number(getComputedStyle(node).opacity) : null;
+            return {
+              stale: chart.querySelector('.sui-chart-note[data-status="stale"]') !== null,
+              series: series.length > 0 ? opacity(series[0]) : null,
+              words: opacity(chart.querySelector('.plot text'))
+            };
+          })
+        );
+        const stale = charts.filter((chart) => chart.stale);
+        assert.ok(stale.length > 0 && charts.length > stale.length);
+        // A heat map's cells carry their values' words, so they keep full ink and no series.
+        for (const chart of charts.filter((chart) => chart.stale || chart.series !== null)) {
+          assert.equal(chart.series, chart.stale ? 0.72 : 1, JSON.stringify(chart));
+          assert.equal(chart.words, 1);
+        }
+      } finally {
+        await page.close();
+      }
+    });
+
     test('a chart legend’s keys each stand their drawn mark 8 to 11px from their label, a point as a line', async () => {
       const page = await openLayout('charts/', 1440);
       try {

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A stale line, scatter or range chart draws its series at 72% of their ink, as a table's stale rows read a step quieter, while its axes and words keep full ink; a heat map's cells, which carry their values' words, keep theirs
 - A count beside a tab, a segment or a side nav row is as wide as it is tall, so one figure stands in an 18px circle, where it was a 16x18 oval
 - A `DataTable` on a phone runs its rules 8px past its words, its cells' side pad, so its frame ends 8px short of a card's edge and never doubles it
 - Inline facts part 12px, a step past the 8px between a wrapped value and its label, so each pair reads as one (they stood 6px apart)

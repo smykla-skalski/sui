@@ -176,35 +176,40 @@ cut on the axis without splitting a character and stay whole in the table under 
           >{clip(item.label, LABEL_MOST)}</text
         >
         <!-- An interval is a line with round caps, drawn as the stadium those caps make. -->
-        <rect
-          class="range"
-          style:x={css(minus(x(item.start, box), px(RANGE / 2)))}
-          style:y={css(minus(rowY, px(RANGE / 2)))}
-          style:width={css(plus(minus(x(item.end, box), x(item.start, box)), px(RANGE)))}
-          height={RANGE}
-          rx={RANGE / 2}
-        />
-        <circle class="endpoint" r={END} style:cx={css(x(item.start, box))} style:cy={css(rowY)}
-          ><title
-            >{item.label}{mark('comma')}{startLabel}{mark('colon')}{formatValue(item.start)}</title
-          ></circle
-        >
-        <circle class="endpoint" r={END} style:cx={css(x(item.end, box))} style:cy={css(rowY)}
-          ><title>{item.label}{mark('comma')}{endLabel}{mark('colon')}{formatValue(item.end)}</title
-          ></circle
-        >
-        {#if item.marker !== undefined}
-          <path
-            d={markerPath('diamond', 0, 0, MARKER)}
-            class="marker"
-            style:translate={at(x(item.marker, box), rowY)}
+        <g class="series">
+          <rect
+            class="range"
+            style:x={css(minus(x(item.start, box), px(RANGE / 2)))}
+            style:y={css(minus(rowY, px(RANGE / 2)))}
+            style:width={css(plus(minus(x(item.end, box), x(item.start, box)), px(RANGE)))}
+            height={RANGE}
+            rx={RANGE / 2}
+          />
+          <circle class="endpoint" r={END} style:cx={css(x(item.start, box))} style:cy={css(rowY)}
             ><title
-              >{item.label}{mark('comma')}{markerLabel}{mark('colon')}{formatValue(
-                item.marker
+              >{item.label}{mark('comma')}{startLabel}{mark('colon')}{formatValue(
+                item.start
               )}</title
-            ></path
+            ></circle
           >
-        {/if}
+          <circle class="endpoint" r={END} style:cx={css(x(item.end, box))} style:cy={css(rowY)}
+            ><title
+              >{item.label}{mark('comma')}{endLabel}{mark('colon')}{formatValue(item.end)}</title
+            ></circle
+          >
+          {#if item.marker !== undefined}
+            <path
+              d={markerPath('diamond', 0, 0, MARKER)}
+              class="marker"
+              style:translate={at(x(item.marker, box), rowY)}
+              ><title
+                >{item.label}{mark('comma')}{markerLabel}{mark('colon')}{formatValue(
+                  item.marker
+                )}</title
+              ></path
+            >
+          {/if}
+        </g>
       {/each}
       {#if valueLabel}
         <text
@@ -320,6 +325,12 @@ cut on the axis without splitting a character and stay whole in the table under 
     display: inline-flex;
     gap: var(--sui-space-2);
   }
+  /* A row's interval, ends and marker quiet as one on a stale plot, so no end shows the bar
+     through it. */
+  .series {
+    opacity: var(--sui-chart-series-opacity, 1);
+  }
+
   .key {
     block-size: var(--sui-icon-sm);
     flex: none;
