@@ -519,6 +519,35 @@ suite('lists', together, () => {
       assert.deepEqual(bare, [], 'a state stands with no list heading over it');
     });
 
+    test('an empty state’s dashed edge bends at the panel’s own radius and runs at its own stroke', async () => {
+      const page = await opened();
+      const panel = page.locator('#states .sui-empty-state').first();
+      await panel.scrollIntoViewIfNeeded();
+      await panel.evaluate((element) => {
+        element.style.setProperty('--sui-radius-control', '16px');
+        element.style.setProperty('--sui-stroke', '2px');
+      });
+      const shot = await panel.screenshot({ scale: 'css' });
+      await panel.evaluate((element) => element.removeAttribute('style'));
+      const ink = await page.evaluate(
+        async (data) => {
+          const image = await createImageBitmap(await (await fetch(data)).blob());
+          const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+            new OffscreenCanvas(image.width, image.height).getContext('2d')
+          );
+          context.drawImage(image, 0, 0);
+          const red = (/** @type {number} */ x, /** @type {number} */ y) =>
+            context.getImageData(x, y, 1, 1).data[0];
+          const inked = (/** @type {number} */ x, /** @type {number} */ y) => red(x, y) < 230;
+          // A 16px corner reaches the left side only at 16px down, and a side's first dash
+          // runs from there for 4px, 2px thick.
+          return { curve: inked(0, 8), dash: inked(0, 17), thick: inked(1, 17) };
+        },
+        `data:image/png;base64,${shot.toString('base64')}`
+      );
+      assert.deepEqual(ink, { curve: false, dash: true, thick: true });
+    });
+
     test('a retry stands raised over its failure wash in both themes, edged and hovering in the hue at one strength', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {

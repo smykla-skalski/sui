@@ -109,20 +109,25 @@ the next step, a control or words, stands a panel gap under it.
   }
 
   /* A browser's own dashes stretch to fit each side and blur at their ends, so the edge is
-     drawn in layers on whole pixels: a solid 1px quarter arc closes each 8px corner, centred
-     half a pixel in as a 1px border's curve is, and between the arcs each
-     side runs 4px dashes and 4px gaps from its own start. The arcs' radius follows
-     --sui-radius-control. */
+     drawn in layers on whole pixels: a solid quarter ring closes each corner at the panel's own
+     radius and stroke, centred half a stroke in as a border's curve is, and between the corners
+     each side runs 4px dashes and 4px gaps from its own start. The ring's soft half pixel either
+     side stands in for an arc's antialiasing. */
   .sui-empty-state::before {
     --sui-local-dash: currentcolor 0 4px, transparent 4px 8px;
+    --sui-local-r: var(--sui-radius-control);
+    --sui-local-arc:
+      transparent calc(var(--sui-local-r) - var(--sui-stroke) - 0.5px),
+      currentcolor calc(var(--sui-local-r) - var(--sui-stroke) + 0.5px),
+      currentcolor calc(var(--sui-local-r) - 0.5px), transparent calc(var(--sui-local-r) + 0.5px);
     background: var(--sui-border-control);
     content: '';
     inset: calc(-1 * var(--sui-stroke));
     mask-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0.5 8A7.5 7.5 0 0 1 8 0.5' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0.5A7.5 7.5 0 0 1 7.5 8' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M7.5 0A7.5 7.5 0 0 1 0 7.5' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M8 7.5A7.5 7.5 0 0 1 0.5 0' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
+      radial-gradient(circle at 100% 100%, var(--sui-local-arc)),
+      radial-gradient(circle at 0 100%, var(--sui-local-arc)),
+      radial-gradient(circle at 0 0, var(--sui-local-arc)),
+      radial-gradient(circle at 100% 0, var(--sui-local-arc)),
       repeating-linear-gradient(to right, var(--sui-local-dash)),
       repeating-linear-gradient(to right, var(--sui-local-dash)),
       repeating-linear-gradient(to bottom, var(--sui-local-dash)),
@@ -132,20 +137,20 @@ the next step, a control or words, stands a panel gap under it.
       right top,
       right bottom,
       left bottom,
-      8px top,
-      8px bottom,
-      left 8px,
-      right 8px;
+      var(--sui-local-r) top,
+      var(--sui-local-r) bottom,
+      left var(--sui-local-r),
+      right var(--sui-local-r);
     mask-repeat: no-repeat;
     mask-size:
-      8px 8px,
-      8px 8px,
-      8px 8px,
-      8px 8px,
-      calc(100% - 16px) 1px,
-      calc(100% - 16px) 1px,
-      1px calc(100% - 16px),
-      1px calc(100% - 16px);
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      var(--sui-local-r) var(--sui-local-r),
+      calc(100% - 2 * var(--sui-local-r)) var(--sui-stroke),
+      calc(100% - 2 * var(--sui-local-r)) var(--sui-stroke),
+      var(--sui-stroke) calc(100% - 2 * var(--sui-local-r)),
+      var(--sui-stroke) calc(100% - 2 * var(--sui-local-r));
     pointer-events: none;
     position: absolute;
   }

@@ -448,13 +448,20 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
     'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
   );
   assert.match(edge, /currentcolor 0 4px, transparent 4px 8px/, 'its dashes stand on whole pixels');
-  const radius = parseFloat(
-    read('src/lib/styles.css').match(/--sui-radius-control: ([^;]+);/)?.[1] ?? ''
+  assert.match(
+    edge,
+    /--sui-local-r: var\(--sui-radius-control\);/,
+    "its corners close on the panel's own radius"
   );
-  assert.deepEqual(
-    [...edge.matchAll(/A([\d.]+) /g)].map(([, r]) => Number(r)),
-    [radius - 0.5, radius - 0.5, radius - 0.5, radius - 0.5],
-    "its corners close on the panel's own radius, half a pixel in"
+  assert.equal(
+    edge.match(/radial-gradient\(circle at [^,]+, var\(--sui-local-arc\)\)/g)?.length,
+    4,
+    'each corner closes on one quarter ring'
+  );
+  assert.match(
+    edge,
+    /--sui-local-arc:\s*transparent calc\(var\(--sui-local-r\) - var\(--sui-stroke\) - 0\.5px\)/,
+    "its rings run at the panel's own stroke"
   );
   for (const [file, step] of [
     ['ErrorState', 'error-state'],
