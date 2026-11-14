@@ -282,7 +282,9 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
      and paints only the words near the screen: the time column stays laid out, so it keeps its
      one width down the list. The avatar and the words' ink reach past the trimmed box, so the
      body pads out by a step and takes the step back, and the clip that skipping brings falls
-     outside every ink. */
+     outside every ink. Until it is first drawn, an event takes one line of words, avatar or
+     not: the avatar's seat hands back the pixel it adds, so a taller guess would shift the row
+     a pixel when it is drawn. */
   .sui-timeline-body {
     align-items: start;
     column-gap: var(--sui-space-2);
@@ -295,9 +297,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     padding: var(--sui-space-2);
   }
 
-  /* Until it is first drawn, an event takes one line of words, or the avatar's seat. */
   .sui-timeline-body:has(> .sui-timeline-face) {
-    contain-intrinsic-block-size: auto round(up, 1cap, 2px);
     grid-template-columns: auto minmax(0, 1fr);
   }
 
