@@ -1696,6 +1696,41 @@ suite('lists', together, () => {
       );
     });
 
+    test('a diff numbers each kept line by its line in the new text', async () => {
+      const page = await opened();
+      const numbers = await page
+        .locator('#diff-block .sui-diff-block')
+        .first()
+        .evaluate((block) =>
+          [...block.querySelectorAll('.ln .no')].map((no) => no.textContent).filter(Boolean)
+        );
+      // renovate.json keeps "{", "automerge" and "}", lines 1, 3 and 5 of the repository's file.
+      assert.deepEqual(numbers, ['1', '3', '5']);
+    });
+
+    test('a diff’s toned edge line carries its tone to the frame', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() =>
+        [...document.querySelectorAll('#diff-block .sui-diff-block-scroll')].flatMap((pre) => {
+          const box = pre.getBoundingClientRect();
+          const found = [];
+          const first = pre.querySelector('code > .ln:first-child');
+          const last = pre.querySelector('code > .ln:last-child');
+          if (first?.matches('[data-op]:not([data-op=" "])'))
+            found.push(first.getBoundingClientRect().top - box.top - pre.clientTop);
+          if (last?.matches('[data-op]:not([data-op=" "])'))
+            found.push(box.bottom - pre.clientTop - last.getBoundingClientRect().bottom);
+          return found;
+        })
+      );
+      assert.ok(edges.length > 0, 'no block starts or ends on a toned line');
+      assert.deepEqual(
+        edges.filter((gap) => Math.abs(gap) > 0.5),
+        [],
+        'a toned edge line stops short of the frame'
+      );
+    });
+
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {

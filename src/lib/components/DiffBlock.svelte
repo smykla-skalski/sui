@@ -237,6 +237,12 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const lines = $derived(prepared ?? unifiedDiff(before, after));
+  /* A kept line's number is its line in the new text, so the numbers of a window agree with the
+     file it shows; removed lines take no line of it. */
+  const numbers = $derived.by(() => {
+    let at = 0;
+    return lines.map((line) => (line.op === '-' ? 0 : ++at));
+  });
   const tokens = $derived.by(() => {
     const out: TokenRun[][] = lines.map(() => []);
     // Removed and added rows are different documents. Carry shell state through each version,
@@ -275,8 +281,8 @@ place. The glyph stands in the gutter on a step of the tone. The words that actu
 inside a paired line, whole words at a time and at most three stretches, are a step deeper
 again and underlined in the line's ink, marked as inserted, deleted or changed.
 
-Line numbers count the window, not the file, and only kept lines wear one: an added or
-removed line has no single number to claim. A change only in the final newline draws an added
+Line numbers count the new text's lines in the window, not the file, and only kept lines wear
+one: an added or removed line has no single number to claim. A change only in the final newline draws an added
 or removed empty line. Two empty sides say `emptyLabel`.
 
 - Semantics: a `figure` whose `figcaption` holds the file name and the two sources; the lines are a `pre`, a scroller that scrolls is a focusable `region`, and changed stretches are `ins`, `del` and `mark`.
@@ -326,7 +332,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
       role={scrolls ? 'region' : undefined}
       aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
         >{#each lines as line, index (index)}<span class="ln" data-op={line.op}
-            ><span class="no" aria-hidden="true">{line.op === ' ' ? index + 1 : ''}</span><span
+            ><span class="no" aria-hidden="true">{line.op === ' ' ? numbers[index] : ''}</span><span
               class="op"
               ><span aria-hidden="true">{glyph[line.op]}</span>{#if line.op !== ' '}<VisuallyHidden
                   translate="yes">{opLabels[line.op]}{joiner('space')}</VisuallyHidden
@@ -345,7 +351,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
 <style>
   /* A diff is a code block's sibling: the same 44px head row a faint step off the code, the same
      quiet line numbers on a 16px start rail, and the same air over its first line and under its
-     last, which centres a line in the head row's height. */
+     last, which centres a line in the head row's height, held in those lines' cells. */
   .sui-diff-block {
     --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
     --sui-local-code-room: calc(
@@ -448,11 +454,11 @@ or removed empty line. Two empty sides say `emptyLabel`.
     grid-template-columns: auto auto minmax(0, 1fr);
     inline-size: max-content;
     min-inline-size: 100%;
-    padding-block: var(--sui-local-code-room);
   }
 
   /* Every line is one height with its air inside its cells, so a tone runs the line's height and
-     the gutter's step fills it; the block's own air stands outside the first and last lines. */
+     the gutter's step fills it. The block's own air stands in the first and last lines' cells,
+     so a removed or added edge line carries its tone to the frame. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
@@ -462,6 +468,14 @@ or removed empty line. Two empty sides say `emptyLabel`.
 
   .ln > * {
     padding-block: calc(var(--sui-space-1) / 2);
+  }
+
+  .ln:first-child > * {
+    padding-block-start: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
+  }
+
+  .ln:last-child > * {
+    padding-block-end: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
   }
 
   .no {

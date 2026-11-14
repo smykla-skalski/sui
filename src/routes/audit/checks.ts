@@ -3134,19 +3134,18 @@ function codeLines(root: Document): Finding[] {
     const scroller = lines[0]?.closest('pre');
     if (!scroller) continue;
     const code = block.matches('.sui-code-block');
-    // A numbered code block gives its air to its first and last lines' cells, so the gutter's
-    // divider runs the body's whole height; a code line is weighed without that padding.
+    // A numbered code block and a diff give their air to their first and last lines' cells, so a
+    // gutter's divider and an edge line's tone run the body's whole height; a line is weighed
+    // without that padding.
     const span = (line: Element) => {
-      const cells = code && line.childElementCount ? [...line.children] : [line];
+      const cells = line.childElementCount ? [...line.children] : [line];
       const boxes = cells.map((cell) => {
         const box = cell.getBoundingClientRect();
         const look = getComputedStyle(cell);
-        return code
-          ? {
-              top: box.top + parseFloat(look.paddingTop),
-              bottom: box.bottom - parseFloat(look.paddingBottom)
-            }
-          : box;
+        return {
+          top: box.top + parseFloat(look.paddingTop),
+          bottom: box.bottom - parseFloat(look.paddingBottom)
+        };
       });
       return {
         top: Math.min(...boxes.map((box) => box.top)),

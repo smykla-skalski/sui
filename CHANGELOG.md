@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A `DiffBlock` numbers each kept line by its line in the new text, so a window's numbers agree with the file, where they counted the window's rows and skipped over each change.
+- A `DiffBlock` whose first or last line is removed or added carries that line's tone to the frame, where the block's air had left an untoned band.
 - A waiting chart veils only its plot's box, round at a control's corner, and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
 - A chart's grid lines and table rows draw the hairline that frames a surface, `--sui-border-subtle`, where they stood 65% of the way to a control's edge, so the series lead over the grid.
 - A chart whose points were left out leads its note with the info mark in the info hue, as a stale chart leads with the warning mark, and its words keep the muted ink.
