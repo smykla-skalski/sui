@@ -353,6 +353,43 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test(
+    'the sidebar foot theme switch fills the rows width in whole pixel options',
+    long,
+    async () => {
+      const page = await open(1440, 'light');
+      try {
+        const { foot, track, options } = await page.evaluate(() => {
+          const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
+          const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
+          const fieldset = /** @type {Element} */ (
+            nav.querySelector('fieldset.sui-segmented-track')
+          );
+          return {
+            foot: box(/** @type {Element} */ (nav.querySelector('.sui-side-nav-fold'))),
+            track: box(fieldset),
+            options: [...fieldset.querySelectorAll('.sui-segmented-option')].map((option) =>
+              box(option)
+            )
+          };
+        });
+        assert.equal(track.left, foot.left, 'the switch starts where the fold row starts');
+        assert.equal(track.right, foot.right, 'the switch ends where the fold row ends');
+        for (const option of options)
+          assert.ok(
+            Number.isInteger(option.left) && Number.isInteger(option.width),
+            'whole pixels'
+          );
+        assert.ok(
+          Math.abs(options[0].width - options[1].width) <= 1,
+          'the options share the track'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // The folded strip holds an icon-only theme switch, whose words stay for a screen reader in a
   // pixel-wide clip, and the audit must not judge the paint of words no one sees.
   test('the law audit finds nothing with the sidebar folded', long, async () => {

@@ -40,6 +40,7 @@
     name = id,
     disabled = false,
     iconOnly = false,
+    fill = false,
     hint,
     countedLabel = word(
       'SegmentedControl.countedLabel',
@@ -63,6 +64,8 @@
     disabled?: boolean;
     /** Draws each option's glyph alone, its word still naming it, for a box too narrow for the words, such as a folded sidebar. Every option needs an `icon`. */
     iconOnly?: boolean;
+    /** Stretches the track over its room, its options sharing it, for a control that ends a column, such as a sidebar's foot. */
+    fill?: boolean;
     /** Help under the control, such as why an option is off, read as its description. */
     hint?: string;
     /** The fallback select's words for an option with a count, given the count already formatted. */
@@ -367,7 +370,7 @@ itself, so the choice shows from the first frame.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px, also on a track a surface keeps drawn at 34px with `--sui-local-field-seat`, as a card's head does.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
-- Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
+- Responsive: as wide as its words or its room, whichever is less, or with `fill` as wide as its room, its options sharing it; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 12px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` and the hint reach the group or the select; counts are part of each option's name.
 - Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the reader's format; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
 - Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and grows by `scale` from its old width, never animating its layout, and reduced motion drops every transition.
@@ -386,7 +389,8 @@ itself, so the choice shows from the first frame.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-segmented', className, { captioned, short: !fits, glyphs: iconOnly }]}
+  class={['sui-segmented', className, { captioned, short: !fits, glyphs: iconOnly, filled: fill }]}
+  style:--sui-local-segmented-count={fill ? options.length : undefined}
   {@attach fit}
 >
   {#if captioned}
@@ -483,6 +487,22 @@ itself, so the choice shows from the first frame.
 
   .sui-segmented > * {
     grid-area: 1 / 1;
+  }
+
+  /* Each option takes a whole pixel share of the track and the last one the pixels left over,
+     so every edge stays whole while the track ends on its column's edge. */
+  .filled {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filled > .sui-segmented-track > .sui-segmented-option {
+    inline-size: round(down, 100% / var(--sui-local-segmented-count), 1px);
+    justify-content: center;
+  }
+
+  .filled > .sui-segmented-track > .sui-segmented-option:last-of-type {
+    flex: auto;
   }
 
   .sui-segmented {

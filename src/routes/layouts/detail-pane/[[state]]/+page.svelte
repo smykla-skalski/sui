@@ -38,7 +38,6 @@
   const PAGE = 5;
   // A property row sets its label beside its value, so its placeholders keep that pitch and
   // span what the properties will.
-  const FACT_ROW = '2.375rem';
   // A repository row is one line of words beside a pill, a pixel of hairline included.
   const NAME_ROW = '2.8125rem';
   const started = Date.now() - 12.5 * 60_000;
@@ -134,6 +133,11 @@
     { label: 'Waited in queue', value: '2\u00a0seconds' }
   ];
 
+  // While the check loads its facts are known by name, so each label stands as it will and only
+  // its value waits.
+  const waiting = (facts: Fact[]): Fact[] =>
+    facts.map((fact, index) => ({ ...fact, value: index % 2 ? shortBar : bar }));
+
   // Each state of the pane has an address of its own: loading, missing, stale, or loaded.
   const view = $derived(page.params.state);
   let place = $state('Acme');
@@ -151,6 +155,8 @@
 </svelte:head>
 
 {#snippet startedAt()}<RelativeTime value={started} />{/snippet}
+{#snippet bar()}<span class="value-wait"></span>{/snippet}
+{#snippet shortBar()}<span class="value-wait short"></span>{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
 {#snippet wait(rows: number, rowHeight: string)}
   <Skeleton
@@ -319,20 +325,10 @@
             </Section>
           {/snippet}
           {#snippet aside()}
-            <!-- Each fact's label and value wait in a column of their own, and the related links
-                 wait on their lines. -->
+            <!-- The related links wait on their lines. -->
             <Section title="Details">
-              <div class="from-ink facts">
-                {#each [0, 1] as column (column)}
-                  <Skeleton
-                    rows={4}
-                    bars={false}
-                    rowHeight={FACT_ROW}
-                    patience={Infinity}
-                    label=""
-                    loadedLabel=""
-                  />
-                {/each}
+              <div aria-hidden="true">
+                <FactList layout="rows" facts={waiting(details)} />
               </div>
             </Section>
             <Section title="Related">
@@ -341,14 +337,9 @@
             <!-- The closing disclosure's words need no answer, so it stands where it will stay,
                  and opened early, its four facts wait as rows. -->
             <Disclosure summary="More About This Check" hint="ID, worker and version">
-              <Skeleton
-                rows={more.length}
-                bars={false}
-                rowHeight={FACT_ROW}
-                patience={Infinity}
-                label=""
-                loadedLabel=""
-              />
+              <div aria-hidden="true">
+                <FactList layout="rows" facts={waiting(more)} />
+              </div>
             </Disclosure>
           {/snippet}
         </DetailLayout>
@@ -533,12 +524,18 @@
     margin-block: auto calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
   }
 
-  /* A fact's label column is as wide as the loaded labels' and their gap, and the facts end a
-     pixel under their words, as the header's do. */
-  .facts {
-    display: grid;
-    grid-template-columns: 7.25rem minmax(0, 1fr);
-    padding-block-end: 1px;
+  /* A waiting value is a bar as tall as its words' caps, rounded to the cell's even height, so
+     it centres on whole pixels where the words will stand. */
+  .value-wait {
+    background: var(--sui-placeholder);
+    block-size: round(up, 1cap, 2px);
+    border-radius: var(--sui-radius-pill);
+    display: block;
+    inline-size: 4.5rem;
+  }
+
+  .value-wait.short {
+    inline-size: 3.25rem;
   }
 
   /* A related link's line is its target and a 4px gap: 28px, or 45px on a touch screen. The
