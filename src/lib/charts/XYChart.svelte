@@ -294,7 +294,11 @@
   >
     {#each validSeries as item (item.id)}
       <li>
-        <svg class="key" viewBox="0 0 24 12" aria-hidden="true">
+        <svg
+          class={['key', { point: kind !== 'line' }]}
+          viewBox={kind === 'line' ? '0 0 24 12' : '6 0 12 12'}
+          aria-hidden="true"
+        >
           {#if kind === 'line'}
             <line
               x1="1"
@@ -425,6 +429,10 @@
     flex: none;
     inline-size: calc(2 * var(--sui-icon-sm));
     overflow: visible;
+  }
+  /* A key with no line is one icon wide, so its mark keeps the gap a line's end keeps from its label. */
+  .key.point {
+    inline-size: var(--sui-icon-sm);
   }
   .key .marker {
     stroke: var(--sui-surface-base);

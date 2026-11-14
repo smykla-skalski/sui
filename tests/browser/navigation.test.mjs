@@ -2581,6 +2581,34 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a chart legend’s keys each stand their drawn mark 8 to 11px from their label, a point as a line', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const gaps = await page.evaluate(() =>
+          [...document.querySelectorAll('.sui-chart .legend:not(.sui-visually-hidden) li')].flatMap(
+            (item) => {
+              const key = item.querySelector('svg.key');
+              const words = [...item.childNodes].find(
+                (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+              );
+              if (!key || !words) return [];
+              const ink = Math.max(
+                ...[...key.children].map((part) => part.getBoundingClientRect().right)
+              );
+              const range = document.createRange();
+              range.selectNodeContents(words);
+              return [{ label: words.textContent, gap: range.getBoundingClientRect().left - ink }];
+            }
+          )
+        );
+        assert.ok(gaps.length >= 4, `${gaps.length} keys`);
+        for (const { label, gap } of gaps)
+          assert.ok(gap >= 8 && gap <= 11, `${label}: ${gap}px from its key's ink`);
+      } finally {
+        await page.close();
+      }
+    });
+
     test('a chart’s gridlines each fill one whole row or column of pixels, at every width', async () => {
       // Only the line's thickness counts: an end that straddles a pixel does not blur the line.
       for (const width of [1440, 320]) {
