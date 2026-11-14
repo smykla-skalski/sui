@@ -168,6 +168,13 @@ the next step, a control or words, stands a panel gap under it.
     display: none;
   }
 
+  /* With no room to hold open, it is a card, inset alike on each side. */
+  @media (min-width: 48rem) {
+    .sui-empty-state.final {
+      padding: var(--sui-space-6);
+    }
+  }
+
   @media (forced-colors: active) {
     .sui-empty-state {
       border: var(--sui-stroke) dashed CanvasText;

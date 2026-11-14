@@ -429,6 +429,11 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
     );
   }
   assert.match(
+    stripComments(styles['src/lib/components/EmptyState.svelte']),
+    /@media \(min-width: 48rem\) \{\s*\.sui-empty-state\.final \{\s*padding: var\(--sui-space-6\);\s*\}/,
+    'a final panel holds no room open, so it pads 24px all round, as a card does'
+  );
+  assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
     /\.over \{[^}]*justify-content: space-between;/,
     "a failed refresh's retry ends its line, where a line's action stands"
