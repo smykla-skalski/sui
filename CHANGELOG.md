@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The rail, the `SideNav` and the phone bars stand on `--sui-surface-base`, the page header band's surface, where they stood on the canvas, so the chrome reads as one frame around the canvas the work stands on (`--sui-sidebar-bg`).
 - A `SideNav`'s title, the place it names, is set at the body size, 15px or 16px on a phone, where it stood at the 14px of the rows under it, so the place reads as the head of its pages and not only by its weight.
 - The sink's folded strip names the Code Block page Code, so the strip keeps one pitch where the page's label wrapped to two lines (L-88); a browser test holds every kit page to one line there.
 - A `Timeline` draws a clock time in the mono face's 500, where it drew 400, so the muted time column reads as firmly as the words beside it and is no longer the page's faintest text.
