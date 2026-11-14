@@ -439,11 +439,11 @@ or removed empty line. Two empty sides say `emptyLabel`.
     grid-template-columns: auto auto minmax(0, 1fr);
     inline-size: max-content;
     min-inline-size: 100%;
+    padding-block: var(--sui-local-code-room);
   }
 
   /* Every line is one height with its air inside its cells, so a tone runs the line's height and
-     the gutter's step fills it. The block's own air stands in the first and last lines' cells,
-     so a removed or added edge line carries its tone to the frame. */
+     the gutter's step fills it; the block's own air stands outside the first and last lines. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
@@ -453,14 +453,6 @@ or removed empty line. Two empty sides say `emptyLabel`.
 
   .ln > * {
     padding-block: calc(var(--sui-space-1) / 2);
-  }
-
-  .ln:first-child > * {
-    padding-block-start: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
-  }
-
-  .ln:last-child > * {
-    padding-block-end: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
   }
 
   .no {

@@ -1693,29 +1693,6 @@ suite('lists', together, () => {
       );
     });
 
-    test('a diff’s toned edge line carries its tone to the frame', async () => {
-      const page = await opened();
-      const edges = await page.evaluate(() =>
-        [...document.querySelectorAll('#diff-block .sui-diff-block-scroll')].flatMap((pre) => {
-          const box = pre.getBoundingClientRect();
-          const found = [];
-          const first = pre.querySelector('code > .ln:first-child');
-          const last = pre.querySelector('code > .ln:last-child');
-          if (first?.matches('[data-op]:not([data-op=" "])'))
-            found.push(first.getBoundingClientRect().top - box.top - pre.clientTop);
-          if (last?.matches('[data-op]:not([data-op=" "])'))
-            found.push(box.bottom - pre.clientTop - last.getBoundingClientRect().bottom);
-          return found;
-        })
-      );
-      assert.ok(edges.length > 0, 'no block starts or ends on a toned line');
-      assert.deepEqual(
-        edges.filter((gap) => Math.abs(gap) > 0.5),
-        [],
-        'a toned edge line stops short of the frame'
-      );
-    });
-
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {
