@@ -2075,6 +2075,27 @@ suite('lists', together, () => {
       }
     );
 
+    test('a failed table leads its words with the 16px danger mark 8px off, centred on their capitals, as a field’s message does', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() =>
+        [...document.querySelectorAll('#data-table .sui-data-table .problem')].map((line) => {
+          const mark = /** @type {Element} */ (
+            line.querySelector(':scope > svg')
+          ).getBoundingClientRect();
+          const words = /** @type {Element} */ (
+            line.querySelector('.problem-words')
+          ).getBoundingClientRect();
+          return [
+            mark.width,
+            words.left - mark.right,
+            Math.abs((mark.top + mark.bottom) / 2 - (words.top + words.bottom) / 2) <= 0.5
+          ];
+        })
+      );
+      assert.ok(found.length >= 2, 'no failed table on the page');
+      for (const line of found) assert.deepEqual(line, [16, 8, true]);
+    });
+
     test('a sortable heading is a 28px control with a 16px arrow, its ground 8px past its words and its words on its values’ edge, and takes the 16px of its row a chip took', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {

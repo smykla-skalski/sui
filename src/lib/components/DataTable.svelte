@@ -190,7 +190,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   <p class="caption hint" aria-hidden="true">{scrollHint}</p>
   {#if error && rows.length > 0}
     <div class="problem" role="alert">
-      <Icon name="alert" size="sm" />
+      <Icon name="alert" size="base" />
       <span class="problem-words">{error}</span>
       {@render retry()}
     </div>
@@ -260,7 +260,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
               <td class="state" colspan={columns.length}>
                 {#if error}
                   <span class="problem" role="alert">
-                    <Icon name="alert" size="sm" />
+                    <Icon name="alert" size="base" />
                     <span class="problem-words">{error}</span>
                     {@render retry()}
                   </span>
@@ -394,7 +394,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* The mark carries the failure, so the words read in the primary ink, as an error panel's
-     title does. */
+     title does, and it is the 16px mark 8px off that a field's 14px message takes (L-94). */
   .problem-words {
     color: var(--sui-text-primary);
   }
