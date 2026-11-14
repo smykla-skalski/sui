@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A waiting chart veils only its plot's box and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
 - A chart's "View Chart Data" control stands right under its chart and stays there while its table opens, where a chart in a card stretched by its neighbour pushed it to the card's foot and it jumped up as the table opened.
 - The shell's own rules, the `Rail`'s and `SideNav`'s edges and the side nav's head and foot lines, take the page header band's ink, so the lines that meet where the nav and a `PageHeader` join read as one line.
 - `SideNav`, `Rail` and the shell's Collapse hover on an `ObjectRow`'s hover ground, so the nav and the rows beside it answer the pointer alike, and a pressed item stands a step past it. The dark current plate, in the nav, on a current `ObjectRow` and on a current `PageToc` entry, takes 30% of the accent, up from 24%, so it stays a clear step past a pressed item. A `Rail` badge's halo takes its tile's ground when the tile is hovered, pressed or current, and the badge stands lower, so its halo stays inside the tile.
