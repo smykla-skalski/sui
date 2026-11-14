@@ -549,10 +549,24 @@
     white-space: nowrap;
   }
 
+  /* A data table's cells, outer columns flush and the head ruled in the control ink, so a
+     chart's values read as one more DataTable (L-62). */
   .sui-chart-table :global(:is(th, td)) {
     border-block-end: var(--sui-stroke) solid var(--sui-chart-grid);
-    padding: var(--sui-space-2);
+    padding: var(--sui-space-3) var(--sui-space-4);
     text-align: start;
+  }
+
+  .sui-chart-table :global(:is(th, td):first-child) {
+    padding-inline-start: 0;
+  }
+
+  .sui-chart-table :global(:is(th, td):last-child) {
+    padding-inline-end: 0;
+  }
+
+  .sui-chart-table :global(thead th) {
+    border-block-end-color: var(--sui-border-control);
   }
 
   /* Numbers line up at their end, and so do their headings. */

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart's table of values takes a `DataTable`'s cells: 12px by 16px, its outer columns flush with the chart's title, and its head ruled in the control ink, where 8px cells set its first words 8px in and every rule in one ink.
 - A `SideNav` starts its head at a page header's gutter, 24px and 16px on a phone, so its kicker and the page header's eyebrow share one cap line, where they stood 7px apart.
 - A `SideNav`'s foot starts 16px under its hairline, the gap that parts the rows from it, so the row in the foot stands as far from the rule as from the column's end, where 12px read as pushed up to the rule.
 - A `Section` whose content opens with a sub-section or a chart stands it the sub-section gap under its copy, 24px and 20px on a phone, so the inner title reads as its own head, where 16px read as the section's second line.

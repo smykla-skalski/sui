@@ -1903,7 +1903,7 @@ suite('navigation', together, () => {
   suite('one page of charts at each width', { concurrency: 1 }, () => {
     const charts = shared(() => open(1440));
 
-    test('a line breaks at a missing value, and a table names its series from the start edge', async () => {
+    test("a line breaks at a missing value, and a table names its series from the start edge, on a data table's metrics", async () => {
       const page = await charts();
       // A chart draws its table only once its disclosure is open.
       await page.evaluate(async () => {
@@ -1911,7 +1911,12 @@ suite('navigation', together, () => {
           /** @type {HTMLDetailsElement} */ (details).open = true;
         await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
       });
-      const { runs, aligns } = await page.evaluate(() => {
+      const { runs, aligns, tables } = await page.evaluate(() => {
+        const probe = document.createElement('i');
+        probe.style.color = 'var(--sui-border-control)';
+        document.body.append(probe);
+        const control = getComputedStyle(probe).color;
+        probe.remove();
         const partial = /** @type {Element} */ (
           [...document.querySelectorAll('#charts .sui-chart')].find((chart) =>
             chart.textContent?.includes('Daily Readings')
@@ -1925,6 +1930,22 @@ suite('navigation', together, () => {
                 (cell) => getComputedStyle(cell).textAlign
               )
             )
+          ],
+          // Off by the title's start, the head rule's ink against the control ink.
+          tables: [
+            ...new Set(
+              [...document.querySelectorAll('#charts .sui-chart-table')].map((box) => {
+                const title = /** @type {Element} */ (
+                  box.closest('.sui-chart')?.querySelector('.sui-chart-title')
+                );
+                const words = document.createRange();
+                words.selectNodeContents(/** @type {Element} */ (box.querySelector('thead th')));
+                const head = getComputedStyle(
+                  /** @type {Element} */ (box.querySelector('thead th'))
+                );
+                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control}`;
+              })
+            )
           ]
         };
       });
@@ -1934,6 +1955,7 @@ suite('navigation', together, () => {
       });
       assert.equal(runs, 2, 'the line draws one run on each side of its gap');
       assert.deepEqual(aligns, ['start']);
+      assert.deepEqual(tables, ['0 true']);
     });
 
     test(
