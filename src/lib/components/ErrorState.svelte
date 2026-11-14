@@ -120,8 +120,10 @@ of them.
   role="alert"
 >
   <div class="sui-error-state-copy" {@attach evenHeight}>
-    <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
-    <p class="sui-error-state-title">{title}</p>
+    <div class="sui-error-state-head">
+      <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
+      <p class="sui-error-state-title">{title}</p>
+    </div>
     <p class="sui-error-state-description">{description}</p>
   </div>
   {#if step}<p class="sui-error-state-step">{step}</p>{/if}
@@ -199,6 +201,16 @@ of them.
     grid-column: 2;
   }
 
+  /* The mark and the title stand in the copy's grid on the rail; they share a box only so a
+     centred panel can centre them as one line. */
+  .sui-error-state-head {
+    display: contents;
+  }
+
+  .sui-error-state-head > p {
+    grid-column: 2;
+  }
+
   /* A panel's next step, a step in words or the retry, stands on the words' rail too, as a
      form error's links leave the line its mark and gap take. Over a list it follows the words
      on their line instead. */
@@ -218,23 +230,30 @@ of them.
   /* The line and the room it centres in are both an even width, so the mark lands on a whole
      pixel and draws sharp. */
   .centred > .sui-error-state-copy {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
     padding-inline-end: calc(100% - round(down, 100%, 2px));
   }
 
-  .centred > .sui-error-state-copy > .sui-error-state-mark {
+  .centred > .sui-error-state-copy > p {
+    grid-column: 1;
+  }
+
+  .centred .sui-error-state-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-title-copy-gap) var(--sui-space-2);
+    justify-content: center;
+    max-inline-size: 100%;
+  }
+
+  .centred .sui-error-state-mark {
     flex: none;
   }
 
-  .centred > .sui-error-state-copy > .sui-error-state-title {
+  .centred .sui-error-state-title {
     inline-size: calc-size(fit-content, round(up, size, 2px));
     min-inline-size: 0;
-  }
-
-  .centred > .sui-error-state-copy > .sui-error-state-description {
-    flex-basis: 100%;
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.
