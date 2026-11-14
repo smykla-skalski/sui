@@ -82,6 +82,24 @@
     faceInk(text, semibold, tabular) ??
     (mounted && band ? measured(band, text, semibold, tabular) : guessInk(text));
 
+  /* A state centred in the plot's box lands half a pixel off the grid when its words leave an
+     odd remainder, and CSS cannot see their height, so a pixel more padding at its end takes
+     the odd one (L-95). Its box is border-box, so the plot's size holds. */
+  function onGrid(band: HTMLElement) {
+    const state = band.firstElementChild as HTMLElement | null;
+    if (!state) return;
+    const observer = new ResizeObserver(() => {
+      state.style.removeProperty('padding-block-end');
+      const first = state.firstElementChild;
+      if (!first) return;
+      const offset = first.getBoundingClientRect().top - state.getBoundingClientRect().top;
+      if (Math.abs(offset - Math.round(offset)) > 0.25)
+        state.style.paddingBlockEnd = `calc(${getComputedStyle(state).paddingBlockEnd} + 1px)`;
+    });
+    for (const part of state.children) observer.observe(part);
+    return () => observer.disconnect();
+  }
+
   function measured(band: HTMLElement, text: string, semibold: boolean, tabular: boolean): Ink {
     const look = getComputedStyle(band);
     const weight = semibold
@@ -190,6 +208,7 @@
       bind:this={band}
       class="plot-band waiting standing"
       style:--sui-local-plot={css(inlined(plotSize(measure)))}
+      {@attach onGrid}
     >
       <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
     </div>
@@ -207,6 +226,7 @@
       bind:this={band}
       class="plot-band waiting standing"
       style:--sui-local-plot={css(inlined(plotSize(measure)))}
+      {@attach onGrid}
     >
       <EmptyState
         title={emptyTitle}
