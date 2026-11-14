@@ -40,9 +40,6 @@
 
 <style>
   .narrow {
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    max-inline-size: 16rem;
+    max-inline-size: 18rem;
   }
 </style>
