@@ -378,6 +378,7 @@
      contextual form, so the face's table places every word as the browser draws it. */
   .plot-band {
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
+    --sui-local-band-pad-block: var(--sui-local-band-pad);
     background: var(--sui-chart-ground);
     border-radius: var(--sui-radius-control);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
@@ -385,6 +386,15 @@
     font-variant-ligatures: none;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
     min-inline-size: 0;
+  }
+
+  /* A band with no ground of its own draws no box, so room above and below the plot would only
+     read as a gap between the plot and its words: it keeps 8px there, and its legend and summary
+     stand under the plot by the chart's own gaps. */
+  @container style(--sui-chart-ground: transparent) {
+    .plot-band {
+      --sui-local-band-pad-block: var(--sui-space-2);
+    }
   }
 
   /* A band that reaches its holder's edges runs square into them. */
@@ -400,7 +410,7 @@
     border-radius: inherit;
     contain: inline-size;
     overflow-x: auto;
-    padding: var(--sui-local-band-pad);
+    padding: var(--sui-local-band-pad-block) var(--sui-local-band-pad);
   }
 
   .plot-scroll:focus-visible {
@@ -428,7 +438,7 @@
      block, and they draw no mark a reader could take for data (L-64). Only the light moves, by
      transform, so the compositor runs it. */
   .waiting {
-    padding: var(--sui-local-band-pad);
+    padding: var(--sui-local-band-pad-block) var(--sui-local-band-pad);
   }
 
   /* A failed or empty chart says so in the plot's own box, the one the veil takes while it

@@ -2238,6 +2238,26 @@ suite('navigation', together, () => {
       }
     );
 
+    test('a band with no ground keeps 8px over and under its plot, and a tinted band the full room on every side', async () => {
+      const page = await charts();
+      const read = await page.evaluate(async () => {
+        const chart = /** @type {HTMLElement} */ (document.querySelector('#charts .sui-chart'));
+        const scroll = /** @type {Element} */ (chart.querySelector('.plot-scroll'));
+        const pad = () => {
+          const style = getComputedStyle(scroll);
+          return [style.paddingTop, style.paddingBottom, style.paddingLeft];
+        };
+        const bare = pad();
+        chart.style.setProperty('--sui-chart-ground', 'rgb(0 0 0 / 4%)');
+        await new Promise((done) => requestAnimationFrame(done));
+        const tinted = pad();
+        chart.style.removeProperty('--sui-chart-ground');
+        return { bare, tinted };
+      });
+      assert.deepEqual(read.bare, ['8px', '8px', '16px']);
+      assert.deepEqual(read.tinted, ['16px', '16px', '16px']);
+    });
+
     test(
       'a chart plot that scrolls is a named keyboard stop, and its table renders only when opened',
       long,
