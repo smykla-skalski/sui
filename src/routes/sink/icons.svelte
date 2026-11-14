@@ -117,9 +117,12 @@
     vertical-align: middle;
   }
 
+  /* A block of its own, so the glyph centres in its cell and never rides on a line's baseline
+     above the label's capitals. */
   .facing {
     color: var(--sui-text-primary);
-    display: inline-flex;
+    display: flex;
+    justify-content: center;
   }
 
   .pair {

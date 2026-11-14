@@ -338,13 +338,18 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
-    test('each directional glyph stands over its mirror on the icon page', async () => {
+    test('each directional glyph stands over its mirror, centred in its row beside its label, on the icon page', async () => {
       const page = await opened();
       const lines = await page.evaluate(() =>
         [...document.querySelectorAll('#icons table tbody tr')].map((row) =>
           [...row.querySelectorAll('svg')].map((svg) => {
             const box = svg.getBoundingClientRect();
-            return { middle: box.left + box.width / 2, top: box.top };
+            const line = row.getBoundingClientRect();
+            return {
+              middle: box.left + box.width / 2,
+              top: box.top,
+              high: line.top + line.height / 2 - (box.top + box.height / 2)
+            };
           })
         )
       );
@@ -357,6 +362,9 @@ suite('lists', together, () => {
           `glyph ${index + 1} stands ${glyph.middle - rtl[index].middle}px off its mirror's column`
         );
       assert.ok(rtl[0].top - ltr[0].top <= 40, 'the mirrors stand on the next short line');
+      // An inline glyph rides on its cell's text baseline, above the label's capitals beside it.
+      for (const { high } of [...ltr, ...rtl])
+        assert.ok(Math.abs(high) < 0.5, `a glyph stands ${high}px above the middle of its row`);
     });
 
     test('a failed refresh over its rows keeps 20px inside its tint all round once its retry wraps', async () => {
