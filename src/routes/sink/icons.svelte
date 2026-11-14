@@ -52,7 +52,7 @@
 
 <Example
   title="Sizes"
-  note="5 tiers from 10 to 18 px at the default text size, each beside the words it stands with, growing with the reader’s own text size"
+  note="5 tiers from 10 to 18 px at the default text size, each beside the words it stands with, growing with the reader’s text size"
 >
   <Variants rows={glyphs} columns={sizes} axis="name" rowLabel={(name) => `"${name}"`}>
     {#snippet cell(name, size)}
@@ -107,7 +107,6 @@
       var(--sui-sans);
     padding-inline-end: var(--sui-space-4);
     text-align: start;
-    white-space: nowrap;
   }
 
   .facings tbody td {
@@ -135,10 +134,22 @@
     white-space: nowrap;
   }
 
+  /* Words trimmed to their capitals in an even box, so the glyph centres on them, not on the
+     line's air (L-94), and every edge stays on the pixel grid (L-95). */
+  .pair > span,
+  .name {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
+  }
+
   .grid {
     display: grid;
     gap: var(--sui-space-2);
-    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    /* 10rem holds the longest name, 16 mono capitals' width, beside its glyph, so no name wraps
+       under its glyph (L-94). */
+    grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
     inline-size: 100%;
     list-style: none;
     margin: 0;

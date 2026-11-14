@@ -3133,18 +3133,36 @@ function codeLines(root: Document): Finding[] {
     const lines = [...block.querySelectorAll('code > *')].filter(shown);
     const scroller = lines[0]?.closest('pre');
     if (!scroller) continue;
-    const heights = new Set(lines.map((line) => round(line.getBoundingClientRect().height)));
+    const code = block.matches('.sui-code-block');
+    // A numbered code block gives its air to its first and last lines' cells, so the gutter's
+    // divider runs the body's whole height; a code line is weighed without that padding.
+    const span = (line: Element) => {
+      const cells = code && line.childElementCount ? [...line.children] : [line];
+      const boxes = cells.map((cell) => {
+        const box = cell.getBoundingClientRect();
+        const look = getComputedStyle(cell);
+        return code
+          ? {
+              top: box.top + parseFloat(look.paddingTop),
+              bottom: box.bottom - parseFloat(look.paddingBottom)
+            }
+          : box;
+      });
+      return {
+        top: Math.min(...boxes.map((box) => box.top)),
+        bottom: Math.max(...boxes.map((box) => box.bottom))
+      };
+    };
+    const spans = lines.map(span);
+    const heights = new Set(spans.map(({ top, bottom }) => round(bottom - top)));
     if (heights.size > 1)
       found.push(finding('L-65', block, `its lines are ${[...heights].join(', ')}px tall`));
     const edge = scroller.getBoundingClientRect();
-    const first = lines[0].getBoundingClientRect();
+    const first = { height: spans[0].bottom - spans[0].top, ...spans[0] };
     const gaps = [
       first.top - edge.top - scroller.clientTop,
-      edge.bottom -
-        lines.at(-1)!.getBoundingClientRect().bottom -
-        parseFloat(getComputedStyle(scroller).borderBottomWidth)
+      edge.bottom - spans.at(-1)!.bottom - parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
-    const code = block.matches('.sui-code-block');
     const air = code ? (row - first.height) / 2 : 0;
     if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
       found.push(
