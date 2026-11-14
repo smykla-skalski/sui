@@ -408,6 +408,28 @@ test('a matrix starts at its longest row name and its column names top it', () =
   assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
 });
 
+test('a matrix stands on whole pixels and its columns share a wider plot, never under a square cell', () => {
+  const columns = ['Mon', 'Tue', 'Wed'];
+  const layout = heatmapLayout({ measure, rows: ['Morning', 'Afternoon'], columns });
+  const narrow = at(0);
+  for (const name of /** @type {const} */ (['left', 'top', 'size'])) {
+    assert.ok(Number.isInteger(narrow(layout[name])), `${name} is ${narrow(layout[name])}`);
+  }
+  const size = narrow(layout.size);
+  const least = narrow(layout.width);
+  assert.equal(at(least - 40)(layout.across), size);
+  for (const width of [least + 1, 459, 1000]) {
+    const across = at(width)(layout.across);
+    const end = narrow(layout.left) + columns.length * across - layout.inset;
+    assert.ok(Number.isInteger(across), `a column is ${across}px wide at ${width}`);
+    assert.ok(across >= size, `a column is ${across}px wide at ${width}`);
+    assert.ok(
+      end <= width + 1e-9 && (across === size || end > width - columns.length),
+      `the matrix ends at ${end} in ${width}`
+    );
+  }
+});
+
 test('a cell keeps a quarter rem on each side of its widest printed value', () => {
   const values = ['7', '123,456,789'];
   const widest = Math.max(
@@ -430,13 +452,13 @@ test('a cell keeps a quarter rem on each side of its widest printed value', () =
   }
 });
 
-test('a first column name wider than its cell starts at 0 past a short row name', () => {
+test('a first column name wider than its cell starts within a pixel past 0, past a short row name', () => {
   const columns = ['Weekend and holidays'];
   const layout = heatmapLayout({ measure, rows: ['I'], columns });
   const length = at(0);
   const middle = length(layout.left) + length(layout.size) / 2;
   const start = inkSpan(pixels(columns[0]), middle, 'middle')[0];
-  assert.ok(Math.abs(start) < 1e-9, `the name starts at ${start}`);
+  assert.ok(start >= -1e-9 && start < 1, `the name starts at ${start}`);
   const label = inkSpan(pixels('I'), length(layout.labelEnd), 'end')[0];
   assert.ok(label >= -1e-9, `the row name starts at ${label}`);
 });

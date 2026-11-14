@@ -2115,13 +2115,21 @@ suite('navigation', together, () => {
                   const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
                   const above = shown ? legend : band;
                   const summary = /** @type {Element} */ (chart.querySelector('details > summary'));
-                  const top = summary.getBoundingClientRect().top + scrollY;
+                  // From the pair's own row, so a lazily drawn row higher on the page that settles
+                  // to its height as the page scrolls cannot read as a move.
+                  const top =
+                    summary.getBoundingClientRect().top -
+                    /** @type {Element} */ (
+                      chart.closest('[data-layout="pairs"]')
+                    ).getBoundingClientRect().top;
                   return {
                     top,
                     legendGap: shown
                       ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
                       : 16,
-                    summaryGap: Math.round(top - scrollY - above.getBoundingClientRect().bottom)
+                    summaryGap: Math.round(
+                      summary.getBoundingClientRect().top - above.getBoundingClientRect().bottom
+                    )
                   };
                 }
               )
