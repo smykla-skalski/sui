@@ -775,7 +775,7 @@ following a row closes the drawer.
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
-    padding-block-start: var(--sui-space-3);
+    padding-block-start: var(--sui-space-4);
   }
 
   [data-mode='drawer'] .sui-side-nav-row {

@@ -1777,7 +1777,7 @@ suite('navigation', together, () => {
 
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
+      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each side of them a gap clear (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -1811,7 +1811,11 @@ suite('navigation', together, () => {
               masked: getComputedStyle(tree).maskImage !== 'none',
               resting,
               line: [rule().opacity, rule().backgroundColor, rule().blockSize],
-              next: [getComputedStyle(next).borderTopColor, getComputedStyle(next).borderTopWidth]
+              next: [getComputedStyle(next).borderTopColor, getComputedStyle(next).borderTopWidth],
+              underNext:
+                /** @type {Element} */ (next.firstElementChild).getBoundingClientRect().top -
+                next.getBoundingClientRect().top -
+                parseFloat(getComputedStyle(next).borderTopWidth)
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
@@ -1838,6 +1842,10 @@ suite('navigation', together, () => {
           assert.ok(
             Math.abs(found.bottom - found.gap) <= 0.5,
             `the last row rests ${found.bottom}px up`
+          );
+          assert.ok(
+            Math.abs(found.underNext - found.gap) <= 0.5,
+            `the part under the rows starts ${found.underNext}px under its hairline`
           );
         } finally {
           await page.evaluate(() => {
