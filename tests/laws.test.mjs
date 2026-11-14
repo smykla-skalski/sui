@@ -2122,6 +2122,18 @@ test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
   );
 });
 
+test("L-85 the sidebar's theme thumb is a neutral plate, so the current page keeps the one accent", () => {
+  const sink = stripComments(read('src/routes/(sink)/+layout.svelte'));
+  assert.match(
+    sink,
+    /\.theme \{\s*--sui-segment-thumb: light-dark\(\s*var\(--sui-control-bg\),\s*color-mix\(in srgb, var\(--sui-text-primary\) 30%, var\(--sui-sidebar-bg\)\)\s*\);[^}]*--sui-segment-thumb-ink: var\(--sui-text-primary\);/,
+    "the sidebar's theme thumb wears the brand fill beside the current page's accent plate"
+  );
+  // The hover and press steps read tokens, so a neutral thumb never flashes the brand fill.
+  const control = stripComments(read('src/lib/components/SegmentedControl.svelte'));
+  assert.doesNotMatch(control, /--sui-brand-action-(hover|pressed)/);
+});
+
 test('L-85 the current row stands on a plate a light theme does not wash out', () => {
   const plate = (/** @type {string} */ share) =>
     `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;

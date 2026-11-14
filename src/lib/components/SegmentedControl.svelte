@@ -883,7 +883,7 @@ itself, so the choice shows from the first frame.
         .sui-segmented-option:hover:not(:active) > input:checked:enabled:not([aria-disabled='true'])
       )
       .sui-segmented-thumb {
-      background: var(--sui-brand-action-hover);
+      background: var(--sui-segment-thumb-hover);
     }
   }
 
@@ -893,7 +893,7 @@ itself, so the choice shows from the first frame.
       .sui-segmented-option:active > input:checked:enabled:not([aria-disabled='true'])
     )
     .sui-segmented-thumb {
-    background: var(--sui-brand-action-pressed);
+    background: var(--sui-segment-thumb-pressed);
     box-shadow: var(--sui-pressed-inset), var(--sui-segment-thumb-shadow-pressed);
   }
 

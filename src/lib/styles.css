@@ -687,6 +687,8 @@
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
   --sui-segment-thumb: var(--sui-brand-action);
+  --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+  --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
@@ -907,6 +909,8 @@
 
   --sui-segment-track: var(--sui-field-well);
   --sui-segment-thumb: var(--sui-brand-action);
+  --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+  --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
@@ -1167,6 +1171,8 @@
 
     --sui-segment-track: var(--sui-field-well);
     --sui-segment-thumb: var(--sui-brand-action);
+    --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+    --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
     --sui-segment-thumb-ink: var(--sui-on-brand-action);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
     --sui-segment-pressed: var(--sui-interactive-pressed);

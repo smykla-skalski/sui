@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `SegmentedControl` reads its thumb's hover and press grounds from `--sui-segment-thumb-hover` and `--sui-segment-thumb-pressed`, so a holder that sets a neutral thumb never sees it flash the brand fill; the sink's sidebar theme switch takes a raised neutral thumb, so the current page keeps the column's one accent (L-85).
 - A `LinkList`'s links and a link in a `Section`'s head actions rest with no underline, since they stand apart from any sentence (L-81); hover and a press still draw it, and forced colors keep it.
 - A collapsed `SideNav` on its own starts its kicker 12px under the strip's top, level with a rail's first place, where it stood 8px from the edge.
 - A `SideNav` whose rows run past its foot stands the foot's hairline, at rest, in the gap above the first row or heading that would not fit, so the cut never runs through words; the foot takes the room the rows give up above its controls.
