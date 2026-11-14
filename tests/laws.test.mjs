@@ -1689,7 +1689,7 @@ test("a code block's head names its file or language in the primary ink at 500, 
   }
 });
 
-test("a framed code block's head steps off its code by 6% ink in light and 4.5% in dark, and its copy control stands lighter than the head in both", () => {
+test("a framed code block's head steps off its code by 4% ink in light and 4.5% in dark, and its copy control stands lighter than the head in both", () => {
   const css = read('src/lib/styles.css');
   const percents = (/** @type {string} */ name) =>
     [...css.matchAll(new RegExp(`--sui-code-${name}-ink: ([^;]+);`, 'g'))].map(
@@ -1697,12 +1697,12 @@ test("a framed code block's head steps off its code by 6% ink in light and 4.5% 
     );
   assert.deepEqual(
     percents('head'),
-    ['6%', '4.5%', '4.5%'],
+    ['4%', '4.5%', '4.5%'],
     'the light block, then each dark block'
   );
   assert.deepEqual(
     percents('chip'),
-    ['0%', '7%', '7%'],
+    ['0%', '10%', '10%'],
     "light keeps the code's own white over a darker head, dark takes more ink than its head"
   );
 });

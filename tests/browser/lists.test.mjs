@@ -803,7 +803,7 @@ suite('lists', together, () => {
       await page.emulateMedia({ colorScheme: null });
     });
 
-    test('a framed code block heads its code with a faint step in both themes', async () => {
+    test('a framed code block heads its code with a faint step and lifts its copy control off the head in both themes', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
         const channels = (/** @type {string} */ color) =>
@@ -830,21 +830,22 @@ suite('lists', together, () => {
               .map((element) => luminance(getComputedStyle(element).backgroundColor) + 0.05)
               .sort((x, y) => y - x);
             const control = head.querySelector('button');
-            const sunk =
-              control !== null &&
-              luminance(getComputedStyle(control).backgroundColor) <
-                luminance(getComputedStyle(head).backgroundColor);
+            const lift =
+              control === null
+                ? null
+                : (luminance(getComputedStyle(control).backgroundColor) + 0.05) /
+                  (luminance(getComputedStyle(head).backgroundColor) + 0.05);
             delete block.dataset.suiTheme;
-            return { theme, ratio: a / b, sunk };
+            return { theme, ratio: a / b, lift };
           })
         );
       });
       assert.ok(found.length >= 4, `only ${found.length} heads`);
-      for (const { theme, ratio, sunk } of found) {
-        assert.ok(!sunk, `in ${theme} a copy control sinks under its head`);
+      for (const { theme, ratio, lift } of found) {
         assert.ok(ratio > 1.01, `in ${theme} a head is drawn on the code's own ground`);
-        // The light head steps 6% ink off white (1.13:1) so it also stands off the warm plate.
-        assert.ok(ratio < 1.15, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
+        assert.ok(ratio < 1.11, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
+        if (lift !== null)
+          assert.ok(lift >= 1.08, `in ${theme} a copy control lifts only ${lift.toFixed(2)}:1`);
       }
     });
 
