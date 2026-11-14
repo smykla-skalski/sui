@@ -186,7 +186,13 @@
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
   {#if status === 'failed'}
-    <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
+    <div
+      bind:this={band}
+      class="plot-band waiting standing"
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
+    >
+      <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
+    </div>
   {:else if status === 'loading'}
     <div
       bind:this={band}
@@ -197,11 +203,17 @@
       <div class="sui-chart-wait"></div>
     </div>
   {:else if empty}
-    <EmptyState
-      title={emptyTitle}
-      description={emptyDescription}
-      {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
-    />
+    <div
+      bind:this={band}
+      class="plot-band waiting standing"
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
+    >
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
+      />
+    </div>
   {:else}
     <div bind:this={band} class="plot-band">
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
@@ -390,6 +402,13 @@
      transform, so the compositor runs it. */
   .waiting {
     padding: var(--sui-local-band-pad);
+  }
+
+  /* A failed or empty chart says so in the plot's own box, the one the veil takes while it
+     waits, so every state of a chart stands where its plot will. */
+  .plot-band.standing > :global(*) {
+    align-content: center;
+    min-block-size: var(--sui-local-plot);
   }
 
   .sui-chart-wait {

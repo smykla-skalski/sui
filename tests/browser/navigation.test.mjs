@@ -2182,6 +2182,30 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a failed or empty chart says so in its plot’s box, where its veil waits', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const boxes = await page.evaluate(() =>
+          [...document.querySelectorAll('.plot-band.standing')].map((band) => {
+            const panel = /** @type {Element} */ (band.firstElementChild).getBoundingClientRect();
+            const box = band.getBoundingClientRect();
+            const look = getComputedStyle(band);
+            const pad = parseFloat(look.paddingLeft);
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-local-plot)';
+            band.append(probe);
+            const plot = probe.getBoundingClientRect().height;
+            probe.remove();
+            return `${Math.round(panel.left - box.left - pad)} ${Math.round(box.right - pad - panel.right)} ${Math.round(panel.height - plot)}`;
+          })
+        );
+        assert.equal(boxes.length, 2, 'one failed and one empty chart');
+        assert.deepEqual(new Set(boxes), new Set(['0 0 0']));
+      } finally {
+        await page.close();
+      }
+    });
+
     test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
       const page = await openLayout('charts/', 1440);
       try {
