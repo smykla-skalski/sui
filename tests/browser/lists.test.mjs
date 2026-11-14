@@ -2384,17 +2384,26 @@ suite('lists', together, () => {
       // could crowd its title, so the rows arrive there too.
       const firstLoad = page.locator('#skeleton .example', { hasText: 'First Load' });
       const wide = page.viewportSize();
-      await page.setViewportSize({ width: 320, height: 800 });
+      // A short row keeps its side beside its name while both fit. Every kit row drops its side
+      // at 320px and keeps it from 370px. Near 360px the rows split by 3px of pill width, which
+      // a placeholder cannot know, so that width is left out.
+      const moved = [];
       try {
-        await firstLoad.getByRole('button', { name: 'Load Again' }).click();
-        await placeholders(true);
-        const phoneWaiting = await height();
-        await firstLoad.getByRole('button', { name: 'Show Rows' }).click();
-        await placeholders(false);
-        assert.equal(await height(), phoneWaiting, 'the page moves when the rows arrive at 320px');
+        for (const width of [320, 370, 430, 600]) {
+          await page.setViewportSize({ width, height: 800 });
+          await firstLoad.getByRole('button', { name: 'Load Again' }).click();
+          await placeholders(true);
+          const phoneWaiting = await height();
+          await firstLoad.getByRole('button', { name: 'Show Rows' }).click();
+          await placeholders(false);
+          const phoneLoaded = await height();
+          if (phoneLoaded !== phoneWaiting)
+            moved.push(`${width}px: ${phoneWaiting} -> ${phoneLoaded}`);
+        }
       } finally {
         if (wide) await page.setViewportSize(wide);
       }
+      assert.deepEqual(moved, [], 'the page moves when the rows arrive on a phone');
     });
   });
 

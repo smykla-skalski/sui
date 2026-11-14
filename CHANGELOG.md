@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- On a phone a `Skeleton` row keeps its side bar beside its bars while both fit at their full length, as an `ObjectRow` keeps its side, and its meta bars are 13.5rem and 12rem long, about a short row's meta line, so the list keeps its height when the rows arrive.
 - A `DiffBlock` with 2 empty sides draws its row on the head's ground in the head's ink, so it reads as a code surface and never as an empty field.
 - A `Rail` badge stands 4px over its glyph's end, not 8px, so its count covers only the glyph's corner.
 - A waiting chart veils only its plot's box and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
