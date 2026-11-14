@@ -273,7 +273,7 @@
   --sui-scrim-blur: 2px;
 
   --sui-sidebar-bg: var(--sui-canvas);
-  --sui-sidebar-border: var(--sui-border-subtle);
+  --sui-sidebar-border: var(--sui-border-band);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
@@ -835,7 +835,7 @@
   --sui-scrim: rgb(0 0 0 / 48%);
 
   --sui-sidebar-bg: var(--sui-canvas);
-  --sui-sidebar-border: var(--sui-border-subtle);
+  --sui-sidebar-border: var(--sui-border-band);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
@@ -1093,7 +1093,7 @@
     --sui-scrim: rgb(0 0 0 / 48%);
 
     --sui-sidebar-bg: var(--sui-canvas);
-    --sui-sidebar-border: var(--sui-border-subtle);
+    --sui-sidebar-border: var(--sui-border-band);
     --sui-sidebar-text: var(--sui-text-primary);
     --sui-sidebar-text-secondary: var(--sui-text-secondary);
     --sui-sidebar-text-muted: var(--sui-text-muted);
