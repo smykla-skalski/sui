@@ -41,7 +41,7 @@
 - A `SideNav` drawer's close draws a dialog close's 18px glyph in the secondary ink, so the way out reads beside the place's name.
 - A `LinkList` on a phone steps its links one 44px target apart, so a short list keeps a row's pitch instead of a gap that reads as a missing link.
 - A `Disclosure` hint in a right-to-left page keeps its room at the summary's end, so a hint in another script no longer starts its wrapped line 32px off the summary's edge.
-- A folded `SideNav` that stands alone keeps its `kicker` where the whole nav draws it, in the primary ink, over the head's hairline, so the strip still names its place; beside a rail it leaves the naming to the rail.
+- A folded `SideNav` that stands alone keeps its `kicker` in the primary ink over a hairline, 8px from the strip's top, the line and the rows, so the strip still names its place; beside a rail it leaves the naming to the rail.
 - An `AppShell` phone bar draws its `eyebrow` at 14px, the menu label's size, so the place it names never reads smaller than the button beside it.
 - A compact `Callout` centres its symbol in a full tile's 2rem slot, so its words start where a full callout's do.
 - A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.

@@ -255,8 +255,8 @@ Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the e
 into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
 over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
-hairline marks where each group starts. A strip that stands alone keeps its `kicker` where the whole nav draws it, in the primary ink,
-over the head's hairline; beside a rail the rail's places name the place instead. The `foot` is told when the
+hairline marks where each group starts. A strip that stands alone keeps its `kicker` in the primary ink over a hairline,
+8px from the strip's top, the line and the rows; beside a rail the rail's places name the place instead. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
@@ -837,15 +837,17 @@ following a row closes the drawer.
       display: none;
     }
 
-    /* Alone, the strip keeps its kicker, the place's short name, where the whole nav draws it,
-       in the primary ink, since it is the strip's one name, over the head's hairline 12px
-       under it; the rows start 8px under the line, as they do under a rail's places. Joined
-       to a rail, the rail's places name the place, and the head leaves (AppShell). */
+    /* Alone, the strip keeps its kicker, the place's short name, in the primary ink, since it
+       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 8px
+       under the strip's top, so naming the place costs the list 18px. Joined to a rail, the
+       rail's places name the place, and the head leaves (AppShell). */
     .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
       display: var(--sui-local-strip-head, flex);
       flex: none;
       justify-content: center;
-      margin-block-end: calc(var(--sui-space-2) - var(--sui-space-4));
+      margin-block: calc(var(--sui-space-2) - var(--sui-local-strip-start, var(--sui-space-4)))
+        calc(var(--sui-space-2) - var(--sui-space-4));
+      padding-block-end: var(--sui-space-2);
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-names {
