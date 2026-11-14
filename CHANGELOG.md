@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A fact row's pill whose words wrap grows its row, where it ran over the row under it, and a stacked pill stands one copy gap under its label.
 - A line or scatter chart whose first point has a marker stands it 8px clear of the y ticks' words, the gap they keep from a plot with none.
 - A mono fact value, such as a path, wraps after its separators before it breaks inside a word.
 - A count beside a tab, a segment or a side nav row is as wide as it is tall, so one figure stands in an 18px circle, where it was a 16x18 oval

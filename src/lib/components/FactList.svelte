@@ -290,12 +290,21 @@ apart, and the action under the value.
     padding-block: 0;
   }
 
-  /* In a row the box is as tall as a value's words and the pill reaches into the row's
-     padding on its middle, as a face does, so the row keeps its neighbours' pitch. It stands
-     on the label's cap box, not its baseline, so the pill lands on whole pixels (L-95). */
+  /* In a row a one-line pill reaches into the row's padding on its middle, as a face does, so
+     the row keeps its neighbours' pitch, while a pill whose words wrap grows the row by its
+     extra lines. It stands on the label's cap box, not its baseline, so the pill lands on whole
+     pixels (L-95). */
+  .rows .sui-fact-list-value:has(> :global(.sui-pill)) {
+    --sui-local-fact-mark: var(--sui-local-pill-tier, var(--sui-tier-mark));
+  }
+
+  .rows .sui-fact-list-value:has(> :global(.sui-chip)) {
+    --sui-local-fact-mark: var(--sui-control-height-chip);
+  }
+
   .rows .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
     align-self: start;
-    block-size: round(up, 1cap, 2px);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-local-fact-mark)) / 2);
   }
 
   /* A face beside a name stands taller than a value's words, so in a row the identity is as
@@ -329,6 +338,11 @@ apart, and the action under the value.
 
     .sui-fact-list-action {
       justify-self: start;
+    }
+
+    /* Stacked, a pill is a box one copy gap under its label, with no row padding to reach into. */
+    .rows .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
+      margin-block: 0;
     }
   }
 
