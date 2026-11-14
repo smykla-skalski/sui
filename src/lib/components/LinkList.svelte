@@ -43,7 +43,7 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
 - Keyboard: Tab walks the links in order and Enter follows one.
 - Pointer and touch: every link is `standalone`, so its hit area grows to 24px, and 44px on a phone or a touch screen, and the links stand far enough apart that the areas never meet.
 - Focus: nothing here moves focus.
-- Responsive: a long label or note wraps at its own edge; on a phone the links step one 44px touch target apart.
+- Responsive: a long label or note wraps at its own edge; on a phone or a touch screen the links step one 44px touch target apart, a row's hairline between them, so they read as rows.
 - Accessibility: a screen reader hears a list with its count; each note is the link's description, and an external link says "(opens another site)" after it; name the list with `aria-labelledby` when the page holds more than one.
 - Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page.
 - Performance: one link per item, with no script.
@@ -113,7 +113,23 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-link-list {
       --sui-local-link-target: var(--sui-touch-target);
-      row-gap: calc(var(--sui-touch-target) + 1px - round(up, 1cap, 2px));
+      --sui-local-link-step: calc(var(--sui-touch-target) + 1px - round(up, 1cap, 2px));
+      row-gap: var(--sui-local-link-step);
+    }
+
+    /* At a row's pitch the links read as rows, so a row's hairline parts them, as it parts a
+       property list's rows, on a whole pixel in the step between them. A border, so it still
+       draws under forced colors. */
+    .sui-link-list-item + .sui-link-list-item {
+      position: relative;
+    }
+
+    .sui-link-list-item + .sui-link-list-item::before {
+      border-block-start: var(--sui-row-hairline) solid var(--sui-border-divider);
+      content: '';
+      inset-block-start: calc(-1 * round(down, var(--sui-local-link-step) / 2, 1px));
+      inset-inline: 0;
+      position: absolute;
     }
   }
 </style>

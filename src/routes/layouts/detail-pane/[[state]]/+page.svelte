@@ -338,6 +338,18 @@
             <Section title="Related">
               <div class="from-ink links">{@render wait(2, 'var(--link-row)')}</div>
             </Section>
+            <!-- The closing disclosure's words need no answer, so it stands where it will stay,
+                 and opened early, its four facts wait as rows. -->
+            <Disclosure summary="More About This Check" hint="ID, worker and version">
+              <Skeleton
+                rows={more.length}
+                bars={false}
+                rowHeight={FACT_ROW}
+                patience={Infinity}
+                label=""
+                loadedLabel=""
+              />
+            </Disclosure>
           {/snippet}
         </DetailLayout>
       </div>
