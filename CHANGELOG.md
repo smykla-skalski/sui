@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Timeline` draws a clock time in the mono face's 500, where it drew 400, so the muted time column reads as firmly as the words beside it and is no longer the page's faintest text.
 - A `compact` `Callout` draws its bare symbol at 18px, a full callout's glyph, where it drew 16px, so a whole-page strip names its kind at a glance beside a tiled callout under it (L-56).
 - `SegmentedControl` reads its thumb's hover and press grounds from `--sui-segment-thumb-hover` and `--sui-segment-thumb-pressed`, so a holder that sets a neutral thumb never sees it flash the brand fill; the sink's sidebar theme switch takes a raised neutral thumb, so the current page keeps the column's one accent (L-85).
 - A `LinkList`'s links and a link in a `Section`'s head actions rest with no underline, since they stand apart from any sentence (L-81); hover and a press still draw it, and forced colors keep it.

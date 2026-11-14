@@ -316,8 +316,11 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     white-space: nowrap;
   }
 
+  /* Mono's strokes at 400 are thinner than the sans beside it, so a muted clock time takes the
+     face's 500 to read as firmly as the words, not as the page's faintest text. */
   .sui-timeline-time.clock > time {
     font-family: var(--sui-mono);
+    font-weight: var(--sui-weight-medium);
     font-variant-numeric: tabular-nums;
   }
 
