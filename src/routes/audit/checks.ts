@@ -3274,6 +3274,20 @@ function chartInk(root: Document): Finding[] {
       found.push(
         finding('L-66', top, `the top heat step stands ${round(ratio)}:1 from the next, under 1.5`)
       );
+    const steps = [1, 2, 3, 4].map((at) => {
+      const [low, high] = [at - 1, at].map((step) =>
+        top.closest('.legend')?.querySelector(`.step-${step}`)
+      );
+      return low && high ? contrast(paint(high), paint(low)) : NaN;
+    });
+    if (Math.max(...steps) > 1.25 * Math.min(...steps))
+      found.push(
+        finding(
+          'L-66',
+          top,
+          `the heat steps stand ${steps.map((value) => round(value)).join(', ')}:1 apart, the widest over 1.25 times the narrowest`
+        )
+      );
   }
   return found;
 }

@@ -43,10 +43,11 @@
     rangeLabel?: (from: string, to: string) => string;
   } = $props();
 
-  /* Five steps of the first chart colour. Every cell prints its value, so text ink holds 4.5:1
-     on the four lower steps in both themes, and the top step is the colour itself with its value
-     in the surface's ink, so the peak stands clear. The lowest holds 1.5:1 on its ground, so a
-     cell that holds a little never reads as an empty one. */
+  /* Five steps of the first chart colour. Every cell prints its value, so its ink holds 4.5:1 on
+     every step in both themes, and the top step is the colour itself with its value in the
+     surface's ink, so the peak stands clear. The lowest holds 1.5:1 on its ground, so a cell
+     that holds a little never reads as an empty one, and the four above it stand evenly apart, so
+     no two neighbours read as one and the peak does not leap. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
@@ -254,19 +255,23 @@ container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 28%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 27.5%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 42%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 43.5%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 56%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 59.5%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 70%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 75.5%, transparent);
   }
   .step-4 {
     --sui-local-heat: var(--sui-chart-1);
+  }
+  /* Dark's text ink falls under 4.5:1 on the step under the peak, where white still holds. */
+  .value.step-3 {
+    fill: light-dark(var(--sui-text-primary), var(--sui-on-brand-action));
   }
   .value.step-4 {
     fill: var(--sui-surface-base);
