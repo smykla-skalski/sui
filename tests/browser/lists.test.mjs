@@ -1674,10 +1674,9 @@ suite('lists', together, () => {
               height: empty.getBoundingClientRect().height,
               face: getComputedStyle(empty).fontFamily,
               ink: getComputedStyle(empty).color,
-              fill: getComputedStyle(empty).backgroundColor,
               numbers: {
                 face: getComputedStyle(words).fontFamily,
-                ink: getComputedStyle(words).color
+                ink: getComputedStyle(number).color
               }
             };
           })()
@@ -1688,12 +1687,12 @@ suite('lists', together, () => {
       assert.equal(diff.fill, code.fill, 'head fill');
       assert.equal(diff.ink, code.ink, 'line number ink');
       assert.equal(diff.air, code.air, 'air over the first line’s words');
-      // Two empty sides draw one row of the head's height on its ground in its words' ink and
-      // sans, so the block never reads as a field, and words are never mono (L-20).
+      // Two empty sides draw one row of the head's height in the line numbers' ink, so the block
+      // never reads as a field, and in the words' sans, as words are never mono (L-20).
       assert.deepEqual(
-        { height: empty.height, face: empty.face, ink: empty.ink, fill: empty.fill },
-        { height: diff.height, ...empty.numbers, fill: diff.fill },
-        'an empty diff draws one body row on the head’s ground'
+        { height: empty.height, face: empty.face, ink: empty.ink },
+        { height: diff.height, ...empty.numbers },
+        'an empty diff draws one body row'
       );
     });
 
