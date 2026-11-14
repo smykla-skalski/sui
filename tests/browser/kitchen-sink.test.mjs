@@ -384,7 +384,6 @@ suite('the kitchen sink', together, () => {
     }
   );
 
-  // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test(
     'on a phone the next specimen stands clear of a link list, further off than its rows',
     long,
@@ -505,6 +504,58 @@ suite('the kitchen sink', together, () => {
     );
   });
 
+  // L-55: a bound drawn round a narrow specimen hangs its dashes and inset outside the column,
+  // so what it holds starts under the specimen's name rather than 9px in from it.
+  test("a drawn narrow bound starts what it holds on the specimen name's edge", long, async () => {
+    for (const section of ['fact-line', 'avatar']) {
+      const page = await open(1440, 'light', {}, section);
+      try {
+        const bound = page.locator(`#${section} .specimen:has(.narrow)`).first();
+        await bound.scrollIntoViewIfNeeded();
+        const { name, words } = await bound.evaluate((node) => {
+          /** @param {Node} root */
+          const firstWords = (root) => {
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+              acceptNode: (text) => (text.textContent?.trim() ? 1 : 3)
+            });
+            const range = document.createRange();
+            range.selectNodeContents(/** @type {Node} */ (walker.nextNode()));
+            return range.getBoundingClientRect().left;
+          };
+          return {
+            name: firstWords(/** @type {Node} */ (node.querySelector('figcaption'))),
+            words: (() => {
+              const narrow = /** @type {Element} */ (node.querySelector('.narrow'));
+              const style = getComputedStyle(narrow);
+              return (
+                narrow.getBoundingClientRect().left +
+                parseFloat(style.borderInlineStartWidth) +
+                parseFloat(style.paddingInlineStart)
+              );
+            })()
+          };
+        });
+        assert.ok(
+          Math.abs(words - name) <= 1,
+          `${section}: the bound's content starts at ${words}, the name at ${name}`
+        );
+        if (section === 'fact-line') {
+          await bound.evaluate((node) => {
+            /** @type {HTMLElement} */ (node.querySelector('.narrow')).style.marginInlineStart =
+              '-16px';
+          });
+          const findings = (await audit(page)).filter(
+            ({ law, detail }) => law === 'L-55' && detail === 'reaches past its specimen'
+          );
+          assert.ok(findings.length > 0, 'a bound hung past its own inset is a finding');
+        }
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {

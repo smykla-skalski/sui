@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The kit hangs the dashed bound round a narrow fact line or identity row past a phone, so its words start under the specimen's name.
 - A `FactLine` dot draws alike in both themes, near 5:1 on its ground: on a 1x screen it is square, where a 2px circle blurred the light dot to 3.3:1, and on dark it takes 70% of the muted ink, where it drew 6.8:1 and was the loudest mark on the line.
 - A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
 - The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.

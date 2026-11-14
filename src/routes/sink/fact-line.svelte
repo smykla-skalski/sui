@@ -52,4 +52,12 @@
     inline-size: min(100%, calc(18rem + 2 * (var(--sui-space-2) + var(--sui-stroke))));
     padding: var(--sui-space-2);
   }
+
+  /* Past a phone the bound hangs its dashes and inset outside the column, so its words start
+     under the specimen's name. A phone's 16px stage would leave the dashes 7px off the frame. */
+  @media (min-width: 48rem) {
+    .narrow {
+      margin-inline-start: calc(-1 * (var(--sui-space-2) + var(--sui-stroke)));
+    }
+  }
 </style>

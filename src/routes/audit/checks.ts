@@ -2068,6 +2068,16 @@ function specimens(root: Document): Finding[] {
       const viewport = element.closest('.sui-data-table > .viewport');
       return viewport ? -parseFloat(getComputedStyle(viewport).marginInlineStart) : 0;
     };
+    // A bound a page draws round a narrow specimen hangs exactly its stroke and inset past it,
+    // so what it holds starts under the specimen's name, and reaches no further.
+    const hangReach = (look: CSSStyleDeclaration) =>
+      Math.max(
+        ...(['Left', 'Right'] as const).map((side) => {
+          const hang = -parseFloat(look[`margin${side}`]);
+          const inset = parseFloat(look[`border${side}Width`]) + parseFloat(look[`padding${side}`]);
+          return hang > 0 && Math.abs(hang - inset) <= 0.5 ? hang : 0;
+        })
+      );
     // A stacked stage lends its inset to what a specimen shows (L-66), so a chart's band may
     // span the specimen and exactly that inset on both sides, and nothing reaches further.
     const spansLent = (element: Element) => {
@@ -2123,7 +2133,7 @@ function specimens(root: Document): Finding[] {
         (parseFloat(look.borderLeftWidth) > 0 && rgba(look.borderLeftColor).a > 0) ||
         (parseFloat(look.borderTopWidth) > 0 && rgba(look.borderTopColor).a > 0);
       const control = element.matches(CARD_CONTENT) && !(element.matches('button') && !painted);
-      const reach = stripeReach(element);
+      const reach = Math.max(stripeReach(element), hangReach(look));
       if ((painted || control) && outside(paintedBox(element, look), reach)) return true;
       // Text an element clips to its own box paints no further than that box, and while nothing
       // overflows it sideways no further than its content box, so a scroller may pad room past
