@@ -174,6 +174,7 @@
 - A pressed `Select` no longer eases its inset under reduced motion (L-75). A `ColorPicker` focuses its swatch as its panel shows rather than a task later, so an arrow pressed at once picks a color.
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 - A closed `ColorPicker` panel or `ListToolbar` menu no longer keeps the `autofocus` mark it sets on open, so a `Modal` around one opens on its own field again, not on the hidden control.
+- A stacked `Timeline`, under 25rem, stands each event 4px further from the next, so a time over its words reads as one block.
 
 ## 0.4.0
 

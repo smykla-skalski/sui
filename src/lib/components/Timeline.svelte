@@ -127,7 +127,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 - Keyboard: Tab reaches a relative time, which shows its whole instant, and each action, in reading order; a clock time is not a tab stop.
 - Pointer and touch: an action keeps its own target; on a phone or a touch screen a wide timeline with actions spaces its events by the 44px target, so targets never meet.
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
-- Responsive: a container query under 25rem of its own width stands each time over its words, on the words' edge past an avatar's seat, sets the words at the body size and drops the pill and action under them, from the words' edge.
+- Responsive: a container query under 25rem of its own width stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
 - Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
 - Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
 - Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
@@ -497,6 +497,14 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
     .sui-timeline-day {
       margin-block-end: var(--sui-space-1);
+    }
+
+    /* Stacked, an event is a time a copy gap over its words, so the next event stands 4px
+       further off than it does on one line, and each event reads as one block. */
+    .sui-timeline-event + .sui-timeline-event {
+      margin-block-start: calc(
+        var(--sui-local-timeline-target) - round(up, 1cap, 1px) + var(--sui-space-2)
+      );
     }
 
     .sui-timeline-side {
