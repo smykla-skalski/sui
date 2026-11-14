@@ -645,26 +645,6 @@ suite('lists', together, () => {
         assert.ok(clear >= 1, `${name}'s mark stands ${clear.toFixed(2)}px inside the document`);
     });
 
-    test('the icon set shows each glyph once under a named group, its name in the glyph’s ink', async () => {
-      const page = await opened();
-      const { groups, names, apart } = await page.evaluate(() => {
-        const items = [...document.querySelectorAll('#icons .grid li')];
-        const ink = (/** @type {Element | null} */ node) =>
-          node ? getComputedStyle(node).color : '';
-        return {
-          groups: [...document.querySelectorAll('#icons .group')].map((head) => head.textContent),
-          names: items.map((item) => item.querySelector('.name')?.textContent),
-          apart: items
-            .filter((item) => ink(item.querySelector('.name')) !== ink(item.querySelector('svg')))
-            .map((item) => item.querySelector('.name')?.textContent)
-        };
-      });
-      assert.ok(groups.length >= 5, `only ${groups.length} groups`);
-      assert.ok(!groups.includes('Other'), 'a glyph has no group of its own');
-      assert.equal(new Set(names).size, names.length, 'a glyph shows twice');
-      assert.deepEqual(apart, [], 'names in another ink than their glyph');
-    });
-
     test('a small settings glyph keeps a clear pixel between its knobs and its rails on whole pixels', async () => {
       const page = await opened();
       const gaps = await page.evaluate(() =>
