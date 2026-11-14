@@ -43,7 +43,13 @@
 </Example>
 
 <style>
+  /* The bound the facts wrap in, drawn as the avatar page draws its own, so the wrap reads as
+     the point of the example. Its words keep the 18rem measure inside the frame. */
   .narrow {
-    max-inline-size: 18rem;
+    box-sizing: border-box;
+    border: var(--sui-stroke) dashed var(--sui-border-subtle);
+    border-radius: var(--sui-radius-control);
+    inline-size: min(100%, calc(18rem + 2 * (var(--sui-space-2) + var(--sui-stroke))));
+    padding: var(--sui-space-2);
   }
 </style>

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The sink's Fact Line Narrow Width example draws the 18rem bound its facts wrap in, dashed as the Avatar page draws its own, so the wrap reads as the point of the example.
 - A focused `RelativeTime` stands its ring on its words' edge, so in "Synced 42 minutes ago" the ring stands clear of the d of "Synced", where at 1px off it touched the letter: a space in the sans is 2.5px wide. The hover veil reaches as far as the ring.
 - A `LinkList` note stands 2px further under its link, so 6px of air stand between the link's underline and the note, where the line stood 4px over it and read as part of the note. Law L-24 grants a linked name's description this 10px gap.
 - A `Timeline` actor's avatar is 24px, with its initials at the 11px step, where it was 20px with 9px initials; its words stand past the wider seat and the list keeps its pitch.
