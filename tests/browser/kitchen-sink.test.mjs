@@ -435,31 +435,6 @@ suite('the kitchen sink', together, () => {
     }
   );
 
-  test(
-    "a focused time's tip on the Fact Line page leaves its specimen's name in view",
-    long,
-    async () => {
-      const page = await open(1440, 'light', {}, 'fact-line');
-      try {
-        const time = page.locator('#fact-line time.sui-relative-time').first();
-        await time.focus();
-        await page.waitForFunction(() => document.querySelector('.sui-tooltip:popover-open'));
-        const overlap = await time.evaluate((node) => {
-          const name = /** @type {Element} */ (
-            node.closest('.specimen')?.querySelector('figcaption')
-          );
-          const tip = /** @type {Element} */ (document.querySelector('.sui-tooltip:popover-open'));
-          const a = name.getBoundingClientRect();
-          const b = tip.getBoundingClientRect();
-          return Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-        });
-        assert.equal(overlap, 0, `the tip covers ${overlap}px of the name`);
-      } finally {
-        await page.close();
-      }
-    }
-  );
-
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {

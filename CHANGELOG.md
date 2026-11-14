@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-- The sink's Fact Line page stands its Facts names past a time's tip, as the Tooltip page does, so a focused time's tip no longer covers the "With a time" name and leaves a sliver of its W.
 - A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
 - The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.
 - The sink's Timeline page sets its Times and Days examples two to a line, each half of the stage, so on a desktop each timeline keeps the time column its note describes, where a 320px column stood each time over its words.
