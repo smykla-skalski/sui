@@ -375,6 +375,18 @@ test('L-62 a stripe is a 3% veil of the ink, which keeps the place without bandi
   );
 });
 
+test('L-64 a placeholder veils its ground by 8% on light and 12.5% on dark', () => {
+  const [light, ...dark] = [...stripComments(palette).matchAll(/--sui-placeholder: ([^;]+);/g)].map(
+    ([, value]) => value
+  );
+  assert.equal(
+    light,
+    'rgb(0 0 0 / 8%)',
+    'a large light placeholder outweighed the content beside it'
+  );
+  assert.deepEqual(new Set(dark), new Set(['rgb(255 255 255 / 12.5%)']));
+});
+
 test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid', () => {
   const wait = /\.sui-chart-wait\s*\{[^}]*\}/.exec(
     stripComments(styles['src/lib/charts/ChartFrame.svelte'])

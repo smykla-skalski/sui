@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A placeholder veils its ground by 8% on light, where 12% made a large one, as a waiting chart's, the heaviest thing beside the loaded content.
 - A `DataTableColumn` takes a `sample`, a typical widest value, which a loading table's placeholders hold unseen, so each column already has its loaded width and the table does not move when the rows arrive, where it shifted its columns up to 80px.
 - A bottom bar's count rides its glyph's corner, as the rail's does, where it stood beside the glyph; under 18rem, where the tiles shrink to their words, it stays beside.
 - A failed or empty chart centres its state in the plot's box, the error mark over the title, and sets its title at 15px over 14px words at every width, a step under the chart's 16px title, where on a phone its 17px title outranked the chart's; `--sui-font-size-chart-state-title` is new.
