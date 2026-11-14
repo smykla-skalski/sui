@@ -29,7 +29,8 @@ centres on its line at whole pixels (L-95).
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
     inline-size: var(--sui-inline-snap);
-    min-inline-size: var(--sui-space-4);
+    /* As wide as it is tall, so one figure stands in a circle and more stretch it to a pill. */
+    min-inline-size: calc(round(up, 1cap, 2px) + 2 * var(--sui-space-1));
     padding: var(--sui-space-1);
     place-items: center;
   }

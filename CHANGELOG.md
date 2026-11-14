@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A count beside a tab, a segment or a side nav row is as wide as it is tall, so one figure stands in an 18px circle, where it was a 16x18 oval
 - A `DataTable` on a phone runs its rules 8px past its words, its cells' side pad, so its frame ends 8px short of a card's edge and never doubles it
 - Inline facts part 12px, a step past the 8px between a wrapped value and its label, so each pair reads as one (they stood 6px apart)
 - Rail: a focused tile draws its ring inside it, as a side nav row does, so the ring keeps the tile's 8px from the rail's edge

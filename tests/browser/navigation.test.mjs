@@ -374,6 +374,28 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a one-figure count is a circle, and a longer one a pill as tall', async () => {
+    const page = await openLayout('tabs/', 1440);
+    try {
+      const counts = await page.evaluate(() =>
+        [...document.querySelectorAll('.sui-count')].map((count) => {
+          const box = count.getBoundingClientRect();
+          return [/** @type {string} */ (count.textContent).length, box.width, box.height];
+        })
+      );
+      assert.ok(
+        counts.some(([figures]) => figures === 1) && counts.some(([figures]) => figures > 1)
+      );
+      for (const [figures, width, height] of counts)
+        assert.ok(
+          figures === 1 ? width === height : width > height,
+          `${figures}: ${width}x${height}`
+        );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a focused rail tile draws its ring inside it, as a side nav row does', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
