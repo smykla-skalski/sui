@@ -435,6 +435,76 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  // Measured in drawn pixels: a 2px circle on a 1x screen blurs to a quarter less ink, which
+  // left the light dot at 3.3:1 and the dark one at 6.8:1.
+  test('a fact dot draws alike in both themes, 4.5:1 or more on its ground', long, async () => {
+    /** @type {number[]} */
+    const ratios = [];
+    for (const theme of ['light', 'dark']) {
+      const page = await open(1440, theme, {}, 'fact-line');
+      try {
+        const fact = page.locator('#fact-line .sui-fact-line > :first-child').first();
+        await fact.scrollIntoViewIfNeeded();
+        const spot = await fact.evaluate((node) => {
+          const box = node.getBoundingClientRect();
+          let ground = /** @type {Element} */ (node.parentElement);
+          while (getComputedStyle(ground).backgroundColor === 'rgba(0, 0, 0, 0)')
+            ground = /** @type {Element} */ (ground.parentElement);
+          return {
+            x: box.right - parseFloat(getComputedStyle(node, '::after').marginInlineEnd) - 2,
+            y: box.top,
+            height: box.height,
+            ground: getComputedStyle(ground).backgroundColor
+          };
+        });
+        const shot = await page.screenshot({
+          clip: {
+            x: Math.floor(spot.x) - 1,
+            y: Math.floor(spot.y),
+            width: 4,
+            height: Math.ceil(spot.height)
+          }
+        });
+        ratios.push(
+          await page.evaluate(
+            async ({ png, ground }) => {
+              const image = new Image();
+              image.src = `data:image/png;base64,${png}`;
+              await image.decode();
+              const canvas = document.createElement('canvas');
+              canvas.width = image.width;
+              canvas.height = image.height;
+              const context = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
+              context.drawImage(image, 0, 0);
+              const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+              const lum = (/** @type {number[]} */ c) =>
+                c
+                  .map((v) => v / 255)
+                  .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+                  .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+              const back = lum((ground.match(/\d+/g) ?? []).map(Number));
+              let best = 1;
+              for (let i = 0; i < data.length; i += 4) {
+                const l = lum([data[i], data[i + 1], data[i + 2]]);
+                best = Math.max(best, (Math.max(l, back) + 0.05) / (Math.min(l, back) + 0.05));
+              }
+              return best;
+            },
+            { png: shot.toString('base64'), ground: spot.ground }
+          )
+        );
+      } finally {
+        await page.close();
+      }
+    }
+    const [light, dark] = ratios;
+    for (const ratio of ratios) assert.ok(ratio >= 4.5, `a dot draws ${ratio.toFixed(2)}:1`);
+    assert.ok(
+      Math.abs(light - dark) <= 1,
+      `the dot draws ${light.toFixed(2)}:1 on light, ${dark.toFixed(2)}:1 on dark`
+    );
+  });
+
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {

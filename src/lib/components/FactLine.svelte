@@ -74,9 +74,15 @@ option) keeps its own typed separator instead.
      2px circle on whole pixels on the middle of the words' x-height, where a typed dot's ink
      fell on any fraction of a pixel and drew lighter or darker by where the words ended (L-95).
      Its glyph stays only for the spoken join, clipped unseen, and its margins are the only
-     space beside it (L-103). */
+     space beside it (L-103). On a screen of one pixel per pixel a 2px circle blurs to a quarter
+     less ink, so it is drawn square there, which reads as the same dot. The light ink holds
+     5.5:1 and the dark muted ink 9:1, so on dark the dot takes 70% of it and reads as firmly as
+     on light, near 5:1, rather than as the loudest mark on the line. */
   .sui-fact-line > :global(:not(:last-child))::after {
-    background: var(--sui-text-muted);
+    background: light-dark(
+      var(--sui-text-muted),
+      color-mix(in srgb, var(--sui-text-muted) 70%, transparent)
+    );
     block-size: var(--sui-stroke-bold);
     border-radius: var(--sui-radius-pill);
     color: transparent;
@@ -86,6 +92,12 @@ option) keeps its own typed separator instead.
     margin-inline: var(--sui-sep-space);
     overflow: hidden;
     vertical-align: round(calc(0.5ex - var(--sui-stroke)), 1px);
+  }
+
+  @media (resolution < 2x) {
+    .sui-fact-line > :global(:not(:last-child))::after {
+      border-radius: 0;
+    }
   }
 
   @media (forced-colors: active) {
