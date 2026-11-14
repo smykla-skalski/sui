@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.
 - An `EmptyState` and an `ErrorState` title, and a `FormError` summary's message, read at 17px on a phone, a step over the 16px body there, where they stood level with it, and a step under the 18px heading over them.
 - A `CodeBlock` head steps 4% ink off the code on light, down from 6%, so five heads on a page weigh less than the code under them, and its copy control on dark takes 10% ink, up from 7%, so it lifts off the head as far as the white control does on light.
 - A `CodeBlock` draws its line numbers in a comment's ink, so a number never outranks the code it counts, where the secondary ink stood them over the comments (6.3:1 light, 10.4:1 dark).
