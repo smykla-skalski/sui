@@ -16,6 +16,7 @@
     plus,
     px,
     rangeLayout,
+    roundDown,
     ticksOf,
     times,
     type Length,
@@ -125,11 +126,11 @@ cut on the axis without splitting a character and stay whole in the table under 
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the plot as one `role="img"`, a legend list and a disclosure holding a table of every interval.
 - Content: rows with a label, a start, an end and an optional marker; a title and a one-sentence description are required.
-- States: shown, empty, loading, refreshing, stale, failed and partial (rows left out); the data control draws hover, pressed and focus.
+- States: shown, empty, loading, refreshing, stale, failed and partial (rows left out); the data control draws hover, pressed and focus, and its chevron turns down while the table shows.
 - Keyboard: Tab reaches the plot when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since every value is in the table.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
-- Responsive: the plot stands on a band of the chart ground that reaches the edges of a card holding it; the longest row label starts and the furthest tick, end or marker ends exactly at the band's inner edges, and below 320px the plot scrolls sideways with a fade on each edge that has more past it; rows and margins grow with the reader's text size, so the ticks never meet the axis title; every place is a length the browser resolves from the band's width and the text size, so the server draws the plot where it stands once the page runs.
+- Responsive: the plot stands on a band of the chart ground that reaches the edges of a card holding it; the longest row label starts and the furthest tick, end or marker ends exactly at the band's inner edges, and below 240px, or below its labels and 160px of axis, the plot scrolls sideways with a fade on each edge that has more past it; rows and margins grow with the reader's text size, so the ticks never meet the axis title; every place is a length the browser resolves from the band's width and the text size, so the server draws the plot where it stands once the page runs.
 - Accessibility: the plot is one image named by the title and description, the table has the title as its caption and names a missing marker in words, every mark holds 3:1 and every word 4.5:1.
 - Localization: every word is a prop with an English default (`valueLabel`, `labelHeading`, `startLabel`, `endLabel`, `rangeLabel`, `markerLabel`, `noMarkerLabel` and the frame's words); default numbers follow the page language, labels are cut by character, the plot reads left to right in every page, and labels in a script the chart's own face does not hold are measured once the page runs.
 - Performance: two circles, a line and a marker a row, which suits tens of rows; the table renders only while it is open. Nothing animates; an edge fade switches on the plot's own scroll timeline.
@@ -157,7 +158,7 @@ cut on the axis without splitting a character and stay whole in the table under 
       aria-label="{title}{mark('stop')}{description}"
     >
       {#each valueAxis.ticks as tick (tick)}
-        <rect class="grid" style:x={css(minus(x(tick, box), px(0.5)))} style:height={css(rows)} />
+        <rect class="grid" style:x={css(roundDown(x(tick, box)))} style:height={css(rows)} />
         <text
           class="axis tick"
           text-anchor="middle"
@@ -260,12 +261,16 @@ cut on the axis without splitting a character and stay whole in the table under 
   svg {
     display: block;
   }
-  /* The plot takes its band's width in whole pixels, and scrolls below 320px at a 16px root,
-     more with larger text, so its bars never squeeze. It is its own container, so its marks
-     are placed in shares of its width and the server draws each one exactly where it stands. */
+  /* The plot takes its band's width in whole pixels, and scrolls below 240px at a 16px root,
+     more with larger text, or below its labels and 160px of axis, so its bars never squeeze
+     and a wide label never turns the axis round. It is its own container, so its marks are
+     placed in shares of its width and the server draws each one exactly where it stands. */
   .plot {
     container-type: inline-size;
-    inline-size: max(round(down, 100%, 1px), round(up, 20rem, 1px));
+    inline-size: max(
+      round(down, 100%, 1px),
+      round(up, max(15rem, var(--sui-local-plot-start) + 10rem), 1px)
+    );
   }
   .grid {
     fill: var(--sui-chart-grid);

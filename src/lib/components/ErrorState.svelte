@@ -15,8 +15,9 @@
     busy = false,
     focusAfterRetry,
     overContent = false,
+    centred = false,
     retryLabel = word('ErrorState.retryLabel', 'Try Again'),
-    retryingLabel = word('ErrorState.retryingLabel', 'Trying Again…'),
+    retryingLabel = word('ErrorState.retryingLabel', 'Retrying…'),
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -37,6 +38,8 @@
     focusAfterRetry?: () => HTMLElement | null | undefined;
     /** Loaded content stands behind the failure, so it becomes a line above it. */
     overContent?: boolean;
+    /** The panel stands in a box the size of what it stands for, such as a chart's plot, so its words centre in it, the mark before the title as one centred line. */
+    centred?: boolean;
     retryLabel?: string;
     /** The retry button's words while the retry runs. */
     retryingLabel?: string;
@@ -98,13 +101,13 @@ of them.
 
 - Semantics: an `alert` holding a title, a description and an optional retry `button`.
 - Content: a statement of what failed, one sentence on why and what to do, and the retry; the words wrap.
-- States: failed (a panel in the danger tone), retrying (the button busy with `retryingLabel`), and over loaded content (one line on the danger tint, its detail in the secondary ink as in the panel).
+- States: failed (a panel in the danger tone), retrying (the button busy with `retryingLabel`, at one width from rest to busy), and over loaded content (one line on the danger tint, its detail in the secondary ink as in the panel).
 - Keyboard: the retry takes Tab, Enter and Space; it ignores presses while busy.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
-- Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words and its button.
+- Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words, and its button under them.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and a warning mark and the danger ink stand beside words that say what failed.
-- Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
+- Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page, unless `centred`.
 - Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
 - Analytics: `onretry` reports each attempt to recover.
 - Failure: every failure offers a way out: `onretry` for one a retry can fix, `action` for another control, such as one that opens settings, and `step` in words for one that happens elsewhere, such as asking an owner for access; the law audit flags a failure with none.
@@ -113,21 +116,23 @@ of them.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-error-state', className, { over: overContent }]}
+  class={['sui-error-state', className, { over: overContent, centred: centred && !overContent }]}
   role="alert"
 >
   <div class="sui-error-state-copy" {@attach evenHeight}>
-    <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
-    <p class="sui-error-state-title">{title}</p>
+    <div class="sui-error-state-head">
+      <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
+      <p class="sui-error-state-title">{title}</p>
+    </div>
     <p class="sui-error-state-description">{description}</p>
-    {#if step}<p class="sui-error-state-step">{step}</p>{/if}
   </div>
+  {#if step}<p class="sui-error-state-step">{step}</p>{/if}
   {#if onretry || action}
     <div class="sui-error-state-retry">
       {#if onretry}
-        <Button loading={busy} onclick={retry}>
-          {busy ? retryingLabel : retryLabel}
-        </Button>
+        <!-- The button holds the retrying words' room from the start, so it keeps one width
+             as the retry runs and its focus ring never grows. -->
+        <Button loading={busy} busyLabel={retryingLabel} onclick={retry}>{retryLabel}</Button>
       {/if}
       {@render action?.()}
     </div>
@@ -136,30 +141,42 @@ of them.
 
 <style>
   /* A failure is a pale wash of the danger tint inside a light edge of the hue, so the edge
-     carries the state and the words keep their contrast. The wash is mixed over the surface,
-     so it reads as a clean tint on a page's warm canvas too, never a grey one. The retry is the neutral default
-     button, the reader's next step, which is to repeat the request (L-92). Stretched beside a
-     taller panel, its words keep to the top and its retry to the foot, as an empty panel's do. */
+     carries the state and the words keep their contrast. The wash (`--sui-danger-wash`) is
+     mixed over the surface on light, so it reads as a clean tint on a page's warm canvas too,
+     never a grey one, and from the deep red over the canvas on dark, under its button's fill.
+     The retry is the neutral default button, the reader's next step, which is to repeat the
+     request (L-92). It stays a raised ground over the wash, lifted toward the hue on dark so
+     it never reads as a hole in the darker red, and its edge and hover veil are the hue's, as a
+     warning callout's are, so a hovered or pressed retry deepens the tint rather than greying it. Stretched beside
+     a taller panel, its words and its retry keep to the top, as an empty panel's do. */
   .sui-error-state {
-    --sui-local-error-ground: color-mix(
-      in srgb,
-      var(--sui-danger-tint) 65%,
-      var(--sui-surface-base)
+    --sui-local-error-ground: var(--sui-danger-wash);
+    --sui-local-button-bg: light-dark(
+      var(--sui-surface-raised),
+      color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-raised))
     );
-    align-content: space-between;
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 16%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 24%, transparent);
+    --sui-control-border: color-mix(in srgb, var(--sui-danger) 18%, var(--sui-border-control));
+    --sui-control-border-hover: color-mix(
+      in srgb,
+      var(--sui-danger) 30%,
+      var(--sui-border-control)
+    );
+    align-content: start;
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-6);
+    padding: var(--sui-space-8) var(--sui-space-5);
   }
 
-  /* A phone gives the words some of the width the panel's inset would take. The row over
-     content keeps its row's inset, below. */
+  /* A phone's short screen takes the room above and below the words down to the sides' 20px.
+     The row over content keeps its row's inset, below. */
   @media (max-width: 47.9375rem) {
     .sui-error-state {
       gap: var(--sui-space-4);
@@ -168,9 +185,9 @@ of them.
   }
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). The warning
-     mark stands before the title, as a form error's does, while the explanation and step keep
-     the panel's whole width, so they wrap no sooner than they would without it. The spare pixel
-     stays after the rows, or stretching them would put a half pixel in each. */
+     mark hangs before the title, as a form error's does, and the explanation and step stand on
+     the title's edge, so the words read down one rail. The spare pixel stays after the rows, or
+     stretching them would put a half pixel in each. */
   .sui-error-state-copy {
     align-content: start;
     block-size: var(--sui-block-snap-even);
@@ -181,11 +198,62 @@ of them.
   }
 
   .sui-error-state-copy > p {
-    grid-column: 1 / -1;
+    grid-column: 2;
   }
 
-  .sui-error-state-copy > .sui-error-state-title {
+  /* The mark and the title stand in the copy's grid on the rail; they share a box only so a
+     centred panel can centre them as one line. */
+  .sui-error-state-head {
+    display: contents;
+  }
+
+  .sui-error-state-head > p {
     grid-column: 2;
+  }
+
+  /* A panel's next step, a step in words or the retry, stands on the words' rail too, as a
+     form error's links leave the line its mark and gap take. Over a list it follows the words
+     on their line instead. */
+  .sui-error-state:not(.over, .centred) > .sui-error-state-step,
+  .sui-error-state:not(.over, .centred) > .sui-error-state-retry {
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  /* Centred words still lead with the mark, as every note and a table's failure do: the mark
+     and the title centre as one line, and the explanation centres under both. A title too long
+     to share its line drops under the mark, so its wrapped lines centre on their own. */
+  .centred {
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* The line and the room it centres in are both an even width, so the mark lands on a whole
+     pixel and draws sharp. */
+  .centred > .sui-error-state-copy {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding-inline-end: calc(100% - round(down, 100%, 2px));
+  }
+
+  .centred > .sui-error-state-copy > p {
+    grid-column: 1;
+  }
+
+  .centred .sui-error-state-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-title-copy-gap) var(--sui-space-2);
+    justify-content: center;
+    max-inline-size: 100%;
+  }
+
+  .centred .sui-error-state-mark {
+    flex: none;
+  }
+
+  .centred .sui-error-state-title {
+    inline-size: calc-size(fit-content, round(up, size, 2px));
+    min-inline-size: 0;
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.
@@ -195,7 +263,7 @@ of them.
     align-self: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
   }
@@ -214,14 +282,18 @@ of them.
   .sui-error-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
+  /* A step in words takes the place a control would, a panel gap under the words, in the
+     body size. Its primary ink sets the reader's next move apart from why it failed (L-59),
+     and its regular weight keeps it under the title. */
   .sui-error-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    max-inline-size: var(--sui-measure);
   }
 
   .sui-error-state-description {
@@ -232,10 +304,14 @@ of them.
   }
 
   /* Over a list the failure is a line of its own inside the list's edges, its words and its
-     retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
-     inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
-     row, so the failure never reads as that row's state. Its retry stands one gap after its
-     words, so the way out reads with the failure. */
+     retry a step inside its tint, so they never crowd the tint's edge. Its tint, with a panel's
+     edge, meets the list's rails at its sides, where the rows' rules and the heading stand, so
+     the line never steps 2px in from the list it heads, and stands 2px inside its box above and
+     below, its words 16px inside the tint there, as a form error's stand in its own, so a
+     two-line failure never meets its edge. It stands 8px clear of the first row, so the failure
+     never reads as that row's state. Its retry ends
+     the line, where a reader looks for a line's action, and a line too narrow for both wraps it
+     under its words (L-90), at any width. */
   .over {
     align-items: center;
     background: none;
@@ -243,36 +319,42 @@ of them.
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
-    justify-content: start;
+    justify-content: space-between;
     /* A holder that asks for its lead gets the padding back, as a row list hands it back. */
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
-    padding: var(--sui-space-3) var(--sui-space-4);
+    /* The edge is drawn on the tint, outside the flow, so the sides add its stroke to stand
+       20px inside it, on the rail an error panel's and a form error's words stand on, and the
+       block adds the tint's inset too. */
+    padding: calc(var(--sui-space-4) + var(--sui-space-1) / 2 + var(--sui-stroke))
+      calc(var(--sui-space-5) + var(--sui-stroke));
     position: relative;
   }
 
   .over::before {
     background: var(--sui-local-error-ground);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: inherit;
     content: '';
-    inset: calc(var(--sui-space-1) / 2);
+    inset: calc(var(--sui-space-1) / 2) 0;
     position: absolute;
   }
 
-  .over > :is(.sui-error-state-copy, .sui-error-state-retry) {
+  .over > :is(.sui-error-state-copy, .sui-error-state-step, .sui-error-state-retry) {
     position: relative;
   }
 
-  /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
-  .over :is(.sui-error-state-title, .sui-error-state-mark) {
-    font-size: var(--sui-font-size-title);
+  .over > .sui-error-state-step,
+  .over > .sui-error-state-retry {
+    margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
-  /* High contrast drops the tint, so the plate keeps its shape by an outline. */
-  @media (forced-colors: active) {
-    .over::before {
-      outline: var(--sui-stroke) solid CanvasText;
-      outline-offset: calc(-1 * var(--sui-stroke));
+  /* A phone wraps the 44px retry under the words, so the line stands as a small panel: its tint
+     keeps the 20px it holds at its sides above and below too, past the tint's 2px inset and its
+     edge. */
+  @media (max-width: 47.9375rem) {
+    .over {
+      padding-block: calc(var(--sui-space-5) + var(--sui-space-1) / 2 + var(--sui-stroke));
     }
   }
 </style>

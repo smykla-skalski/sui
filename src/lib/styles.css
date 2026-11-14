@@ -223,6 +223,9 @@
   /* A field's danger edge. */
   --sui-danger-edge: var(--sui-danger);
   --sui-danger-edge-hover: var(--sui-danger-hover);
+  /* A failure's edge, 3:1 on dark, where the pastel ink needs a larger share. */
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 28%, #0000);
+  --sui-danger-wash: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-surface-base));
   /* An invalid field's recess takes a share of its edge's red, so a gray line never sits inside
      a red frame, and it stays a darker line under the top edge. */
   --sui-field-danger-recess: color-mix(
@@ -246,7 +249,7 @@
   --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, var(--sui-surface-base));
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
-  --sui-placeholder: rgb(0 0 0 / 7%);
+  --sui-placeholder: rgb(0 0 0 / 12%);
   --sui-placeholder-glint: rgb(255 255 255 / 60%);
   --sui-placeholder-sheen: linear-gradient(
     115deg,
@@ -274,11 +277,12 @@
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
-  --sui-sidebar-item-hover: color-mix(in srgb, #000000 3.5%, var(--sui-sidebar-bg));
-  --sui-sidebar-item-pressed: var(--sui-surface-inset);
-  --sui-sidebar-place-bg: color-mix(in srgb, #000000 8%, var(--sui-sidebar-bg));
-  /* The current row's plate stands a clear step under a pressed row's, so where the reader is
-     shows at a glance (L-85). */
+  --sui-sidebar-text-rest: color-mix(in srgb, var(--sui-text-primary) 30%, var(--sui-text-muted));
+  --sui-sidebar-item-hover: color-mix(in srgb, var(--sui-text-primary) 6%, var(--sui-sidebar-bg));
+  --sui-sidebar-item-pressed: color-mix(in srgb, var(--sui-text-primary) 9%, var(--sui-sidebar-bg));
+  /* A rail's current place stands a step past a pressed tile, on a neutral plate (L-85). */
+  --sui-sidebar-place-bg: color-mix(in srgb, var(--sui-text-primary) 13%, var(--sui-sidebar-bg));
+  /* The current plate stands a clear step past a pressed row's (L-85). */
   --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 18%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-text-current);
   --sui-sidebar-active-glyph: var(--sui-brand-action-text);
@@ -365,9 +369,11 @@
   --sui-code-string: #9b4805;
   --sui-code-selection-bg: var(--sui-brand-action);
   --sui-code-selection-ink: var(--sui-on-brand-action);
-  --sui-code-gutter: var(--sui-text-secondary);
+  --sui-code-gutter: color-mix(in srgb, var(--sui-text-muted) 95%, var(--sui-surface-code));
   --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
   --sui-code-punct: var(--sui-text-secondary);
+  --sui-code-head-ink: 4%;
+  --sui-code-chip-ink: 0%;
 
   --sui-match-ink: var(--sui-brand-action-text);
 
@@ -382,7 +388,7 @@
   --sui-sans: 'SUI Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
 
   --sui-chart-ink: var(--sui-brand-action);
-  --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+  --sui-chart-grid: var(--sui-border-subtle);
   --sui-stop-quiet-edge-mix: 45%;
   /* The plot's band keeps the ground of whatever holds it, so a chart and its card read as one
      unit. A marker's ring is the card's surface, opaque, so it parts a marker from a line it
@@ -474,6 +480,12 @@
      stands half a pixel under the words beside it, so its taller x-height matches theirs. */
   --sui-font-size-input-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
+  /* A state's title: a step over the body on a phone too (L-25). */
+  --sui-font-size-state-title: var(--sui-font-size-title);
+  --sui-font-size-chart-state-title: 0.9375rem;
+  /* Under the 11px floor on purpose: a 20px avatar's letters are a mark (L-25). */
+  --sui-font-size-initials-small: 0.5625rem;
+  --sui-font-size-initials-large: 1.25rem;
 
   --sui-font-size-card-title: 1.0625rem;
   --sui-font-size-dialog-title: 1.25rem;
@@ -531,6 +543,11 @@
   );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
+  /* A placeholder for a line of words rounds like Radix Themes' text skeleton, so it reads as
+     words to come, while a bar for a pill keeps the pill's round ends. */
+  --sui-radius-placeholder: 3px;
+  /* A 40px workspace mark's corner, 30% of its side (L-53). */
+  --sui-radius-mark-large: 12px;
 
   --sui-radius-chip: 6px;
   /* A chip's remove control stands one inset inside it, so its corner nests in the chip's. */
@@ -602,7 +619,7 @@
      In ch, so it follows the face and the text size it is set in. */
   --sui-measure: 50ch;
 
-  --sui-toc-width: 12rem;
+  --sui-toc-width: 17rem;
   --sui-rail-width: 5rem;
   --sui-sidebar-width: 228px;
   --sui-sidebar-width-collapsed: var(--sui-rail-width);
@@ -706,8 +723,10 @@
   --sui-surface-inset: var(--sui-primitive-dark-inset);
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 11%);
-  --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+  --sui-chart-grid: var(--sui-border-subtle);
   --sui-stop-quiet-edge-mix: 60%;
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 36%, #0000);
+  --sui-danger-wash: color-mix(in srgb, var(--sui-primitive-danger-light) 9%, var(--sui-canvas));
   --sui-chart-ground: transparent;
   --sui-chart-ring: var(--sui-surface-base);
   --sui-border-control: rgb(255 255 255 / 20%);
@@ -803,7 +822,7 @@
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
   --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
-  --sui-placeholder: rgb(255 255 255 / 7%);
+  --sui-placeholder: rgb(255 255 255 / 12.5%);
   --sui-placeholder-glint: rgb(255 255 255 / 10%);
   --sui-placeholder-sheen: linear-gradient(
     115deg,
@@ -824,10 +843,11 @@
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
-  --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 4%, var(--sui-sidebar-bg));
-  --sui-sidebar-item-pressed: var(--sui-surface-inset);
-  --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
-  --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 24%, var(--sui-sidebar-bg));
+  --sui-sidebar-text-rest: var(--sui-text-muted);
+  --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
+  --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
+  --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 13.5%, var(--sui-sidebar-bg));
+  --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-text-current);
   --sui-sidebar-active-glyph: var(--sui-brand-action-text);
   --sui-sidebar-focus: var(--sui-focus);
@@ -869,9 +889,11 @@
   --sui-code-string: #f2ab83;
   --sui-code-selection-bg: var(--sui-brand-action);
   --sui-code-selection-ink: var(--sui-on-brand-action);
-  --sui-code-gutter: var(--sui-text-secondary);
+  --sui-code-gutter: var(--sui-text-muted);
   --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
   --sui-code-punct: var(--sui-text-secondary);
+  --sui-code-head-ink: 4.5%;
+  --sui-code-chip-ink: 10%;
   --sui-match-ink: var(--sui-brand-action-text);
   --sui-switch-track-off: var(--sui-field-well);
   --sui-switch-track-off-border: var(--sui-border-strong);
@@ -961,8 +983,10 @@
     --sui-surface-inset: var(--sui-primitive-dark-inset);
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 11%);
-    --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+    --sui-chart-grid: var(--sui-border-subtle);
     --sui-stop-quiet-edge-mix: 60%;
+    --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 36%, #0000);
+    --sui-danger-wash: color-mix(in srgb, var(--sui-primitive-danger-light) 9%, var(--sui-canvas));
     --sui-chart-ground: transparent;
     --sui-chart-ring: var(--sui-surface-base);
     --sui-border-control: rgb(255 255 255 / 20%);
@@ -1058,7 +1082,7 @@
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
     --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
-    --sui-placeholder: rgb(255 255 255 / 7%);
+    --sui-placeholder: rgb(255 255 255 / 12.5%);
     --sui-placeholder-glint: rgb(255 255 255 / 10%);
     --sui-placeholder-sheen: linear-gradient(
       115deg,
@@ -1079,10 +1103,11 @@
     --sui-sidebar-text: var(--sui-text-primary);
     --sui-sidebar-text-secondary: var(--sui-text-secondary);
     --sui-sidebar-text-muted: var(--sui-text-muted);
-    --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 4%, var(--sui-sidebar-bg));
-    --sui-sidebar-item-pressed: var(--sui-surface-inset);
-    --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
-    --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 24%, var(--sui-sidebar-bg));
+    --sui-sidebar-text-rest: var(--sui-text-muted);
+    --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
+    --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
+    --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 13.5%, var(--sui-sidebar-bg));
+    --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));
     --sui-sidebar-active-ink: var(--sui-text-current);
     --sui-sidebar-active-glyph: var(--sui-brand-action-text);
     --sui-sidebar-focus: var(--sui-focus);
@@ -1124,9 +1149,11 @@
     --sui-code-string: #f2ab83;
     --sui-code-selection-bg: var(--sui-brand-action);
     --sui-code-selection-ink: var(--sui-on-brand-action);
-    --sui-code-gutter: var(--sui-text-secondary);
+    --sui-code-gutter: var(--sui-text-muted);
     --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
     --sui-code-punct: var(--sui-text-secondary);
+    --sui-code-head-ink: 4.5%;
+    --sui-code-chip-ink: 10%;
     --sui-match-ink: var(--sui-brand-action-text);
     --sui-switch-track-off: var(--sui-field-well);
     --sui-switch-track-off-border: var(--sui-border-strong);
@@ -1233,6 +1260,7 @@
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
     --sui-font-size-body: 1rem;
+    --sui-font-size-state-title: 1.0625rem;
     --sui-font-size-card-title: 1.125rem;
 
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
@@ -1343,6 +1371,19 @@
 
 :where(p, li, dd, figcaption, blockquote) {
   text-wrap: pretty;
+}
+
+/* Where a part lands focus: the kit's ring; a heading's clears descenders. */
+:where([data-sui-landed]):focus-visible {
+  border-radius: var(--sui-radius-chip);
+  outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+  outline-offset: var(--sui-focus-ring-inset);
+}
+
+:where(h1, h2, h3, h4, h5, h6)[data-sui-landed]:focus-visible {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  outline-offset: round(up, 0.25em + 1px, 1px);
 }
 
 /* A heading reached by its fragment lands a step below the edge, or below the sticky bars the

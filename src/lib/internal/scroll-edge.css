@@ -51,6 +51,19 @@
   }
 }
 
+/* Code's long lines are words cut mid-word at the edge, not values beside it, so a box of
+   code lines (`sui-scroll-edge-lines`) fades over a step more, enough that the last letters
+   melt rather than read as a clipped word. */
+.sui-scroll-edge.sui-scroll-edge-lines {
+  --sui-local-edge-fade: var(--sui-space-8);
+}
+
+@media (max-width: 29.9375rem) {
+  .sui-scroll-edge.sui-scroll-edge-lines {
+    --sui-local-edge-fade: var(--sui-space-6);
+  }
+}
+
 @supports (animation-timeline: scroll()) {
   .sui-scroll-edge {
     --sui-local-edge-side: to right;
@@ -79,9 +92,11 @@
   }
 
   /* A box that takes focus draws its ring inside its own edge (L-41), so under focus the band
-     the ring covers stays out of the fade on all four sides and the whole ring shows (L-96). */
+     the ring covers stays out of the fade on all four sides, and so does each corner, where the
+     ring's arc bends further in than the band, so the whole ring shows (L-96). */
   .sui-scroll-edge:focus-visible {
     --sui-local-edge-ring: var(--sui-focus-ring-width);
+    --sui-local-edge-corner: var(--sui-radius-control);
     mask-image:
       linear-gradient(
         to right,
@@ -95,7 +110,26 @@
         transparent var(--sui-local-edge-ring) calc(100% - var(--sui-local-edge-ring)),
         var(--sui-canvas) calc(100% - var(--sui-local-edge-ring))
       ),
+      linear-gradient(var(--sui-canvas) 0 0), linear-gradient(var(--sui-canvas) 0 0),
+      linear-gradient(var(--sui-canvas) 0 0), linear-gradient(var(--sui-canvas) 0 0),
       var(--sui-scroll-edge-mask);
+    mask-position:
+      0 0,
+      0 0,
+      left top,
+      right top,
+      left bottom,
+      right bottom,
+      0 0;
+    mask-repeat: no-repeat;
+    mask-size:
+      100% 100%,
+      100% 100%,
+      var(--sui-local-edge-corner) var(--sui-local-edge-corner),
+      var(--sui-local-edge-corner) var(--sui-local-edge-corner),
+      var(--sui-local-edge-corner) var(--sui-local-edge-corner),
+      var(--sui-local-edge-corner) var(--sui-local-edge-corner),
+      100% 100%;
   }
 }
 

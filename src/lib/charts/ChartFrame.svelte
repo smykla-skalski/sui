@@ -3,6 +3,7 @@
   import { onMount, type Snippet } from 'svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ErrorState from '../components/ErrorState.svelte';
+  import Icon from '../icons/Icon.svelte';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
   import '../internal/scroll-edge.css';
@@ -80,6 +81,24 @@
   const measure: Measure = (text, semibold = false, tabular = false) =>
     faceInk(text, semibold, tabular) ??
     (mounted && band ? measured(band, text, semibold, tabular) : guessInk(text));
+
+  /* A state centred in the plot's box lands half a pixel off the grid when its words leave an
+     odd remainder, and CSS cannot see their height, so a pixel more padding at its end takes
+     the odd one (L-95). Its box is border-box, so the plot's size holds. */
+  function onGrid(band: HTMLElement) {
+    const state = band.firstElementChild as HTMLElement | null;
+    if (!state) return;
+    const observer = new ResizeObserver(() => {
+      state.style.removeProperty('padding-block-end');
+      const first = state.firstElementChild;
+      if (!first) return;
+      const offset = first.getBoundingClientRect().top - state.getBoundingClientRect().top;
+      if (Math.abs(offset - Math.round(offset)) > 0.25)
+        state.style.paddingBlockEnd = `calc(${getComputedStyle(state).paddingBlockEnd} + 1px)`;
+    });
+    for (const part of state.children) observer.observe(part);
+    return () => observer.disconnect();
+  }
 
   function measured(band: HTMLElement, text: string, semibold: boolean, tabular: boolean): Ink {
     const look = getComputedStyle(band);
@@ -171,30 +190,51 @@
     <p>{description}</p>
   </figcaption>
   {#if note}
-    <p
-      class="sui-chart-note"
-      data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
-      aria-hidden="true"
-    >
-      {note}
+    <p class="sui-chart-note" data-status={status ?? 'partial'} aria-hidden="true">
+      <Icon
+        name={status === 'stale'
+          ? 'alert'
+          : status === 'refreshing'
+            ? 'refresh'
+            : status === 'loading'
+              ? 'pending'
+              : 'info'}
+        size="sm"
+      /><span>{note}</span>
     </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
   {#if status === 'failed'}
-    <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
+    <div
+      bind:this={band}
+      class="plot-band waiting standing"
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
+      {@attach onGrid}
+    >
+      <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} centred />
+    </div>
   {:else if status === 'loading'}
     <div
       bind:this={band}
-      class="plot-band sui-chart-wait"
+      class="plot-band waiting"
       style:--sui-local-plot={css(inlined(plotSize(measure)))}
       aria-hidden="true"
-    ></div>
+    >
+      <div class="sui-chart-wait"></div>
+    </div>
   {:else if empty}
-    <EmptyState
-      title={emptyTitle}
-      description={emptyDescription}
-      {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
-    />
+    <div
+      bind:this={band}
+      class="plot-band waiting standing"
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
+      {@attach onGrid}
+    >
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
+      />
+    </div>
   {:else}
     <div bind:this={band} class="plot-band">
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
@@ -213,7 +253,11 @@
     </div>
     {@render children?.()}
     <details bind:open ontoggle={() => ontableopenchange?.(open)}>
-      <summary><span>{dataLabel}</span></summary>
+      <summary
+        ><span class="chevron"><Icon name="chevron-right" size="base" /></span><span
+          >{dataLabel}</span
+        ></summary
+      >
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
@@ -240,8 +284,8 @@
   }
 
   /* A chart stretched to a taller neighbour's height, in a line of cards or specimens, keeps its
-     legend one gap under its own plot and its closed table at its foot, so charts side by side
-     end on one line. An open table follows its plot. */
+     legend one gap under its own plot and its table's summary one gap under that, open or
+     closed, so opening the table never moves the summary pressed, nor a neighbour's. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
@@ -286,9 +330,43 @@
   /* Values on their way or out of date are a state of the whole plot, so its note reads a step
      over a count of missing points. The marks keep their full strength, as a dimmed plot would
      drop them under the 3:1 they hold (L-66). */
-  .sui-chart-note[data-status] {
+  .sui-chart-note:is([data-status='refreshing'], [data-status='stale']) {
     color: var(--sui-text-secondary);
     font-weight: var(--sui-weight-medium);
+  }
+
+  /* A plot on its way, out of date or with points left out leads its note with the state's mark
+     in its hue, as a table's failed line leads with the danger mark, and its words keep their
+     ink: the refresh and the info mark in the info hue, the warning mark in the warning hue, and
+     a loading plot's clock in the muted ink, so every note's words start on one edge.
+     The mark reaches a pixel past the words' capitals, so the note keeps their height. */
+  .sui-chart-note[data-status] {
+    align-items: center;
+    block-size: auto;
+    display: flex;
+    gap: var(--sui-space-2);
+    padding-block: 0;
+  }
+
+  .sui-chart-note[data-status] > span {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-chart-note[data-status] > :global(svg) {
+    color: var(--sui-info);
+    margin-block: calc(-1 * var(--sui-space-1));
+  }
+
+  .sui-chart-note[data-status='stale'] > :global(svg) {
+    color: var(--sui-warning);
+  }
+
+  /* Values on their way are no news yet, so their clock stays in the note's muted ink. */
+  .sui-chart-note[data-status='loading'] > :global(svg) {
+    color: inherit;
   }
 
   /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.
@@ -300,6 +378,7 @@
      contextual form, so the face's table places every word as the browser draws it. */
   .plot-band {
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
+    --sui-local-band-pad-block: var(--sui-local-band-pad);
     background: var(--sui-chart-ground);
     border-radius: var(--sui-radius-control);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
@@ -307,6 +386,17 @@
     font-variant-ligatures: none;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
     min-inline-size: 0;
+  }
+
+  /* A band with no ground of its own draws no box, so room round the plot would only read as a
+     gap: the plot and every state's box start on the title's edge, as the legend and the summary
+     do, and 8px stand over and under it, its legend and summary under it by the chart's own
+     gaps. */
+  @container style(--sui-chart-ground: transparent) {
+    .plot-band {
+      --sui-local-band-pad: var(--sui-local-chart-bleed);
+      --sui-local-band-pad-block: var(--sui-space-2);
+    }
   }
 
   /* A band that reaches its holder's edges runs square into them. */
@@ -322,7 +412,7 @@
     border-radius: inherit;
     contain: inline-size;
     overflow-x: auto;
-    padding: var(--sui-local-band-pad);
+    padding: var(--sui-local-band-pad-block) var(--sui-local-band-pad);
   }
 
   .plot-scroll:focus-visible {
@@ -342,23 +432,40 @@
     }
   }
 
-  /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
-     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
-     that crosses every placeholder crosses it. Three grid lines at the quarters of the plot
-     stand under the light, so the wait reads as the chart to come, never a blank block, and they
-     draw no mark a reader could take for data (L-64). Only the light moves, by transform, so the
-     compositor runs it. */
+  /* While the data loads, the band keeps its place, size and shape, so nothing moves when the
+     plot arrives, and the plot's own box inside it is the placeholder: it takes the placeholder
+     veil, round at a control's corner, and the light that crosses every placeholder crosses it,
+     while the band's room over and under it stays on the band's ground. Three grid lines at the quarters
+     of the plot stand under the light, so the wait reads as the chart to come, never a blank
+     block, and they draw no mark a reader could take for data (L-64). Only the light moves, by
+     transform, so the compositor runs it. */
+  .waiting {
+    padding: var(--sui-local-band-pad-block) var(--sui-local-band-pad);
+  }
+
+  /* A failed or empty chart says so in the plot's own box, the one the veil takes while it
+     waits, so every state of a chart stands where its plot will. It reads under the chart's
+     title, a step under it at every width, its words at the chart's description size, and it
+     stands in the middle of the box as the plot it stands for would. */
+  .plot-band.standing > :global(*) {
+    --sui-font-size-state-title: var(--sui-font-size-chart-state-title);
+    --sui-font-size-body: var(--sui-font-size-meta);
+    align-content: center;
+    justify-items: center;
+    min-block-size: var(--sui-local-plot);
+    text-align: center;
+  }
+
   .sui-chart-wait {
     --sui-local-wait-line: linear-gradient(var(--sui-chart-grid), var(--sui-chart-grid));
     background:
-      var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat content-box,
-      var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat content-box,
-      var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat content-box,
+      var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat,
+      var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat,
+      var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat,
       var(--sui-placeholder);
-    block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
-    box-sizing: border-box;
+    block-size: var(--sui-local-plot);
+    border-radius: var(--sui-radius-control);
     overflow: clip;
-    padding-block: var(--sui-local-band-pad);
     position: relative;
   }
 
@@ -386,26 +493,17 @@
     }
   }
 
-  /* Forced colors drop the veil, so the waiting band keeps its shape by an outline, as every
-     placeholder does. A band that reaches its holder's edges keeps only the lines above and
-     below it, since the holder's own keyline closes its sides. */
+  /* Forced colors drop the veil, so the plot's box keeps its shape by an outline, as every
+     placeholder does, inside the band's lines. */
   @media (forced-colors: active) {
+    .waiting {
+      padding-block: calc(var(--sui-local-band-pad) - var(--sui-stroke));
+    }
+
     .sui-chart-wait {
-      border-block: 0;
       outline: var(--sui-stroke) solid GrayText;
       outline-offset: calc(-1 * var(--sui-stroke));
     }
-
-    @container not style(--sui-local-bleed: 0px) {
-      .sui-chart-wait {
-        border-block: var(--sui-stroke) solid GrayText;
-        outline: none;
-      }
-    }
-  }
-
-  details:not([open]) {
-    margin-block-start: auto;
   }
 
   /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
@@ -436,9 +534,26 @@
     user-select: none;
   }
 
+  /* The chevron leads the words at a disclosure's size, the tier of a glyph beside a control's
+     words (L-68), and turns down when the table shows (L-57). The mirrored chevron points to
+     the left, so it turns the other way. */
+  .chevron {
+    display: flex;
+    margin-inline-end: var(--sui-space-1);
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+  }
+
+  [open] > summary .chevron {
+    rotate: 90deg;
+  }
+
+  [open] > summary .chevron:dir(rtl) {
+    rotate: -90deg;
+  }
+
   /* An even box in the even control, so the room above and under the words halves to whole
      pixels (L-95). */
-  summary > span {
+  summary > span:not(.chevron) {
     align-content: center;
     block-size: var(--sui-block-snap-even);
     padding-block: var(--sui-block-snap-room-even);
@@ -494,9 +609,24 @@
     white-space: nowrap;
   }
 
+  /* A data table's cells, outer columns flush and the head ruled in the control ink, so a
+     chart's values read as one more DataTable (L-62). */
   .sui-chart-table :global(:is(th, td)) {
     border-block-end: var(--sui-stroke) solid var(--sui-chart-grid);
-    padding: var(--sui-space-2);
+    padding: var(--sui-space-3) var(--sui-space-4);
+    text-align: start;
+  }
+
+  .sui-chart-table :global(:is(th, td):first-child) {
+    padding-inline-start: 0;
+  }
+
+  .sui-chart-table :global(:is(th, td):last-child) {
+    padding-inline-end: 0;
+  }
+
+  .sui-chart-table :global(thead th) {
+    border-block-end-color: var(--sui-border-control);
   }
 
   /* Numbers line up at their end, and so do their headings. */
@@ -520,7 +650,8 @@
       content: none;
     }
 
-    summary {
+    summary,
+    .chevron {
       transition: none;
     }
   }

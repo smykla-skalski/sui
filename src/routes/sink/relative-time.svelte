@@ -45,6 +45,10 @@
 <Example
   title="Past"
   note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
+  layout="grid"
+  --specimen-min="8rem"
+  --specimen-max="max-content"
+  --specimen-column-gap="clamp(var(--sui-space-6), 5%, calc(2 * var(--sui-space-6)))"
 >
   {#each past as time (time.label)}
     <Specimen label={time.label}
@@ -53,7 +57,14 @@
   {/each}
 </Example>
 
-<Example title="Future" note="An instant still ahead reads as how soon">
+<Example
+  title="Future"
+  note="An instant still ahead reads as how soon"
+  layout="grid"
+  --specimen-min="8rem"
+  --specimen-max="max-content"
+  --specimen-column-gap="clamp(var(--sui-space-6), 5%, calc(2 * var(--sui-space-6)))"
+>
   {#each future as time (time.label)}
     <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
   {/each}
@@ -72,10 +83,12 @@
 >
   <p class="line">
     <FactLine
-      ><span>Deployed by Ada <RelativeTime value={past[1].value} /></span><span>checked again</span
+      ><span class="clause"
+        >Deployed by Ada <span class="when"><RelativeTime value={past[1].value} /></span></span
+      ><span class="clause"
+        >checked again <span class="when"><RelativeTime value={future[0].value} /></span></span
       ></FactLine
     >
-    <RelativeTime value={future[0].value} />
   </p>
 </Example>
 
@@ -85,5 +98,17 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* The times are what the line reports, so they read in the primary ink over its muted words,
+     as the standalone times above do. */
+  /* Each clause wraps whole to the next line when it fits there, so a line never parts the
+     words of one clause. */
+  .clause {
+    display: inline-block;
+  }
+
+  .when {
+    color: var(--sui-text-primary);
   }
 </style>

@@ -8,7 +8,7 @@
   const BLACK: Rgb = [0, 0, 0];
   const WHITE: Rgb = [255, 255, 255];
   /* The dark theme's tint of the chip's color, as GitHub draws a label in the dark. */
-  const TINT = 0.18;
+  const TINT = 0.26;
   /* The lightest dark ground a chip stands on (`--sui-surface-inset`): its tint is lightest
      there, so ink that reads on it reads on every darker ground. Recompute if it changes. */
   const DARK_GROUND: Rgb = [0x1b, 0x1c, 0x1f];
@@ -111,7 +111,7 @@
    * A painted chip in each theme. In the light one it wears the color with black or white ink,
    * and an edge only when the fill is near white. A mid-tone fill on which neither ink reads
    * 4.6:1 and Lc 61 moves along its hue, darker under white or lighter under black, whichever
-   * is the shorter way. In the dark one it wears an 18% tint of the color, and its ink is the
+   * is the shorter way. In the dark one it wears a 26% tint of the color, and its ink is the
    * color itself, lifted in lightness along its own hue until it reads on that tint.
    */
   function paint(rgb: Rgb) {
@@ -227,7 +227,7 @@ chose, such as a GitHub label's, and is how a reader recognises it in a list.
 
 A painted chip is drawn as GitHub draws a label. In the light theme it wears the color with
 black or white ink. On a mid-tone fill where neither ink reads 4.5:1 and APCA Lc 60, the fill
-moves along its own hue, the shorter way, until one does. In the dark theme it wears an 18%
+moves along its own hue, the shorter way, until one does. In the dark theme it wears a 26%
 tint of the color, and its ink is the color itself, lifted in lightness along its own hue
 until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge in the light theme, so it still shows on
 a white card, and only a near-black one in the dark theme, whose tint all but vanishes there. Anything but hex digits draws the plain chip, so a stored value never writes a
@@ -235,9 +235,9 @@ style declaration.
 
 - Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
 - Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
-- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps its paint with its mark at the disabled opacity.
+- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps a tenth of its color over that well, half that on the deeper dark well, so it still shows which label it is.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
-- Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
+- Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip, a small one too at the default chip's type size, is drawn 34px tall with a 44px target that reaches over its own value, and a 5px margin above and below holds the rest of the target, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
 - Responsive: as wide as its value, up to its container, and taller as a long value wraps; a `mono` value wraps after a `/`, `:`, `=` or `-` before it breaks a word.
 - Accessibility: the remove control is named by `removeLabel`, which is also its tooltip unless the chip is disabled, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
@@ -257,7 +257,7 @@ style declaration.
       mono,
       painted,
       removable: onremove !== undefined,
-      off: disabled && onremove !== undefined && !painted
+      off: disabled && onremove !== undefined
     }
   ]}
   style:--sui-chip-fill={painted?.fill}
@@ -279,7 +279,7 @@ style declaration.
       {disabled}
       onclick={remove}
     >
-      <Icon name="close" size="xs" strokeWidth={2} />
+      <Icon name="close" size="xs" />
     </button>
     <!-- Client only, so a chip inside a paragraph never gets a block box from the server. -->
     <!-- A disabled remove names no action it cannot take; the reason stands beside the chips. -->
@@ -312,9 +312,12 @@ style declaration.
     padding-inline: var(--sui-space-2);
   }
 
+  /* In a line of text a small chip stands on the text's own box, its foot on the words' foot,
+     so it stays inside the line's height rather than growing the line under a baseline. */
   .small {
     --sui-local-chip: var(--sui-control-height-chip-small);
     font-size: var(--sui-font-size-micro);
+    vertical-align: text-bottom;
   }
 
   .mono {
@@ -346,7 +349,7 @@ style declaration.
   .painted {
     background: light-dark(
       var(--sui-chip-fill),
-      color-mix(in srgb, var(--sui-chip-hue) 18%, transparent)
+      color-mix(in srgb, var(--sui-chip-hue) 26%, transparent)
     );
     box-shadow: inset 0 0 0 var(--sui-stroke)
       light-dark(var(--sui-chip-edge, transparent), var(--sui-chip-edge-dark, transparent));
@@ -360,6 +363,16 @@ style declaration.
     background: var(--sui-field-disabled);
     box-shadow: none;
     color: var(--sui-text-muted);
+  }
+
+  /* A painted chip that is off keeps a trace of its color over the well, so a reader still
+     knows the label while it reads as fixed beside the plain ones. The dark well is so deep
+     that a tenth of a pale hue lifts the chip over the other off ones, so dark keeps half. */
+  .off.painted {
+    background: light-dark(
+      color-mix(in srgb, var(--sui-chip-hue) 10%, var(--sui-field-disabled)),
+      color-mix(in srgb, var(--sui-chip-hue) 5%, var(--sui-field-disabled))
+    );
   }
 
   .off > .sui-chip-remove:disabled {
@@ -414,13 +427,22 @@ style declaration.
     position: absolute;
   }
 
-  /* A finger's 44px target that reached past the chip would overlap the next line's, so the
-     chip grows to hold the whole target instead. */
+  /* A finger gets a 44px target while the chip is drawn at the pointer's 34px tier, so a row of
+     removable chips stays a row of marks and not a stack of fields. The target reaches inward
+     over the chip's own value, never past its end, and the chip's margin holds the 5px it
+     reaches above and below, so the targets of chips on wrapped lines never overlap. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
+    /* A small chip's micro type would read as a caption in a 34px chip beside default ones of
+       the same height, so a removable one takes their size. */
+    .small.removable {
+      font-size: var(--sui-font-size-compact);
+    }
+
     .removable,
     .small.removable {
-      --sui-local-chip: var(--sui-touch-target);
-      --sui-local-remove: var(--sui-touch-target);
+      --sui-local-chip: var(--sui-control-height-drawn);
+      --sui-local-remove: var(--sui-control-height-drawn);
+      margin-block: calc((var(--sui-touch-target) - var(--sui-local-chip)) / 2);
       padding-inline-end: 0;
     }
 
@@ -428,8 +450,10 @@ style declaration.
       border-radius: inherit;
     }
 
+    /* Logical sides, so in a right-to-left page the target still reaches over the value. */
     .sui-chip-remove::before {
-      inset: 0;
+      inset-block: calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2);
+      inset-inline: calc(var(--sui-local-remove) - var(--sui-touch-target)) 0;
     }
   }
 
@@ -450,9 +474,16 @@ style declaration.
     translate: 0 1px;
   }
 
+  /* Inside the control, so the ring never lands on the chip's own edge as a double line. */
   .sui-chip-remove:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  /* On a painted fill the focus blue can fall under 3:1, as on violet, so the ring takes the
+     chip's ink, which holds 4.5:1 on that fill (L-6). */
+  .painted .sui-chip-remove:focus-visible {
+    outline-color: currentColor;
   }
 
   @media (prefers-reduced-motion: reduce) {

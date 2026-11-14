@@ -96,9 +96,10 @@ reaches past its edges into the holder's padding, still centred on the name. A h
     order: -1;
   }
 
-  /* The avatar centres on the name's own lines, and never stands above the row, unless the
-     holder asks it to overhang, so a one-line name and its handle still centre on it while a
-     name that wraps keeps it beside its lines. */
+  /* The avatar centres on the name's first line, and never stands above the row, unless the
+     holder asks it to overhang, so a one-line name still centres on it while a name that wraps
+     keeps it level with where the reader starts. The face takes the name's font, so its 1cap
+     is the name's. */
   @supports (anchor-name: --sui-identity-name) {
     .sui-identity-row {
       padding-inline-start: calc(var(--sui-local-face) + var(--sui-space-2));
@@ -109,12 +110,16 @@ reaches past its edges into the holder's padding, still centred on the name. A h
     }
 
     .sui-identity-face {
+      font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-note)
+        var(--sui-sans);
       inset-inline-start: 0;
       position: absolute;
       position-anchor: --sui-identity-name;
       top: max(
         calc(var(--sui-identity-overhang, 0) * var(--sui-local-face) / -2),
-        calc(anchor(center) - var(--sui-local-face) / 2)
+        calc(
+          min(anchor(center), anchor(top) + round(up, 1cap, 2px) / 2) - var(--sui-local-face) / 2
+        )
       );
     }
   }
@@ -138,10 +143,12 @@ reaches past its edges into the holder's padding, still centred on the name. A h
     text-box: trim-both cap alphabetic;
   }
 
+  /* A long name beside its mark wraps at the note leading, so its semibold lines never press
+     into one block in a narrow column (L-24). */
   .sui-identity-name {
     color: var(--sui-text-primary);
     font: var(--sui-identity-weight, var(--sui-weight-semibold)) var(--sui-font-size-body) /
-      var(--sui-row-copy-leading) var(--sui-sans);
+      var(--sui-leading-note) var(--sui-sans);
   }
 
   .sui-identity-handle {

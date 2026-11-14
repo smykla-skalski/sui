@@ -138,9 +138,9 @@
   }
 
   /* The header's words and the sections keep the column a detail pane keeps, a 72rem pane's,
-     centred in a wider pane, so the place's pages share one start edge. A row's status stays
-     within a glance of its name, so the sections stop at 60rem inside it. The band's ground and
-     line still run to the pane's edges. */
+     centred in a wider pane, so the place's pages share one start edge. The rows fill that
+     column, as the header's words do, so a row's status ends on the header's end edge and stays
+     within a glance of its name. The band's ground and line still run to the pane's edges. */
   main {
     --sui-local-head-inset: max(
       var(--sui-rhythm-pane-gutter),
@@ -151,10 +151,6 @@
   .body {
     padding-block: 0 var(--sui-rhythm-pane-gutter);
     padding-inline: var(--sui-local-head-inset);
-  }
-
-  .body > :global(*) {
-    max-inline-size: 60rem;
   }
 
   .copy {

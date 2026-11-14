@@ -272,8 +272,10 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       padding-inline: calc(var(--sui-space-4) - var(--stage-pad));
     }
 
+    /* Rows close to 24px on a phone, still 8px past the name gap, which a page whose tips need
+       room widens. */
     .specimens[data-layout='grid'] {
-      row-gap: var(--sui-space-6);
+      row-gap: calc(var(--specimen-caption-gap, var(--sui-space-4)) + var(--sui-space-2));
     }
   }
 

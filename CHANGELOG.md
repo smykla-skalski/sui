@@ -2,6 +2,224 @@
 
 ## Unreleased
 
+- ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
+- Rail: the column draws its edge inside its 80px, so each tile is an even 64px and its label box an even height, and the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels.
+- A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
+- A chart band with no ground starts its plot, its veil and its state boxes on the title's edge, as its legend and summary do, so the chart reads down one left edge.
+- A chart band with no ground of its own keeps 8px over and under its plot, where it kept 16px, so the plot stands closer to its words and the legend to its axis title; a tinted band keeps its full room.
+- AppShell: a page header's foot stands on the sidebar's ground, so its translucent rule paints the same ink as the sidebar's edge where the two meet, where it painted a step lighter over the header's band.
+- HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
+- DataTable: the caption is set 16px 600 at every width, as a chart's title is, and a refreshing table's words sit on the caption's baseline.
+- AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
+- HeatmapChart: columns widen to an even share of the band in whole pixels, never under a square cell, so the matrix fills its column and scrolls only past its narrowest; cells stand on whole pixels.
+- A failed `DataTable` leads its words with the 16px danger mark 8px off, as a field's 14px message does, where a 13px mark drew 11px of ink.
+- A `SideNav` kicker is set as a page header's eyebrow, 12px at 0.05em, so their capitals share one line, where it was 11px at 0.07em and its capitals stood a pixel under the eyebrow's.
+- A chart's View Chart Data stands one gap under its own plot or legend, open or closed, where a closed one dropped to the foot of a taller neighbour, left a hole as tall as 74px under the plot and jumped 41px from the pointer when pressed; L-66 changes with it.
+- A loading chart's note leads with the clock mark in its muted ink, so its words start where every other chart note's do, where they stood 21px further in; on dark a `HeatmapChart` prints every value under its peak in white, where only the step under the peak was white.
+- The rail and a collapsed side nav are 5rem wide, where 4.5rem left a tile's words 55px and "Personal" 4px of room each side; `--sui-rail-width` and `--sui-sidebar-width-collapsed` change.
+- A sortable `DataTable` heading is a 28px control whose ground reaches 8px past its words, with a 16px arrow, where it was a 24px chip 4px past them with a 12px arrow that drew 8 by 4px of ink; the heading row keeps its height.
+- A `HeatmapChart`'s four upper steps stand evenly apart, at 27.5, 43.5, 59.5 and 75.5% of the series color, where the top leapt 1.79:1 from steps 1.26:1 apart and two middle steps read as one; on dark the value on the step under the peak is white, where the text ink fell under 4.5:1. L-66 and its audit ask the widest step at most 1.25 times the narrowest.
+- A bottom bar's tiles stand 8px in from its edges, as the rail's do from its column's, where they stood 4px in and their plate all but met the bar's rule; the bar is 8px taller.
+- A line, scatter or range chart draws each gridline on one whole row or column of pixels, the one its value falls in, where most straddled two and drew as a faint 2px smear.
+- A `DataTableColumn` takes a `sample`, a typical widest value, which its heading holds unseen, so the column has its loaded width while the rows load, fail or are empty, and the table does not move when they arrive, where it shifted its columns up to 80px.
+- A bottom bar's count rides its glyph's corner, as the rail's does, where it stood beside the glyph; under 18rem, where the tiles shrink to their words, it stays beside.
+- A failed or empty chart centres its state in the plot's box, the error mark over the title, and sets its title at 15px over 14px words at every width, a step under the chart's 16px title, where on a phone its 17px title outranked the chart's; `--sui-font-size-chart-state-title` is new.
+- A refreshing `DataTable` says `refreshingLabel` on its caption's line, led by the refresh mark in the info hue, as a refreshing chart does, where only a screen reader heard it and the rows looked current.
+- `Rail` tiles stand 8px in from the column's sides, where they stood 4px in and their plate all but met the edge; the tile gives up its own inline padding, so its words keep their 55px.
+- A `HeatmapChart`'s lowest step holds 1.5:1 on its ground, its steps at 28, 42, 56 and 70% of the series color, where the lowest at 1.3:1 all but vanished on a dark card; L-66 and its audit ask 1.5:1.
+- The app shell demo lays its rows to the header band's gutter up to 80rem, where they stopped at 60rem and left a wide pane's end bare.
+- A failed or empty chart draws its error or empty state in the plot's own box, inset by the band's room and as tall as the plot, as its loading veil does, where the panel ran the chart's full width at its own height.
+- A `SegmentedControl` that has turned into its select takes the width of its words and chevron, and in a `SettingRow` too narrow for that beside the reset, as with text at twice its size, the reset goes above it, where the select was squeezed past its row's end. A `Select`'s box never shrinks under its insets and chevron room, so the field never draws past it.
+- A chart's table of values takes a `DataTable`'s cells: 12px by 16px, its outer columns flush with the chart's title, and its head ruled in the control ink, where 8px cells set its first words 8px in and every rule in one ink.
+- A `SideNav` starts its head at a page header's gutter, 24px and 16px on a phone, so its kicker and the page header's eyebrow share one cap line, where they stood 7px apart.
+- A `SideNav`'s foot starts 16px under its hairline, the gap that parts the rows from it, so the row in the foot stands as far from the rule as from the column's end, where 12px read as pushed up to the rule.
+- A `Section` whose content opens with a sub-section or a chart stands it the sub-section gap under its copy, 24px and 20px on a phone, so the inner title reads as its own head, where 16px read as the section's second line.
+- A `SideNav` draws the hairline under its title only once rows scroll under it, fading in over their first 8px, so at rest the shell shows one rule beside the page header's, not two at different heights. Inside an `AppShell` a `PageHeader`'s foot takes the sidebar's line ink, so the two rules meet as one.
+- `SideNav` and `Rail` rows rest in `--sui-sidebar-text-rest`, the strongest ink that keeps the current row's ink 2:1 apart: 30% of the primary ink over the muted on light, so the links read over their group headings, and the muted ink on dark. A hovered or focused row takes the primary ink.
+- A `DiffBlock` numbers each kept, added or changed line by its line in the new text, the toned ones in their line's ink, so a window's numbers agree with the file, where they counted the window's rows and only kept lines wore one. A removed line has no line in the new text and wears none.
+- A `DiffBlock` whose first or last line is removed or added carries that line's tone to the frame, where the block's air had left an untoned band.
+- A waiting chart veils only its plot's box, round at a control's corner, and leaves the band's room round it on the band's ground, so the wait reads as a plot in its band rather than a filled block.
+- A chart's grid lines and table rows draw the hairline that frames a surface, `--sui-border-subtle`, where they stood 65% of the way to a control's edge, so the series lead over the grid.
+- A chart whose points were left out leads its note with the info mark in the info hue, as a stale chart leads with the warning mark, and its words keep the muted ink.
+- On a phone a `Skeleton` row keeps its side bar beside its bars while both fit at their full length, as an `ObjectRow` keeps its side, and its meta bars are 13.5rem and 12rem long, about a short row's meta line, so the list keeps its height when the rows arrive.
+- A `Rail` badge stands 4px over its glyph's end, not 8px, so its count covers only the glyph's corner.
+- `SideNav`, `Rail` and the shell's Collapse hover on an `ObjectRow`'s hover ground, so the nav and the rows beside it answer the pointer alike, and a pressed item stands a step past it. The dark current plate, in the nav, on a current `ObjectRow` and on a current `PageToc` entry, takes 30% of the accent, up from 24%, so it stays a clear step past a pressed item. A `Rail` badge's halo takes its tile's ground when the tile is hovered, pressed or current, and the badge stands lower, so its halo stays inside the tile.
+- A chart's data control leads with a chevron that turns down while the table shows, as a `Disclosure`'s does, and a refreshing chart's note leads with the refresh mark in the info hue, as a stale one leads with the warning mark.
+- A `DiffBlock` marks the whole words that changed in a paired line, at most three stretches, so the quotes and brackets both sides keep stay plain, where one stretch ran from the first changed character to the last. Its head's plus and minus are drawn in the code's face, as the lines' glyphs are.
+- On a phone an `ObjectRow` keeps its side beside the main part whenever both fit on one line, so a wider pill such as Not checked no longer drops under a short name while the rows beside it keep theirs.
+- A `DiffBlock` with 2 empty sides draws one 44px body row with its words in the line numbers' quiet ink on their start rail, where a 36px box read as a field. Its plus and minus glyphs stand at 500, the code face's heaviest weight, so the removed side's short bar keeps its ink beside the added side's cross, and the head's glyphs are left as written by a page translator.
+- A chart whose values are out of date leads its note with the warning mark in the warning hue, so a stale plot no longer reads as one that is only described. A `RangeChart` fits a band down to 240px before it scrolls, where 320px cut a 390px phone's section chart at its last tick, and scrolls sooner when its labels need more than 80px, so its axis keeps 160px beside them.
+- An `EmptyState`'s dashed edge bends at `--sui-radius-control` and runs at `--sui-stroke`, so a themed panel's frame follows its corner and stroke, where its arcs held 8px and 1px.
+- A `LineChart` breaks its line where a value is missing, where it drew straight across the gap as if the value were there. A value with a gap on each side keeps its marker, even on a line of more than 12 values that draws none. A chart's table names each series from the start edge, where its row headings took the browser's centring.
+- A `DiffBlock` keeps its air above its first line and under its last on the code ground, outside the lines, so every tone is one line tall, and its head's words centre on their capitals in the row. L-65 now asks a diff block for the same air as a code block.
+- On dark, a `CodeBlock`'s comments and line numbers and a `DiffBlock`'s line numbers take the whole muted ink, which reads Lc 60 on the code ground, where 85% of it read Lc 48.
+- The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.
+- A `DiffBlock` draws a `CodeBlock`'s head: a 44px row a faint step off the code, with the file name at 13px medium and a subtle rule under it. Its line numbers take the code block's quiet gutter ink on a 16px start rail, and its first and last lines get the code block's room. `--sui-code-gutter` is now that quiet ink in both themes.
+- An `EmptyState` and an `ErrorState` title, and a `FormError` summary's message, read at 17px on a phone, a step over the 16px body there, where they stood level with it, and a step under the 18px heading over them.
+- A `CodeBlock` head steps 4% ink off the code on light, down from 6%, so five heads on a page weigh less than the code under them, and its copy control on dark takes 10% ink, up from 7%, so it lifts off the head as far as the white control does on light.
+- A `CodeBlock` draws its line numbers in a comment's ink, so a number never outranks the code it counts, where the secondary ink stood them over the comments (6.3:1 light, 10.4:1 dark).
+- The marks inside the `file-` icons span the same 5 units and stand a clear pixel inside the document at the 18px tier, so the invalid cross and the bypassed zigzag no longer close up, where they spanned 4 and the check and the missing dashes stood 0.75px off the outline.
+- A retry inside an `ErrorState` hovers in 16% of the danger hue on dark too, as on light, where 12% left the step easy to miss on the tinted panel.
+- An `ErrorState` over its rows pads its words 16px inside its tint above and below on a wide screen, as a `FormError` stands its words in its own, up from 13px.
+- An `ErrorState` over its rows pads its words 13px inside its tint above and below on a wide screen, up from 9px, so a two-line failure never meets its edge.
+- A `CodeBlock` parts its head row from its code and its line numbers from their lines in its frame's own edge, so the block draws one rule ink, where a row divider's 75% of it left the line about 1.2:1 on light and the head standing on its ground alone.
+- A comment in a `CodeBlock` steps back past the punctuation, as far as 4.5:1 on the code ground lets it (about 4.9:1 light and 6.8:1 dark), where it stood darker than the punctuation on light and level with it on dark. A `DiffBlock` keeps the shared comment ink, which its tinted rows need.
+- A `FormError` and an `ErrorState` over its rows stand their mark 20px inside the edge, the rail an error panel's words stand on, so every danger wash on a page starts its mark on one line, where they stood 16px in. On a phone the wrapped strip keeps 20px all round.
+- An `EmptyState` or `ErrorState` panel pads its words by 32px above and below, up from 28px, so an empty view reads as a place to rest and not a note (L-59). A phone keeps 20px all round.
+- An `ErrorState` over its rows keeps 16px inside its tint above and below on a phone, as at its sides, once its 44px retry wraps under the words, where 9px held the wrapped line tight against the tint.
+- An `Icon` named `github` scales its solid mark to 0.87 about the centre, so it reaches 2 to 22 units as the outline glyphs do with their stroke, where the full 23-unit mark outweighed every glyph beside it.
+- The kit's icon page sets each directional glyph over its mirror in one 32px column, left to right on one short line and right to left under it, so each pair reads at a glance at every width, where two mirrored rows put a glyph and its mirror at opposite ends.
+- The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
+- An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under. Each rail runs through the middle of a pixel row, so it draws as one sharp line at 10px and 12px.
+- The kit's icon page names each glyph at 13px on a 20px line, where the 11px names asked for a close look; no name wraps at 320px.
+- The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, its toggle the panel's own action so the three panels stand one height, focus moving to the toggle that takes the pressed one's place, and the panel speaks only once the reader's own filter empties it.
+- Every `Icon` and every kit page's glyph draws one 2-unit stroke, 1.33px at 16px, so a field's alert mark weighs as the title beside it and the set reads as one family, where controls drew 2 and the rest 1.75; `file-missing`'s dash and the dashed rings keep their gaps open under the heavier round caps.
+- A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
+- A `CodeBlock` with `lineNumbers` parts its gutter from its code by a divider 12px from each, so a number never reads as the first token of its line, where 16px of bare ground parted them. The gutter and its divider run the body's whole height.
+- A `CodeBlock`'s head names its file or language in the primary ink at 500, so the name anchors the head apart from the secondary copy words, where both read in one grey at one weight.
+- An `EmptyState` draws a dashed edge at the control edge's strength, 4px dashes on whole pixels that each side starts afresh and solid arcs that close its corners, so it reads as the room its content would fill, where a solid hairline drew it as one more card.
+- An `ErrorState`'s retry wears an edge of the danger hue, 18% at rest and 30% on hover, as a warning callout's button wears its own, where a grey edge stood on the pink wash.
+- An `ErrorState`'s and an `EmptyState`'s step in words read at the regular weight in the primary ink, under their semibold title, where the medium weight read as a second title.
+- An `ErrorState`'s retry says Retrying… while it runs, so at rest it holds 29px a side around Try Again, where Trying Again… held 41px.
+- A 28px `CopyButton`'s words read at the 13px caption size, as the names beside it in a `CodeBlock`'s head do, where the 14px control outranked the name it copies; the toolbar tier and a chip inside a field keep 14px.
+- The sink's day feed sets each heading 8px over its entries, their own step, where 12px held it apart from them.
+- The sink's day feed sets its times at the 13px caption size, a step under their 14px entries, where 12px read as small print.
+- A framed `CodeBlock`'s head steps off its code by 6% ink in light, so it also steps off the warm plate around it, where 2.5% read as noise on white and 4% sat one level off the plate, and by 4.5% in dark, where 2.5% left the head within a level of its code; its copy control stands lighter than the head in both themes, the code's white in light and 7% ink in dark (`--sui-code-head-ink`, `--sui-code-chip-ink`), where the raised ground sat darker than the deeper dark head.
+- A danger wash frames its failure in a quieter edge of the hue, 28% light and 36% dark where it stood at 40% and 50%, so the wash and the mark carry an error panel, a failed refresh, a form error and a refused save, and the edge no longer outweighs the page around it.
+- A `DayHeading` reads at the 16px semibold title tier on every width, a step over the 14px entries it heads, where it stood at their own size; a `Timeline`'s days take it too.
+- A `CodeBlock`'s file and language names read at the 13px caption size at every width, where 12px stood under the 14px code and copy words as small print.
+- A failed refresh over a list stands its mark and its retry 16px inside its edge, as a `FormError` does, where they stood 15px inside.
+- The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
+- A `CopyButton` at rest is as wide as its resting and copied words, and widens to its failure's words only while they show, as a field's copy chip does, where a short "Copy" kept 9px of room on each side for a hidden "Try Again".
+- The sink's day feed parts its days by 24px, twice the 12px under each heading, where 20px stood too close for a heading to read as the head of its own run.
+- The sink's filtered rows stand a row's pitch over their toggle, as the recovered rows stand over theirs, where the filtered toggle sat 13px closer.
+- A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside a whole 2px focus ring, so a keyboard copy shows its result and keeps its ring.
+- A focused `RelativeTime` the pointer also rests on drops its hover veil, so its focus ring keeps 3:1 on a current row's plate, where the veil under it took the ring to 2.96:1.
+- A `DayHeading` reads in the primary ink, so it heads its entries instead of standing quieter than them; a `Timeline`'s days take it too.
+- An `EmptyState`'s and an `ErrorState`'s title read at 16px semibold, a step under the 17px list heading over them, as a `FormError` summary's message does, where both stood at 17px and competed with the heading.
+- A framed `CodeBlock`'s copy control rests on the raised ground, so on dark it stands over the head row instead of sinking under it.
+- The sink's Past and Future times part their columns by 24px on a phone and 48px on a wide card, and a column grows past 8rem for a longer time, so a time never leaves its specimen under the WCAG text spacing or longer words.
+- The sink's day feed keeps each time at the row's end at every width, so a phone reads the times down one edge, where a long entry pushed its time under it to the row's start.
+- The sink's empty states stand under the heading of the list each stands for, Repositories and Invitations, as the failed lists beside them do.
+- A framed `CodeBlock`'s head row, its file name or its copy row, stands a faint step off the code, 2.5% of the ink over the code ground, so it reads as the block's head and not a first line.
+- A `FormError` summary sets its links 4px apart on a mouse, a 26px pitch, so they read as one list under the message, where 8px left 30px between 22px lines. Their 24px targets still never meet, and a touch screen keeps 24px between them.
+- A `CodeBlock`'s file name and language name are set at the compact size, 12px (13px on a phone), untracked, where 11px tracked mono read as a footnote under 14px code.
+- An `ErrorState overContent`'s tint meets the list's edges at its sides, where it stood 2px in from the rows' rules.
+- A framed `CodeBlock` heads its code with the language's name and the copy control in a row of its own at every width, not only on a phone; a `bare` block keeps its copy column on a desktop.
+- A hovered `RelativeTime`'s veil takes 12% of the focus hue in light, where 8% barely showed on white, and keeps 8% in dark.
+- `CodeBlock` and `DiffBlock` fade their scrolled lines over 32px, 24px on a phone, so a cut word melts into the edge.
+- An `ErrorState` retry stands raised over the dark failure wash, and its hover and press veils take the danger hue instead of grey.
+- A hovered `RelativeTime` spreads its veil to the focus ring's outer edge, so hover and focus mark one box.
+- An `ErrorState overContent`'s retry ends its line on a wide screen, where it stood 12px after the words, and on a phone it still wraps to the row's start.
+- The `PageToc` page ends its index on the frame's inset, as a documentation page sets it, where it stood 32px off the text with 98px of empty frame after it.
+- A heading a `PageToc` entry or a `ListDetail` lands on sets its ring a pixel past its descent, where the ring crossed a g or a y, and a `PageHeader` title takes the same ring.
+- An `ErrorState`'s explanation, step and retry stand on its title's edge, past the warning mark, so its words read down one rail as a `FormError` summary's do, where they returned to the panel's edge under the title.
+- A focused `ClippedLabel`'s ring is set past its descenders, where its foot crossed a g or a p, 3px further up past its ascent, and 2px further out at its start, nearer the room its ellipsis leaves at the end, and the label does not move.
+- A painted `Chip`'s remove control rings its focus in the chip's ink, which holds 4.5:1 on the fill, where the focus blue held 1.55:1 on a violet chip.
+- A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).
+- The Empty & Error States page keeps its form examples to one 640px measure.
+- A `RelativeTime` draws its dots 1px across, one every 3px, in half its words' ink and 3px under their baseline, where rounder grey dots stood 4px apart and 4px under it.
+- A `CodeBlock` on a phone heads its copy control in a row of its own and gives its code the whole width, where the control's column took 112px beside every line.
+- A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
+- A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
+- The Relative Time page's In Context line reads its times in the primary ink over its muted words.
+- A focused `CodeBlock` draws its ring over its own edge, round its copy control too, where a second box stood inside the frame; a `bare` block keeps the ring inside its scroller. On a phone the language's name stands on the copy control's baseline.
+- An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
+- The sink's filtered list is a titled section of rows with its filter under them, as the failed lists beside it are.
+- An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
+- On a phone a plain text `CodeBlock` heads its copy row with "Text" (`plainTextName`), where the row started empty.
+- A dark `ErrorState`, `FormError` and refused `Modal` save lay the deep danger red over the canvas through the new `--sui-danger-wash`, so the wash reads red and stands under its button's fill, where the pastel ink mixed to a grey plum lighter than the button.
+- An `EmptyState` or `ErrorState` step in words stands where a control would, 20px under the words in the body size, where it stood the title gap under them in the meta size.
+- The Relative Time page sets its past and future times on 8rem columns, so wrapped rows on a phone share their column lines.
+- A `RelativeTime`'s whole instant pads its hour only where the language does, so English reads 9:26:53 AM, not 09:26:53 AM.
+- A hovered `RelativeTime` lays a faint accent veil in its focus ring's box.
+- A hovered or focused `RelativeTime` draws its dots in its words' full ink, where they took 80% of it on hover and 60% with focus.
+- A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.
+- A wide `ListToolbar` keeps its filter beside a search that reached 32rem and its action at the end, where the search part took the spare width and pushed the filter away.
+- On a phone a `CodeBlock` with no copy control keeps its own top edge, where it drew a divider against its border and squared its corners.
+- A `CodeBlock` with no file name names its language at the start of a phone's copy row, where the row held the control alone; at a large text size the control wraps under the name.
+- A focused box that scrolls sideways, such as a `CodeBlock`, a `DataTable` or `Tabs`, draws its focus ring's corners whole, where the end fade washed out the arc at the end corners.
+- The Empty & Error States page's recovered rows hold the failed panel's height, where the panels beside them shrank 32px once its retry succeeded.
+- The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
+- A `RelativeTime`'s dots stand 3px clear of a g or a y in 60% of the words' ink, where they touched the descenders at half the ink.
+- On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
+- A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
+- A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.
+- The `ClippedLabel` page stands each label's name past its tip's reach, so an open tip, the identifier's two lines too, never covers the name.
+- A `mono` `Tooltip`, such as a clipped identifier's, takes a tip's 13px, where 11px read small beside the label it repeats, and it wraps after a slash before it breaks inside a name.
+- An `ErrorState`'s Try Again keeps one width as it turns to Trying Again…, the room its busy words take, as a `LoadMore` button does, where it grew 55px and its focus ring with it.
+- A `PageToc`'s title stands at the top of the index on a wide screen, so its letters line up with the first heading beside it, where they stood 8px lower.
+- A 20px `Avatar`'s initials are 9px, near the share of the mark that the larger sizes' letters take, where 10px filled half the circle and crowded its ring.
+- A `LoadMore` failure's reason is medium weight, as a field's error is, where regular red read thin beside its alert mark.
+- The `LoadMore` page names its live list, as every other specimen on the page is named.
+- A `LoadMore`'s count, reason and end note take the 13px caption step, a step under the 14px details of the rows over them, so the footer reads as a note on the list rather than one more row.
+- The `LoadMore` page sets its list without a total across the card, as the live list under it, where it stood in a narrow column beside empty room.
+- A `PageToc`'s 44px entries on a phone or a touch screen touch, where 4px between them stretched the list past its targets.
+- A `PageToc` on a phone keeps no room beside its rows for a scrollbar it never shows, so its rows end where the page's lines end.
+- A `PageToc`'s title and group headings stand 12px in, on the entries' words, as a `SideNav`'s headings do, where they stood on the plates' edge.
+- The `PageToc` page closes its index with a hairline on a phone, where it stands over the article, so the links read apart from the first section.
+- `--sui-toc-width` is 17rem, so a `PageToc` section title of five words keeps one line beside the scrollbar gutter, where 12rem wrapped it beside empty room.
+- The `Avatar` page shows identity rows in an object list, one of them open on the current plate, so the avatar's tint and ring read on the grounds they meet in use.
+- An `Avatar`'s initials are semibold, the weight of the name an `IdentityRow` sets beside them, where bold read heavier than the name and than a section heading at 48px. The ink each letter draws is measured again at that weight, so the initials still centre on the circle.
+- The `Avatar` page shows each fallback on the same person or workspace as the picture beside it, so the initials read as what stands under that picture.
+- The `Avatar` page states its pictures and fallbacks in a shorter note, since each specimen already names its case.
+- The `Avatar` page draws a picture at every size beside the initials it covers, and labels each row with the prop it sets, `shape="person"`, `shape="workspace"` and `src="…"`, and its identity rows show a picture that fails and a workspace's logo.
+- A whole `LoadMore` list's end note holds the button's height, so the footer keeps one height to the last page and the note stands level with the count it replaces, where it stood higher on a shorter footer.
+- An `IdentityRow` whose name wraps stands its face level with the name's first line, where a short name's stands, where it centred on the whole block and stood by its middle line.
+- A `PageToc`'s title and a `SideNav`'s group headings are 12px at 0.04em, where 11px capitals at 0.06em to 0.07em read small and pinched beside their 14px links.
+- An `Avatar` picture stands on the raised surface, so a transparent logo shows on a neutral ground, where it stood on the brand tint the initials keep.
+- A `PageHeader` title a `ListDetail` lands focus on wears the kit's ring as every landed heading does, set out past its descenders, where the title's own reset hid it.
+- A `LoadMore` failure's alert mark is 16px, the size every other alert in the kit takes beside its reason, where 12px read faint beside the danger words.
+- The `LoadMore` page sets its four states two to a line, where three narrow columns left the whole list alone on a second row and wrapped a failure's Try Again under its reason.
+- A `LoadMore` button keeps one width as it turns from Load More to loading to Try Again, the room its loading words take, where each state drew its own width.
+- An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
+- A hovered `PageToc` entry takes the hover ink, the primary on light and the bright ink on dark, where it stepped only from the muted ink to the secondary.
+- The `Avatar` page draws the 16rem bound its long name wraps in, inside the example's content edge, names its workspace Platform Team in every example, so one team wears one mark, and draws its handle without a name from `@kwame`, a K, where an O read as a zero.
+- The `PageToc` page sets its article paragraphs in the primary ink, under each section's description in the secondary one, so the text a reader reads stands apart from its notes.
+- A 40px workspace `Avatar` rounds 12px (`--sui-radius-mark-large`), 30% of its side as every other size's corner is, where 10px read as a squarer mark between its neighbours.
+- The `Avatar` page runs its sizes across and its two shapes down, as the `Chip` and `Icon` pages run theirs, so the size ramp reads in one line from 20px to 48px.
+- A `PageToc`'s title stands 8px into it, so at rest it lines up with the page's first heading, where it stood 24px under it, and it sticks 16px under the top so a stuck index keeps its 24px. On a phone, where it never sticks, it keeps no room under its last entry, and the `PageToc` page stands its article 16px under it.
+- A slow `Skeleton`'s title is set at 500, under a loaded name's 600, so it reads as the wait's status rather than a row called "Still loading…".
+- The `Avatar` page shows its missing names among its pictures and fallbacks, one grid of every way a mark stands in, and an identity row with a picture beside the ones with initials, two to a line.
+- The `PageToc` page sets its article at a 40rem reading measure, 32px off the index, with section titles at the card title size, where long lines ran 790px wide under 16px titles.
+- A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.
+- A `ListToolbar` sets the choices named beside its tools button in the primary ink, at the regular weight, so they read as the button's current values rather than as a caption.
+- The `Chip` page's Remove & refocus group holds three labels, so on a laptop it keeps one row rather than leaving its last chip alone on a second.
+- A disabled painted `Chip` on the dark theme keeps 5% of its color over the well, where it kept 10%, so a pale label no longer stands brighter than the other disabled chips.
+- A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, a small one at the default chip's type size, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
+- A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
+- With nothing open beside its list, a `ListDetail`'s placeholder stands centred across the pane and a quarter of the way down it, on whole pixels, where it stood in the pane's top corner.
+- Beside its list, a `ListDetail`'s open item stands on its header band's ground, so it reads as one sheet beside the list rather than as a band over the page's canvas; with nothing open the pane keeps the canvas.
+- The `Skeleton` page's First Load puts its button, Show Rows, in the list's head, beside the title it reloads, and its label fits a phone's head at twice the text size.
+- The `Skeleton` page sets its Rows and Slow examples in two wide columns, where three narrow tracks left the third one empty.
+- A `Skeleton`'s side bar is 3.5rem wide, as wide as a short pill, where it was 5rem, and plain rows keep no empty side column, so their bar is half the row as a two-line row's first bar is half its name's room.
+- On a phone a `Skeleton` row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot, and a slow first row holds that slot too, so a list whose sides drop neither grows when its rows arrive nor moves when its wait turns slow.
+- A `PageToc`'s current entry stands on the accent plate the sidebar's current page wears, 18% of the accent on light and 24% on dark, where its grey inset plate looked like the hovered entry.
+- A heading that a `PageToc` entry or a `ListDetail` moves focus to wears the kit's 2px ring around its words when the keyboard brought it there, where the browser's own outline traced the whole column in an odd shape.
+- An `IdentityRow`'s name wraps at the note leading, 20px and 22px on a phone, so a long name beside its avatar no longer presses into one block.
+- An `Avatar` under 24px sets its initials at 10px (`--sui-font-size-initials-small`) at every width, where the 11px micro step, 12px on a phone, filled most of a 20px mark.
+- An `Avatar` 44px or larger sets its initials at 20px (`--sui-font-size-initials-large`), where the 16px title step read small in a mark that wide, and a 28px one, the default, at 12px, a step of its own between 24px's 11px and 32px's 14px.
+- A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
+- The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.
+- The `Avatar` page's portrait stands on a warm ground with dark hair, so a picture reads apart from initials on the brand tint at a glance.
+- A slow `Skeleton`'s title and every row's first bar take the body size a row's name is set at, so the title reads as the name it stands for and the bar is one of its caps tall.
+- A placeholder bar is 12% black on the light theme and 12.5% white on the dark, where both were 7%, so a waiting list's bars hold their place beside its words.
+- A `Skeleton` bar for a line of words rounds 3px (`--sui-radius-placeholder`), and only the bar for a row's side keeps a pill's round ends, so the words to come and the pill to come read apart.
+- The `Skeleton` page's loaded rows carry the side their placeholders promise, so the rows take the shape the bars held.
+- An `ObjectRow`'s focus ring stands 1px inside the row's ground on every side, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it, and its grounds stop a pixel under its top, so the open row's plate and a hovered neighbour's keep a seam of the page between them, where they met as one block in two tones.
+- A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
+- A `ListToolbar` stands its groups 20px apart on a line, where they stood 12px apart, so the choice named beside the tools button reads as the button's and not as the action's.
+- The `ListToolbar` page's rows link to the page's own example, as the other kit pages' rows do, where they named fragments that no part of the page carries.
+- A `ListDetail` beside its list gives the open item's `PageHeader` the compact 24px title, as a phone does, so the pane's header no longer outweighs the list. The list-detail layout sets a step's time in the sans face, so its unit stands a word's space from the number.
+- The `Chip` page's small removable chip leaves when its remove is pressed, as the chips beside it do, where its remove did nothing.
+- The `ListToolbar` page's Parts bars share one search label, so their fields start on one edge.
+- A painted `Chip` on the dark theme wears a 26% tint of its color, where it wore 18%, so a blue or violet label keeps its strength beside the dark ground, and its ink still lifts along its hue until it reads.
+- A pressed `ObjectRow` takes the pressed ground again, where a hovered row's ground had outranked it since the open row took its accent plate.
+- The `ListToolbar` page draws the 17rem holder of its narrow bar as a hairline, so the bar reads as filling it.
+- A disabled painted `Chip` takes an off field's paint as a plain one does, with a tenth of its color over the well, so it reads as fixed beside them and still shows which label it is.
+- A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. The `ListToolbar` page's All counts what the search leaves.
+- A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 30% on light and 38% on dark, never on a hovered row's grey, and its quiet words lean halfway toward the primary ink, so they hold 4.5:1 and Lc 60 on that deeper plate, on an inset ground too.
+- A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A folded `AppShell` with a rail draws one 80px column, not a rail beside a strip: the places at the top, a hairline, the pages, then the fold control and the rail's foot, and Tab meets them in that order. The rail holds the shell's pages between its places and its foot, beside them while the sidebar is whole (L-88).
 - Breaking: `--sui-rail-width` and the folded strip are 80px (5rem), the Material 3 rail's width, not 72px, so a strip label such as "Navigation" or "Invitations" keeps its word on one line. `--sui-sidebar-width-collapsed` follows `--sui-rail-width`.
 - On a phone the `AppShell` bar parts its menu button from the title by a 20px hairline, and the drawer's pages are 288px wide, or 228px beside the rail, with at least 56px of the screen left uncovered. A new `eyebrow` prop names where the page is, such as its workspace, over the bar's title.
@@ -73,12 +291,12 @@
 - A `PageHeader` whose holder hides its kicker, as a wide `ListDetail` hides its way back, sets its title at the top with the actions beside it, where the actions had stood a row lower, beside the description. A holder says so with `--sui-head-kicker-shown: 0`.
 - A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap, as it parts its sections, where the disclosure's own margin reset had stood it flush under them.
 - An off-screen `ObjectRow` holds 57px, the height of a row whose name is set at the body size, and a `Skeleton`'s default rows snap each line to an even pixel as those rows do, so a long list does not jump as its rows reach the screen and the page does not move when loaded rows replace the placeholders.
-- A `ListToolbar` search keeps 14rem of field beside its label, and with less, as on a phone, its label stands above a field of the full width.
+- A `ListToolbar` search keeps 12rem of field beside its label, so a bar with a filter, tools and an action keeps the label there on a laptop, and with less, as on a phone, its label stands above a field of the full width. The field stops at 32rem, so a wide bar keeps its controls together at its start.
 - A `ListToolbar` heading, over the search and before each filter, is set as a field's label, 14px at 600 in the primary ink, since it names the control beside it.
-- A `ListToolbar` draws its count under the bar, over the rows it counts, when there is one to count, and its tools button ends in a chevron, as a menu's button does.
+- A `ListToolbar` draws its count under the bar, over the rows it counts, 0 included, so over an empty list the bar still says the search left nothing, and its tools button ends in a chevron, as a menu's button does.
 - A `ListToolbar`'s controls stand on the foot of their line, so beside a search whose label stands over its field they line up with the field, and the choices named beside the tools button are set at the regular weight, as values rather than labels.
 - A current `ObjectRow`, the item open beside its list, stands on the sidebar's accent-tint plate, 18% of the accent on light and 24% on dark, not the grey pressed step, so the open row and the open page wear one cue and a hovered row never looks like it.
-- A `ListToolbar` folds its filter into the tools menu in a bar under 24rem, not 18rem, so on any phone the bar keeps the search and one line of controls rather than a finger's line for each, and the choices named beside the tools button stand 4px from it while the filter stands 12px from the tools.
+- A `ListToolbar` folds its filter into the tools menu in a bar under 24rem, not 18rem, so on any phone the bar keeps the search and one line of controls rather than a finger's line for each, and the choices named beside the tools button stand 8px from it while the filter stands 12px from the tools. The tools menu pads its groups 16px above and below and 12px at the sides. Under 24rem every bar's search label stands above a field of the full width, and a pending search's words stand under it.
 - A `ListToolbar`'s searching status wraps with the field, so on a line of its own it stands 8px under the field on its own 22px line, not on a control's line.
 - A disabled `Chip` takes an off field's paint, as a `PairEntry` chip does: the quieter field well with no edge, and its value and remove mark in the muted ink at full strength, so the whole chip reads as fixed rather than only its mark (L-40).
 - A long `mono` `Chip` value wraps after a `/`, `:`, `=` or `-` before it breaks a word, so a path or key keeps its words whole, and the remove control's corner is the chip's less the inset around it, 4px in a 24px chip, so the two stay concentric.

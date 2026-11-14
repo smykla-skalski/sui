@@ -317,6 +317,28 @@ suite('forms', together, () => {
       const summary = page.locator('#states form .sui-form-error');
       await summary.waitFor();
       assert.ok(await summary.evaluate((box) => document.activeElement === box));
+      assert.equal(
+        await summary.evaluate((box) => getComputedStyle(box).outlineStyle),
+        'solid',
+        'a summary a pointer submit brought up shows no ring where focus went'
+      );
+      // The links read as one list, a line plus 4px apart, yet their 24px targets never meet.
+      const links = await summary.locator('.sui-form-error-list a').evaluateAll((all) =>
+        all.map((link) => {
+          const box = link.getBoundingClientRect();
+          const hit = getComputedStyle(link, '::after');
+          return {
+            top: box.top,
+            hitTop: box.top + parseFloat(hit.top),
+            hitBottom: box.bottom - parseFloat(hit.bottom)
+          };
+        })
+      );
+      assert.ok(links.length >= 2, `only ${links.length} links in the summary`);
+      for (const [index, link] of links.slice(1).entries()) {
+        assert.equal(Math.round(link.top - links[index].top), 26, 'the links stand off one pitch');
+        assert.ok(link.hitTop >= links[index].hitBottom, 'two link targets overlap');
+      }
       await page.keyboard.press('Tab');
       await page.keyboard.press('Enter');
       assert.equal(await page.evaluate(() => document.activeElement?.id), 'sink-states-workspace');
@@ -468,6 +490,94 @@ suite('forms', together, () => {
       const light = await edges('light');
       assert.equal(light.release, true, 'a white chip has no edge on a white card');
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
+      const [plain, painted] = await page.evaluate(() =>
+        ['v2.9.1', 'frozen'].map((label) => {
+          const chip = [
+            ...document.querySelectorAll('#chip [aria-label="Locked labels"] .sui-chip')
+          ].find((each) => each.textContent?.trim() === label);
+          const style = getComputedStyle(/** @type {Element} */ (chip));
+          return { ink: style.color, edge: style.boxShadow };
+        })
+      );
+      assert.deepEqual(
+        painted,
+        { ink: plain.ink, edge: 'none' },
+        'a disabled painted chip does not read as off beside a plain one'
+      );
+    });
+
+    test('L-6 a painted chip rings its remove at 3:1 on its own fill', async () => {
+      // The ring stands inside the remove control, on the chip's fill, where the focus blue
+      // held 1.55:1 on a violet chip in the light theme.
+      const page = await opened();
+      const remove = page
+        .locator('#chip .sui-chip.painted', { hasText: 'needs design' })
+        .locator('.sui-chip-remove');
+      for (const scheme of /** @type {const} */ (['dark', 'light'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.waitForTimeout(400);
+        await page.keyboard.press('Shift');
+        await remove.focus();
+        const ratio = await remove.evaluate((button) => {
+          // A canvas decodes every computed form, `color(srgb …)` from a mix too, to 0-255.
+          const context = /** @type {CanvasRenderingContext2D} */ (
+            Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
+              '2d',
+              { willReadFrequently: true }
+            )
+          );
+          /** @param {string} color */
+          const rgba = (color) => {
+            context.clearRect(0, 0, 1, 1);
+            context.fillStyle = color;
+            context.fillRect(0, 0, 1, 1);
+            const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+            return { r, g, b, a: a / 255 };
+          };
+          /** @param {{ r: number, g: number, b: number, a: number }} top @param {{ r: number, g: number, b: number, a: number }} under */
+          const over = (top, under) => ({
+            r: top.r * top.a + under.r * (1 - top.a),
+            g: top.g * top.a + under.g * (1 - top.a),
+            b: top.b * top.a + under.b * (1 - top.a),
+            a: 1
+          });
+          /** @param {{ r: number, g: number, b: number }} color */
+          const luminance = ({ r, g, b }) => {
+            const [R, G, B] = [r, g, b].map((v) =>
+              v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4
+            );
+            return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+          };
+          const layers = [];
+          for (let node = button.parentElement; node; node = node.parentElement) {
+            const layer = rgba(getComputedStyle(node).backgroundColor);
+            layers.push(layer);
+            if (layer.a >= 0.999) break;
+          }
+          const ground = layers.reduceRight((under, top) => over(top, under), {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 1
+          });
+          const ring = over(rgba(getComputedStyle(button).outlineColor), ground);
+          const [light, dark] = [luminance(ring), luminance(ground)].sort((a, b) => b - a);
+          return (light + 0.05) / (dark + 0.05);
+        });
+        assert.ok(ratio >= 3, `the ${scheme} ring holds ${ratio.toFixed(2)}:1 on the fill`);
+        await remove.blur();
+      }
+    });
+
+    test('a small chip in a line of text keeps the line at its own height', async () => {
+      const page = await opened();
+      const [height, leading] = await page
+        .locator('#chip p:has(> .sui-chip.small)')
+        .evaluate((line) => [
+          line.getBoundingClientRect().height,
+          parseFloat(getComputedStyle(line).lineHeight)
+        ]);
+      assert.equal(height, leading);
     });
 
     test('a long mono chip wraps after its delimiters, never inside a word', async () => {

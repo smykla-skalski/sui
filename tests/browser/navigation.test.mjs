@@ -4,6 +4,7 @@ import { after, before, suite, test } from 'node:test';
 import {
   allSections,
   atRest,
+  audit,
   brief,
   long,
   openMount,
@@ -301,8 +302,399 @@ suite('navigation', together, () => {
     });
   });
 
+  test('a phone row keeps its side beside a short name, however wide the side', long, async () => {
+    const page = await openLayout('layouts/app-shell/', 375);
+    try {
+      const dropped = await page.evaluate(() =>
+        [...document.querySelectorAll('.sui-object-row')]
+          .filter((row) => {
+            const main = /** @type {Element} */ (row.querySelector('.sui-object-row-main'));
+            const side = row.querySelector('.sui-object-row-side');
+            return side && side.getBoundingClientRect().top >= main.getBoundingClientRect().bottom;
+          })
+          .map((row) => row.textContent?.trim())
+      );
+      assert.deepEqual(dropped, [], 'a short row dropped its side');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('the phone bar’s title waits while the page’s h1 shows under it, then fades in as the h1 passes under the bar', async () => {
+    const page = await openLayout('layouts/app-shell/', 375, { height: 400 });
+    try {
+      const read = () =>
+        page.evaluate(() => {
+          const title = /** @type {Element} */ (document.querySelector('.sui-shell-title'));
+          const heading = /** @type {Element} */ (document.querySelector('.sui-shell-pane h1'));
+          const bar = /** @type {Element} */ (title.closest('.sui-shell-bar'));
+          const edge = bar.getBoundingClientRect().bottom;
+          const box = heading.getBoundingClientRect();
+          return {
+            opacity: Number(getComputedStyle(title).opacity),
+            below: box.top >= edge,
+            under: box.bottom <= edge,
+            top: box.top - edge
+          };
+        });
+      const shown = await read();
+      assert.equal(shown.opacity, 0, 'the bar names the page while its h1 shows');
+      assert.ok(shown.below);
+      // A scroll timeline moves its animation on the next frame.
+      const scroll = (/** @type {number} */ to) =>
+        page.evaluate(async (to) => {
+          scrollTo(0, to);
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        }, to);
+      await scroll(shown.top + 9);
+      const halfway = await read();
+      assert.ok(halfway.opacity > 0 && halfway.opacity < 1, `${halfway.opacity} halfway`);
+      await scroll(shown.top + 200);
+      const passed = await read();
+      assert.ok(passed.under);
+      assert.equal(passed.opacity, 1, 'the bar names the page once its h1 has passed under it');
+      assert.ok(
+        await page.locator('.sui-shell-title').evaluate((title) => title.checkVisibility()),
+        'the title stays in the accessibility tree'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('inside the shell the page header’s rule takes the sidebar’s line ink', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const [band, edge] = await page.evaluate(() => [
+        getComputedStyle(/** @type {Element} */ (document.querySelector('.sui-page-header')))
+          .borderBottomColor,
+        getComputedStyle(/** @type {Element} */ (document.querySelector('.sui-shell-pages')))
+          .borderRightColor
+      ]);
+      assert.equal(band, edge);
+      // The ink is translucent, so both rules must also paint over one ground to meet as one.
+      const pixel = async (/** @type {number} */ x, /** @type {number} */ y) => {
+        const shot = await page.screenshot({ clip: { x, y, width: 1, height: 1 } });
+        return page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(1, 1).getContext('2d');
+            context?.drawImage(image, 0, 0);
+            return [...(context?.getImageData(0, 0, 1, 1).data ?? [])].slice(0, 3).join();
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+      };
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate((theme) => (document.documentElement.dataset.theme = theme), theme);
+        const { foot, side } = await page.evaluate(() => {
+          const header = /** @type {Element} */ (
+            document.querySelector('.sui-page-header')
+          ).getBoundingClientRect();
+          const pages = /** @type {Element} */ (
+            document.querySelector('.sui-shell-pages')
+          ).getBoundingClientRect();
+          return {
+            foot: { x: header.left + 40, y: header.bottom - 1 },
+            side: { x: pages.right - 1, y: header.bottom + 40 }
+          };
+        });
+        assert.equal(
+          await pixel(foot.x, foot.y),
+          await pixel(side.x, side.y),
+          `${theme}: the header's foot and the sidebar's edge paint two inks`
+        );
+      }
+    } finally {
+      await page.evaluate(() => delete document.documentElement.dataset.theme);
+      await page.close();
+    }
+  });
+
+  test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const [list, header] = await page.evaluate(() =>
+        ['main .sui-object-list', 'main .sui-page-header'].map(
+          (name) =>
+            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().right
+        )
+      );
+      assert.ok(
+        Math.abs(header - 24 - list) <= 0.5,
+        `the list ends at ${list}, the band at ${header}`
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("a rail tile beside the shell's pages stands 4px in from each side of its 80px column, its words given 72px and its glyph a whole pixel", async () => {
+    // Beside the pages the places share one column with the folded pages, whose two-word labels
+    // need 72px, so the column keeps one plate width.
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const found = await page.evaluate(() => {
+        const rail = /** @type {Element} */ (
+          document.querySelector('.sui-rail')
+        ).getBoundingClientRect();
+        const column = parseFloat(getComputedStyle(document.documentElement).fontSize) * 5;
+        const tile = /** @type {Element} */ (
+          document.querySelector('.sui-rail-list .sui-rail-tile')
+        );
+        const box = tile.getBoundingClientRect();
+        const look = getComputedStyle(tile);
+        const glyph = /** @type {Element} */ (
+          tile.querySelector('.sui-rail-glyph svg')
+        ).getBoundingClientRect();
+        return [
+          box.left - rail.left,
+          rail.left + column - box.right,
+          box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd),
+          Number.isInteger(glyph.left) && Number.isInteger(glyph.top)
+        ];
+      });
+      assert.deepEqual(
+        found,
+        [4, 4, 72, true],
+        "the tile, its words' room and its glyph's whole pixel"
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("the side nav kicker shares one cap line with the page header's first words and is set as an eyebrow", async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      // The box tops alone met while the capitals stood a pixel apart, so the type is held too.
+      const [nav, header] = await page.evaluate(() =>
+        ['.sui-side-nav-kicker', '.sui-page-header h1'].map((name) => {
+          const element = /** @type {Element} */ (document.querySelector(name));
+          const look = getComputedStyle(element);
+          return {
+            top: element.getBoundingClientRect().top,
+            type: [look.fontSize, look.fontWeight, look.letterSpacing].join(' ')
+          };
+        })
+      );
+      assert.ok(
+        Math.abs(nav.top - header.top) <= 0.5,
+        `the kicker stands at ${nav.top}, the title at ${header.top}`
+      );
+      assert.equal(nav.type, '12px 600 0.6px', "the kicker is set apart from a page's eyebrow");
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a nav row rests in an ink 2:1 from the current one, over its headings on light, and hover and focus take the primary ink', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      for (const theme of ['light', 'dark']) {
+        const inks = await page.evaluate((theme) => {
+          document.documentElement.dataset.theme = theme;
+          const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
+          const rgb = (/** @type {string} */ color) => {
+            // A mixed ink computes as color(srgb r g b) in shares of 1, a plain one as rgb() in bytes.
+            const scale = color.startsWith('color(') ? 255 : 1;
+            const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map((part) => Number(part) * scale);
+            const lin = (/** @type {number} */ c) =>
+              (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+            return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+          };
+          const ratio = (/** @type {string} */ a, /** @type {string} */ b) => {
+            const [x, y] = [rgb(a), rgb(b)].sort((p, q) => q - p);
+            return (x + 0.05) / (y + 0.05);
+          };
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('i');
+            probe.style.color = `var(${token})`;
+            nav.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const color = (/** @type {string} */ selector) =>
+            getComputedStyle(/** @type {Element} */ (nav.querySelector(selector))).color;
+          const rest = color('.sui-side-nav-row:not([aria-current])');
+          const ground = ink('--sui-sidebar-bg');
+          const row = /** @type {HTMLElement} */ (
+            nav.querySelector('.sui-side-nav-row:not([aria-current])')
+          );
+          row.focus({ focusVisible: true });
+          const focused = getComputedStyle(row).color;
+          row.blur();
+          return {
+            current: ratio(color('.sui-side-nav-row[aria-current]'), rest),
+            rows: ratio(rest, ground),
+            headings: ratio(color('.sui-side-nav-group'), ground),
+            focused,
+            primary: ink('--sui-sidebar-text')
+          };
+        }, theme);
+        assert.ok(
+          inks.current >= 2,
+          `${theme}: the current ink is ${inks.current.toFixed(2)}:1 from rest`
+        );
+        if (theme === 'light')
+          assert.ok(
+            inks.rows > inks.headings,
+            'light: a rest row reads no stronger than its heading'
+          );
+        assert.equal(inks.focused, inks.primary, `${theme}: a focused row keeps its rest ink`);
+      }
+      await page.evaluate(() => delete document.documentElement.dataset.theme);
+      const row = page.locator('.sui-side-nav-row:not([aria-current])').first();
+      await row.hover();
+      const hovered = await row.evaluate((row) => {
+        const probe = document.createElement('i');
+        probe.style.color = 'var(--sui-sidebar-text)';
+        row.append(probe);
+        const primary = getComputedStyle(probe).color;
+        probe.remove();
+        return [getComputedStyle(row).color, primary];
+      });
+      assert.equal(hovered[0], hovered[1], 'a hovered row keeps a quieter ink than the primary');
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
-    'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
+    'the nav answers the pointer on a row’s hover ground, pressed a step past it and short of the current plate',
+    long,
+    async () => {
+      const page = await openLayout('layouts/app-shell/', 1440);
+      try {
+        for (const theme of ['light', 'dark']) {
+          const ground = await page.evaluate((theme) => {
+            document.documentElement.dataset.theme = theme;
+            const rail = /** @type {Element} */ (document.querySelector('.sui-rail'));
+            const canvas = document.createElement('canvas');
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              canvas.getContext('2d', { willReadFrequently: true })
+            );
+            // Each ground is drawn over the sidebar's, as the nav and the rows beside it stand on it.
+            const paint = (/** @type {string} */ token) => {
+              const probe = document.createElement('i');
+              probe.style.color = `var(${token})`;
+              rail.append(probe);
+              const color = getComputedStyle(probe).color;
+              probe.style.color = 'var(--sui-sidebar-bg)';
+              const base = getComputedStyle(probe).color;
+              probe.remove();
+              context.fillStyle = base;
+              context.fillRect(0, 0, 1, 1);
+              context.fillStyle = color;
+              context.fillRect(0, 0, 1, 1);
+              const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].map(
+                (value) => value / 255
+              );
+              const linear = (/** @type {number} */ c) =>
+                c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+              const [lr, lg, lb] = [r, g, b].map(linear);
+              const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+              const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+              const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+              return {
+                rgb: [r, g, b].map((c) => Math.round(c * 255)).join(),
+                lightness: 0.2104542553 * l + 0.793617785 * m - 0.0040720453 * s
+              };
+            };
+            return {
+              hover: paint('--sui-sidebar-item-hover'),
+              row: paint('--sui-row-hover'),
+              pressed: paint('--sui-sidebar-item-pressed'),
+              plate: paint('--sui-sidebar-active-bg'),
+              rest: paint('--sui-sidebar-bg')
+            };
+          }, theme);
+          // The opaque mix and a row's see-through one round apart by a unit at most.
+          const apart = Math.max(
+            ...ground.hover.rgb
+              .split(',')
+              .map((c, at) => Math.abs(+c - +ground.row.rgb.split(',')[at]))
+          );
+          assert.ok(apart <= 1, `${theme}: the nav hovers on another grey than a row`);
+          // On light a step is darker, on dark lighter: each one moves at least 0.015 in OKLab.
+          const steps = [ground.rest, ground.hover, ground.pressed, ground.plate].map(
+            (step) => (theme === 'light' ? -1 : 1) * step.lightness
+          );
+          for (let at = 1; at < steps.length; at++)
+            assert.ok(
+              steps[at] - steps[at - 1] >= 0.015,
+              `${theme}: step ${at} of rest, hover, pressed and plate moves ${(steps[at] - steps[at - 1]).toFixed(3)}`
+            );
+        }
+        await page.evaluate(() => delete document.documentElement.dataset.theme);
+        const tile = page.locator('.sui-rail-tile:has(.sui-rail-badge)').first();
+        await tile.hover();
+        const badge = await tile.evaluate((tile) => {
+          const badge = /** @type {HTMLElement} */ (tile.querySelector('.sui-rail-badge'));
+          return {
+            halo: getComputedStyle(badge).boxShadow.split(/\)\s/)[0] + ')',
+            ground: getComputedStyle(tile).backgroundColor,
+            top: badge.getBoundingClientRect().top - 2 - tile.getBoundingClientRect().top,
+            end: tile.getBoundingClientRect().right - badge.getBoundingClientRect().right - 2,
+            // How far the count reaches over the glyph's own box from its end.
+            over:
+              /** @type {Element} */ (
+                tile.querySelector('.sui-rail-glyph svg')
+              ).getBoundingClientRect().right - badge.getBoundingClientRect().left
+          };
+        });
+        assert.equal(
+          badge.halo,
+          badge.ground,
+          'the badge’s halo shows the sidebar through a hovered tile'
+        );
+        assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the tile’s top`);
+        assert.ok(badge.end >= 0, `the badge’s halo reaches ${-badge.end}px past the tile’s end`);
+        assert.ok(
+          badge.over <= 4,
+          `the count covers ${badge.over}px of its glyph, more than a corner`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test('a bottom bar’s count stands 4px clear of its glyph’s corner, as the rail’s does, its halo inside the tile', async () => {
+    for (const width of [390, 320]) {
+      const page = await openLayout('layouts/app-shell/bottom-nav/', width);
+      try {
+        const badge = await page.evaluate(() => {
+          const tile = /** @type {Element} */ (
+            document.querySelector('.sui-shell-places .sui-rail-tile:has(.sui-rail-badge)')
+          );
+          const box = tile.getBoundingClientRect();
+          const count = /** @type {Element} */ (
+            tile.querySelector('.sui-rail-badge')
+          ).getBoundingClientRect();
+          const glyph = /** @type {Element} */ (
+            tile.querySelector('.sui-rail-glyph svg')
+          ).getBoundingClientRect();
+          return [
+            Math.round(count.left - glyph.right) === 4,
+            count.top < glyph.top,
+            count.left - 2 >= box.left && count.right + 2 <= box.right
+          ];
+        });
+        assert.deepEqual(
+          badge,
+          [true, true, true],
+          `at ${width}px: clear of the corner, above the glyph, inside the tile`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test(
+    'with bottomNav a phone keeps the places in a bottom bar, its tiles 8px in as the rail’s, and the drawer holds only the pages',
     long,
     async () => {
       const page = await openLayout('layouts/app-shell/bottom-nav/', 375);
@@ -316,7 +708,19 @@ suite('navigation', together, () => {
                 gap: innerHeight - box.bottom,
                 tiles: [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
                   Math.round(tile.getBoundingClientRect().height)
-                )
+                ),
+                room: (() => {
+                  const tiles = [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
+                    tile.getBoundingClientRect()
+                  );
+                  const rule = parseFloat(getComputedStyle(rail).borderBlockStartWidth);
+                  return [
+                    tiles[0].left - box.left,
+                    tiles[0].top - box.top - rule,
+                    box.right - tiles[tiles.length - 1].right,
+                    box.bottom - tiles[0].bottom
+                  ].map(Math.round);
+                })()
               }
             : null;
         });
@@ -327,6 +731,7 @@ suite('navigation', together, () => {
           bar.tiles.every((height) => height >= 44),
           `tiles are ${bar.tiles.join(', ')}px`
         );
+        assert.deepEqual(bar.room, [8, 8, 8, 8], 'the tiles stand 8px in, as the rail’s do');
         const drawer = await openDrawer(page);
         assert.equal(
           await drawer.locator('.sui-rail').count(),
@@ -1297,7 +1702,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
+      'every sideways scroller fades only the edges with more past them, 20px on a phone and code lines 24px, mirrored right to left (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -1364,7 +1769,8 @@ suite('navigation', together, () => {
                 ])
               )
                 wrong.push(`${name}: ${JSON.stringify(shown)}`);
-              if (states[at][1].some((width) => width !== 20))
+              const wide = box.classList.contains('sui-scroll-edge-lines') ? 24 : 20;
+              if (states[at][1].some((width) => width !== wide))
                 wrong.push(`${name}: the fades are ${states[at][1].join(' and ')}px wide`);
               if (look.direction === 'rtl' && !look.maskImage.includes('to left'))
                 wrong.push(`${name}: the fade does not mirror`);
@@ -1442,7 +1848,17 @@ suite('navigation', together, () => {
           await first.boundingBox()
         );
         await page.mouse.move(corner.x + 24, corner.y + corner.height - 12);
-        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
+        // Under load, hover can land a frame after the move.
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              ([card, resting]) => getComputedStyle(card).borderTopColor !== resting,
+              /** @type {const} */ ([await first.elementHandle(), rest]),
+              { timeout: 2000 }
+            )
+          ),
+          'a hovered card keeps its resting keyline'
+        );
         await page.mouse.move(box.x + 24, box.y + box.height - 12);
         assert.equal(
           await underlined(),
@@ -1562,9 +1978,117 @@ suite('navigation', together, () => {
       }
     );
 
+    test(
+      "a heading an index entry lands on wears the kit's ring around its words",
+      long,
+      async () => {
+        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        try {
+          await visit(page, new URL('page-toc/', url).href);
+          const entry = page.locator('#page-toc .sui-page-toc-link', { hasText: 'History' });
+          await entry.focus();
+          await page.keyboard.press('Enter');
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.textContent?.trim() === 'History',
+              null,
+              brief
+            )
+          );
+          const ring = await page.evaluate(() => {
+            const heading = /** @type {HTMLElement} */ (document.activeElement);
+            const style = getComputedStyle(heading);
+            const words = document.createRange();
+            words.selectNodeContents(heading);
+            const box = heading.getBoundingClientRect();
+            return {
+              outline: `${style.outlineStyle} ${style.outlineWidth}`,
+              spare: box.width - words.getBoundingClientRect().width,
+              // The box is trimmed to the baseline, so the ring clears a descender only by its
+              // offset, which must reach past the font's descent there.
+              clear:
+                box.bottom + parseFloat(style.outlineOffset) - words.getBoundingClientRect().bottom
+            };
+          });
+          assert.equal(ring.outline, 'solid 2px', "the browser's own outline traces the heading");
+          assert.ok(ring.spare < 1, `the ring runs ${ring.spare}px past the heading's words`);
+          assert.ok(ring.clear >= 1, `the ring stands ${ring.clear.toFixed(1)}px off a descender`);
+          await page.keyboard.press('Tab');
+          assert.equal(
+            await page.locator('[data-sui-landed]').count(),
+            0,
+            'the heading keeps its mark after focus leaves it'
+          );
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test(
+      "an index's plates end on its column's end unless it scrolls, and on a phone its words start on the article's edge",
+      long,
+      async () => {
+        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        try {
+          await visit(page, new URL('page-toc/', url).href);
+          const room = () =>
+            page.evaluate(() => {
+              const nav = /** @type {HTMLElement} */ (document.querySelector('#page-toc nav'));
+              const link = /** @type {Element} */ (nav.querySelector('.sui-page-toc-link'));
+              return (
+                nav.getBoundingClientRect().left +
+                nav.clientWidth -
+                link.getBoundingClientRect().right
+              );
+            });
+          assert.ok(
+            Math.abs(await room()) < 0.5,
+            `an index that fits ends ${await room()}px short`
+          );
+          const short = await page.addStyleTag({
+            content: '#page-toc .sui-page-toc { max-block-size: 6rem; }'
+          });
+          // A scroll-state query answers at the next frame.
+          await page.evaluate(
+            () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+          );
+          assert.ok(
+            (await room()) >= 12 - 0.5,
+            `a scrolling index keeps ${await room()}px for its bar`
+          );
+          await short.evaluate((node) => /** @type {Element} */ (node).remove());
+          await page.setViewportSize({ width: 390, height: 844 });
+          const edges = await page.evaluate(() => {
+            const words = document.createRange();
+            words.selectNodeContents(
+              /** @type {Element} */ (
+                document.querySelector('#page-toc .sui-page-toc-label > span')
+              )
+            );
+            const left = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (document.querySelector(selector)).getBoundingClientRect()
+                .left;
+            return {
+              words: words.getBoundingClientRect().left - left('#page-toc h4'),
+              title: left('#page-toc .sui-page-toc-title') - left('#page-toc h4')
+            };
+          });
+          for (const [part, off] of Object.entries(edges)) {
+            assert.ok(
+              Math.abs(off) < 0.5,
+              `the index's ${part} start ${off}px off the article's edge`
+            );
+          }
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
+      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each side of them a gap clear (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -1583,9 +2107,11 @@ suite('navigation', together, () => {
               await frame();
             };
             const shadow = () => getComputedStyle(next, '::before').opacity;
+            const rule = () => getComputedStyle(head, '::after');
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
             const more = shadow();
+            const resting = rule().opacity;
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
             return {
@@ -1597,7 +2123,13 @@ suite('navigation', together, () => {
               gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
               masked: getComputedStyle(tree).maskImage !== 'none',
               shadows: [more, shadow()],
-              lines: [getComputedStyle(head).borderBottom, getComputedStyle(next).borderTop]
+              resting,
+              line: [rule().opacity, rule().backgroundColor, rule().blockSize],
+              next: [getComputedStyle(next).borderTopColor, getComputedStyle(next).borderTopWidth],
+              underNext:
+                /** @type {Element} */ (next.firstElementChild).getBoundingClientRect().top -
+                next.getBoundingClientRect().top -
+                parseFloat(getComputedStyle(next).borderTopWidth)
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
@@ -1607,11 +2139,11 @@ suite('navigation', together, () => {
             ['1', '0'],
             'the foot casts its shadow only while more rows are below'
           );
-          assert.match(found.lines[0], /^1px solid/, 'no hairline parts the title from the rows');
-          assert.equal(
-            found.lines[0],
-            found.lines[1],
-            "the part under the rows draws no line, or not the title's"
+          assert.equal(found.resting, '0', 'the head draws a rule with no row under it');
+          assert.deepEqual(
+            found.line,
+            ['1', found.next[0], found.next[1]],
+            "rows under the title meet no hairline, or not the foot's"
           );
           assert.equal(found.gap, 16);
           assert.ok(
@@ -1629,6 +2161,10 @@ suite('navigation', together, () => {
           assert.ok(
             Math.abs(found.bottom - found.gap) <= 0.5,
             `the last row rests ${found.bottom}px up`
+          );
+          assert.ok(
+            Math.abs(found.underNext - found.gap) <= 0.5,
+            `the part under the rows starts ${found.underNext}px under its hairline`
           );
         } finally {
           await page.evaluate(() => {
@@ -1668,8 +2204,63 @@ suite('navigation', together, () => {
   suite('one page of charts at each width', { concurrency: 1 }, () => {
     const charts = shared(() => open(1440));
 
+    test("a line breaks at a missing value, and a table names its series from the start edge, on a data table's metrics", async () => {
+      const page = await charts();
+      // A chart draws its table only once its disclosure is open.
+      await page.evaluate(async () => {
+        for (const details of document.querySelectorAll('#charts .sui-chart details'))
+          /** @type {HTMLDetailsElement} */ (details).open = true;
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+      });
+      const { runs, aligns, tables } = await page.evaluate(() => {
+        const probe = document.createElement('i');
+        probe.style.color = 'var(--sui-border-control)';
+        document.body.append(probe);
+        const control = getComputedStyle(probe).color;
+        probe.remove();
+        const partial = /** @type {Element} */ (
+          [...document.querySelectorAll('#charts .sui-chart')].find((chart) =>
+            chart.textContent?.includes('Daily Readings')
+          )
+        );
+        return {
+          runs: partial.querySelector('path.line')?.getAttribute('d')?.match(/M/g)?.length,
+          aligns: [
+            ...new Set(
+              [...document.querySelectorAll('#charts .sui-chart-table tbody th')].map(
+                (cell) => getComputedStyle(cell).textAlign
+              )
+            )
+          ],
+          // Off by the title's start, the head rule's ink against the control ink.
+          tables: [
+            ...new Set(
+              [...document.querySelectorAll('#charts .sui-chart-table')].map((box) => {
+                const title = /** @type {Element} */ (
+                  box.closest('.sui-chart')?.querySelector('.sui-chart-title')
+                );
+                const words = document.createRange();
+                words.selectNodeContents(/** @type {Element} */ (box.querySelector('thead th')));
+                const head = getComputedStyle(
+                  /** @type {Element} */ (box.querySelector('thead th'))
+                );
+                return `${Math.round(words.getBoundingClientRect().left - title.getBoundingClientRect().left)} ${head.borderBottomColor === control}`;
+              })
+            )
+          ]
+        };
+      });
+      await page.evaluate(() => {
+        for (const details of document.querySelectorAll('#charts .sui-chart details'))
+          /** @type {HTMLDetailsElement} */ (details).open = false;
+      });
+      assert.equal(runs, 2, 'the line draws one run on each side of its gap');
+      assert.deepEqual(aligns, ['start']);
+      assert.deepEqual(tables, ['0 true']);
+    });
+
     test(
-      'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not (L-66)',
+      'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not, and a table’s summary follows its own plot, open or closed (L-66)',
       long,
       async () => {
         const page = await charts();
@@ -1717,39 +2308,85 @@ suite('navigation', together, () => {
               assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
             } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
           if (width !== 1440) continue;
-          // Charts side by side end their closed data tables on one line, and each legend
-          // stands one gap under its own plot, whatever room the chart gains.
-          const pairs = await page.evaluate(() =>
-            [...document.querySelectorAll('#charts [data-layout="pairs"]')].map((pair) =>
-              [...pair.querySelectorAll('.sui-chart')].map((chart) => {
-                const band = /** @type {Element} */ (chart.querySelector('.plot-band'));
-                const legend = band.nextElementSibling;
-                const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
-                return {
-                  link: chart.querySelector('details > summary')?.getBoundingClientRect().top,
-                  legendGap: shown
-                    ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
-                    : 16
-                };
-              })
-            )
-          );
-          assert.ok(pairs.length > 0 && pairs.every((pair) => pair.length === 2));
-          for (const [first, second] of pairs) {
-            assert.ok(
-              Math.abs(Number(first.link) - Number(second.link)) < 0.5,
-              'a pair ends apart'
+          // Each legend stands one gap under its own plot and the table's summary one gap under
+          // that, and opening a table moves neither its summary nor its neighbour's.
+          const summaries = () =>
+            page.evaluate(() =>
+              [...document.querySelectorAll('#charts [data-layout="pairs"] .sui-chart')].map(
+                (chart) => {
+                  const band = /** @type {Element} */ (chart.querySelector('.plot-band'));
+                  const legend = band.nextElementSibling;
+                  const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
+                  const above = shown ? legend : band;
+                  const summary = /** @type {Element} */ (chart.querySelector('details > summary'));
+                  // From the pair's own row, so a lazily drawn row higher on the page that settles
+                  // to its height as the page scrolls cannot read as a move.
+                  const top =
+                    summary.getBoundingClientRect().top -
+                    /** @type {Element} */ (
+                      chart.closest('[data-layout="pairs"]')
+                    ).getBoundingClientRect().top;
+                  return {
+                    top,
+                    legendGap: shown
+                      ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
+                      : 16,
+                    summaryGap: Math.round(
+                      summary.getBoundingClientRect().top - above.getBoundingClientRect().bottom
+                    )
+                  };
+                }
+              )
             );
-            for (const chart of [first, second])
-              assert.ok(
-                Math.abs(chart.legendGap - 16) < 0.5,
-                `a legend ${chart.legendGap}px under`
-              );
-          }
+          const closed = await summaries();
+          assert.ok(closed.length >= 2 && closed.length % 2 === 0);
+          for (const chart of closed)
+            assert.ok(Math.abs(chart.legendGap - 16) < 0.5, `a legend ${chart.legendGap}px under`);
+          assert.equal(
+            new Set(closed.map((chart) => chart.summaryGap)).size,
+            1,
+            `summaries stand ${closed.map((chart) => chart.summaryGap)}px under what they follow`
+          );
+          await page
+            .locator('#charts [data-layout="pairs"] .sui-chart details > summary')
+            .first()
+            .click();
+          const opened = await summaries();
+          await page
+            .locator('#charts [data-layout="pairs"] .sui-chart details > summary')
+            .first()
+            .click();
+          assert.deepEqual(
+            opened.slice(0, 2).map((chart) => chart.top),
+            closed.slice(0, 2).map((chart) => chart.top),
+            'opening a table moves its summary or its neighbour’s'
+          );
         }
         assert.deepEqual(kinds, new Set([true, false]));
       }
     );
+
+    test('a band with no ground keeps 8px over and under its plot, which starts on the title’s edge, and a tinted band the full room on every side', async () => {
+      const page = await charts();
+      // A stacked stage lends its inset to a chart, so the page is set wide, where it lends none.
+      await resize(page, 1440);
+      const read = await page.evaluate(async () => {
+        const chart = /** @type {HTMLElement} */ (document.querySelector('#charts .sui-chart'));
+        const scroll = /** @type {Element} */ (chart.querySelector('.plot-scroll'));
+        const pad = () => {
+          const style = getComputedStyle(scroll);
+          return [style.paddingTop, style.paddingBottom, style.paddingLeft];
+        };
+        const bare = pad();
+        chart.style.setProperty('--sui-chart-ground', 'rgb(0 0 0 / 4%)');
+        await new Promise((done) => requestAnimationFrame(done));
+        const tinted = pad();
+        chart.style.removeProperty('--sui-chart-ground');
+        return { bare, tinted };
+      });
+      assert.deepEqual(read.bare, ['8px', '8px', '0px']);
+      assert.deepEqual(read.tinted, ['16px', '16px', '16px']);
+    });
 
     test(
       'a chart plot that scrolls is a named keyboard stop, and its table renders only when opened',
@@ -1776,6 +2413,359 @@ suite('navigation', together, () => {
         assert.equal(await chart.locator('table caption').textContent(), 'Items by Week');
       }
     );
+
+    test(
+      'a range chart in a section on a 390px phone fits its band, so its last tick shows',
+      long,
+      async () => {
+        const page = await charts();
+        await resize(page, 390);
+        const plot = page
+          .locator('#charts .sui-chart')
+          .filter({ hasText: 'Release Windows' })
+          .locator('.plot-scroll');
+        const { scroll, client } = await plot.evaluate((box) => ({
+          scroll: box.scrollWidth,
+          client: box.clientWidth
+        }));
+        assert.ok(scroll <= client, `the plot runs ${scroll - client}px past its band`);
+      }
+    );
+
+    // A line with more than 12 values draws no markers, so a value with a gap on each side has
+    // no run to stand on.
+    test('a range chart with the widest label it allows keeps its axis the right way round in a narrow box', async () => {
+      const page = await openMount(browser, url);
+      try {
+        const rows = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.createElement('div');
+          target.style.inlineSize = '240px';
+          document.body.append(target);
+          mount(lib.RangeChart, {
+            target,
+            props: {
+              title: 'Windows',
+              description: 'Each team’s window',
+              valueLabel: 'Hours',
+              data: [
+                { label: 'W'.repeat(18), start: 2, end: 8 },
+                { label: 'B', start: 1, end: 9 }
+              ]
+            }
+          });
+          flushSync();
+          const labels = [...target.querySelectorAll('svg.plot text.axis[text-anchor="end"]')];
+          const gutter = Math.max(...labels.map((label) => label.getBoundingClientRect().right));
+          return [...target.querySelectorAll('svg.plot rect.range')].map((bar) => {
+            const box = bar.getBoundingClientRect();
+            return { width: Math.round(box.width), clear: box.left > gutter };
+          });
+        });
+        assert.equal(rows.length, 2);
+        for (const row of rows) {
+          assert.ok(row.width > 40, `a bar is ${row.width}px wide`);
+          assert.ok(row.clear, 'a bar starts under the labels');
+        }
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a value alone between two gaps keeps its marker on a line too long to mark', async () => {
+      const page = await openMount(browser, url);
+      try {
+        const marks = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const ys = [3, 4, 5, 6, 7, 8, Number.NaN, 9, Number.NaN, 10, 11, 12, 13, 14, 15];
+          const target = document.createElement('div');
+          document.body.append(target);
+          mount(lib.LineChart, {
+            target,
+            props: {
+              title: 'Readings',
+              description: 'One reading stands alone',
+              xLabel: 'Day',
+              yLabel: 'Items',
+              series: [{ id: 'a', label: 'A', points: ys.map((y, index) => ({ x: index + 1, y })) }]
+            }
+          });
+          flushSync();
+          return [...target.querySelectorAll('path.marker title')].map((title) =>
+            title.textContent?.replace(/\D+/g, ' ').trim()
+          );
+        });
+        assert.deepEqual(marks, ['8 9'], 'the lone value at day 8 draws its marker');
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a chart that opens a section stands the sub-section gap under its copy, at every width', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const [gap, rhythm] = await page.evaluate(() => {
+            const chart = /** @type {HTMLElement} */ (
+              document.querySelector('.sui-section-body > .sui-chart:first-child')
+            );
+            const head = /** @type {HTMLElement} */ (
+              chart.closest('.sui-section')?.querySelector('.sui-section-head')
+            );
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-rhythm-subsection-gap)';
+            chart.after(probe);
+            const rhythm = probe.getBoundingClientRect().height;
+            probe.remove();
+            return [
+              chart.getBoundingClientRect().top - head.getBoundingClientRect().bottom,
+              rhythm
+            ];
+          });
+          assert.equal(gap, rhythm, `${width}px`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
+    test('a failed or empty chart says so in its plot’s box, where its veil waits', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        const boxes = await page.evaluate(() =>
+          [...document.querySelectorAll('.plot-band.standing')].map((band) => {
+            const panel = /** @type {Element} */ (band.firstElementChild).getBoundingClientRect();
+            const box = band.getBoundingClientRect();
+            const look = getComputedStyle(band);
+            const pad = parseFloat(look.paddingLeft);
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-local-plot)';
+            band.append(probe);
+            const plot = probe.getBoundingClientRect().height;
+            probe.remove();
+            return `${Math.round(panel.left - box.left - pad)} ${Math.round(box.right - pad - panel.right)} ${Math.round(panel.height - plot)}`;
+          })
+        );
+        assert.equal(boxes.length, 2, 'one failed and one empty chart');
+        assert.deepEqual(new Set(boxes), new Set(['0 0 0']));
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a failed or empty chart centres its state in the plot’s box, its title a step under the chart’s, at every width', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const found = await page.evaluate(() =>
+            [...document.querySelectorAll('.plot-band.standing')].map((band) => {
+              const panel = /** @type {HTMLElement} */ (band.firstElementChild);
+              const box = panel.getBoundingClientRect();
+              const middle = (box.left + box.right) / 2;
+              // A mark that leads its title shares its line, so each line is centred as one.
+              /** @type {{ top: number, bottom: number, left: number, right: number }[]} */
+              const lines = [];
+              for (const part of panel.querySelectorAll('p, button, [class*="-mark"]')) {
+                const own = part.getBoundingClientRect();
+                const line = lines.find((it) => own.top < it.bottom && own.bottom > it.top);
+                if (line) {
+                  line.left = Math.min(line.left, own.left);
+                  line.right = Math.max(line.right, own.right);
+                } else
+                  lines.push({
+                    top: own.top,
+                    bottom: own.bottom,
+                    left: own.left,
+                    right: own.right
+                  });
+              }
+              const off = Math.max(
+                ...lines.map((line) => Math.abs((line.left + line.right) / 2 - middle))
+              );
+              const size = (/** @type {Element | null} */ element) =>
+                element ? parseFloat(getComputedStyle(element).fontSize) : NaN;
+              const chart = band.closest('.sui-chart');
+              return [
+                off <= 1,
+                size(panel.querySelector('[class*="-state-title"]')) <
+                  size(chart?.querySelector('.sui-chart-title') ?? null)
+              ];
+            })
+          );
+          assert.deepEqual(
+            found,
+            [
+              [true, true],
+              [true, true]
+            ],
+            `at ${width}px, each part centred and the title under the chart's`
+          );
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
+    test('a failed chart’s mark leads its title on one centred line, 8px before it, on whole pixels', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const found = await page
+            .locator('.plot-band.standing .sui-error-state')
+            .first()
+            .evaluate((panel) => {
+              const mark = /** @type {Element} */ (
+                panel.querySelector('.sui-error-state-mark svg')
+              ).getBoundingClientRect();
+              const title = /** @type {Element} */ (
+                panel.querySelector('.sui-error-state-title')
+              ).getBoundingClientRect();
+              return [
+                mark.top < title.bottom && mark.bottom > title.top,
+                title.left - mark.right,
+                Number.isInteger(mark.left) && Number.isInteger(mark.top)
+              ];
+            });
+          assert.deepEqual(found, [true, 8, true], `at ${width}px`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
+    test('a chart’s gridlines each fill one whole row or column of pixels, at every width', async () => {
+      // Only the line's thickness counts: an end that straddles a pixel does not blur the line.
+      for (const width of [1440, 320]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const split = await page.evaluate(() =>
+            [...document.querySelectorAll('.sui-chart rect.grid')].flatMap((line) => {
+              const box = line.getBoundingClientRect();
+              const across = box.width > box.height ? [box.top, box.bottom] : [box.left, box.right];
+              return across.some((edge) => edge % 1 !== 0)
+                ? [`${box.left},${box.top} ${box.width}x${box.height}`]
+                : [];
+            })
+          );
+          assert.deepEqual(split, [], `at ${width}px, no gridline straddles two pixels`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
+    test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room over it on the band’s ground', async () => {
+      const page = await openLayout('charts/', 1440);
+      try {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const band = page.locator('.plot-band:has(> .sui-chart-wait)').first();
+        const shot = await band.screenshot({ scale: 'css' });
+        const [pad, side] = await band.evaluate((band) => {
+          const style = getComputedStyle(band);
+          return [parseFloat(style.paddingTop), parseFloat(style.paddingLeft)];
+        });
+        const [room, plot, corner] = await page.evaluate(
+          async ({ url, pad, side }) => {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            const canvas = new OffscreenCanvas(image.width, image.height);
+            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+              canvas.getContext('2d')
+            );
+            context.drawImage(image, 0, 0);
+            const at = (/** @type {number} */ x, /** @type {number} */ y) =>
+              [...context.getImageData(Math.round(x), Math.round(y), 1, 1).data].join();
+            // The band's room above the plot, the plot between its top and its first grid line,
+            // and the plot's own corner pixel.
+            return [
+              at(image.width / 2, pad / 2),
+              at(image.width / 2, pad + (image.height - 2 * pad) / 8),
+              at(side, pad)
+            ];
+          },
+          { url: `data:image/png;base64,${shot.toString('base64')}`, pad, side }
+        );
+        assert.ok(pad > 0, 'the band has no room round its plot');
+        assert.notEqual(room, plot, 'the veil fills the band’s room round the plot');
+        assert.equal(corner, room, 'the veil’s corner is square');
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a loading, refreshing, stale or partial chart’s note leads with its mark in its hue, a loading one’s clock in the note’s muted ink, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
+      const page = await charts();
+      const read = await page.evaluate(() => {
+        const note = (/** @type {string} */ status) =>
+          /** @type {HTMLElement} */ (
+            document.querySelector(`#charts .sui-chart-note[data-status="${status}"]`)
+          );
+        const ink = (/** @type {Element} */ host, /** @type {string} */ token) => {
+          const probe = document.createElement('span');
+          probe.style.color = `var(${token})`;
+          host.append(probe);
+          const color = getComputedStyle(probe).color;
+          probe.remove();
+          return color;
+        };
+        const marked = (/** @type {HTMLElement} */ host, /** @type {string} */ token) => {
+          const mark = host.querySelector(':scope > svg');
+          return mark ? getComputedStyle(mark).color === ink(host, token) : false;
+        };
+        const details = /** @type {HTMLDetailsElement} */ (
+          document.querySelector('#charts .sui-chart details')
+        );
+        const chevron = details.querySelector('summary > .chevron svg');
+        const turn = () =>
+          chevron ? getComputedStyle(/** @type {Element} */ (chevron.parentElement)).rotate : '';
+        chevron?.parentElement?.style.setProperty('transition', 'none');
+        const closed = turn();
+        details.open = true;
+        const opened = turn();
+        details.open = false;
+        const loading = note('loading');
+        return {
+          loading: marked(loading, '--sui-text-muted'),
+          start: [note('stale'), note('refreshing'), note('partial'), loading].map(
+            (host) =>
+              /** @type {Element} */ (host.querySelector(':scope > span')).getBoundingClientRect()
+                .left - host.getBoundingClientRect().left
+          ),
+          stale: marked(note('stale'), '--sui-warning'),
+          refreshing: marked(note('refreshing'), '--sui-info'),
+          partial: marked(note('partial'), '--sui-info'),
+          heights: [note('stale'), note('refreshing'), note('partial'), loading].map(
+            (host) => host.getBoundingClientRect().height
+          ),
+          chevron: [Boolean(chevron), closed, opened]
+        };
+      });
+      assert.ok(read.stale, 'the stale note has no mark in the warning hue');
+      assert.ok(read.refreshing, 'the refreshing note has no mark in the info hue');
+      assert.ok(read.partial, 'the partial note has no mark in the info hue');
+      assert.ok(read.loading, 'the loading note has no mark in its muted ink');
+      assert.equal(new Set(read.start).size, 1, `the notes' words start apart: ${read.start}`);
+      assert.equal(new Set(read.heights).size, 1, `a mark grows its note: ${read.heights}`);
+      assert.deepEqual(read.chevron, [true, 'none', '90deg'], 'the data control’s chevron');
+    });
+
+    test('a dark heatmap prints every value under its peak in one ink, white, as the step under the peak needs', async () => {
+      const page = await charts();
+      try {
+        await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'));
+        const inks = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#charts .sui-chart text.value:not(.none, .step-4)')].map(
+              (value) => getComputedStyle(value).fill
+            )
+          )
+        ]);
+        assert.deepEqual(inks, ['rgb(255, 255, 255)']);
+      } finally {
+        await page.evaluate(() => delete document.documentElement.dataset.theme);
+      }
+    });
 
     test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {
       const { faceInk } = await import('../../src/lib/charts/geometry.ts');
@@ -1983,6 +2973,14 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy Web #4174', 'focus is not on the run title');
+        assert.equal(
+          await page.evaluate(() => {
+            const style = getComputedStyle(/** @type {Element} */ (document.activeElement));
+            return `${style.outlineStyle} ${style.outlineWidth}`;
+          }),
+          'solid 2px',
+          "the landed PageHeader title lost the kit's ring"
+        );
         assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
           await page.locator('.sui-list-detail-list').isVisible(),
@@ -2099,6 +3097,56 @@ suite('navigation', together, () => {
           ['/layouts/list-detail/4176/'],
           'the opened run is not the one current row'
         );
+        const open = pair.locator('.sui-object-row.current');
+        const ground = () => open.evaluate((row) => getComputedStyle(row).backgroundColor);
+        // The press that opened the run left the pointer on its row.
+        await page.mouse.move(0, 0);
+        const resting = await ground();
+        await open.locator('a').hover();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              (rest) =>
+                getComputedStyle(
+                  /** @type {Element} */ (document.querySelector('.sui-object-row.current'))
+                ).backgroundColor !== rest,
+              resting,
+              brief
+            )
+          ),
+          'the open row does not answer the pointer'
+        );
+        assert.deepEqual(
+          (await audit(page)).filter(({ law }) => law === 'L-5').map(({ detail }) => detail),
+          [],
+          'a word on the hovered open row falls under its contrast'
+        );
+        // A press takes the pressed ground, over either hover.
+        const pressedGround = await open.evaluate((row) => {
+          const probe = row.appendChild(document.createElement('span'));
+          probe.style.background = 'var(--sui-row-pressed)';
+          const ground = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          return ground;
+        });
+        await page.mouse.down();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              (pressed) =>
+                getComputedStyle(
+                  /** @type {Element} */ (document.querySelector('.sui-object-row.current'))
+                ).backgroundColor === pressed,
+              pressedGround,
+              brief
+            )
+          ),
+          'the pressed open row keeps its hover ground'
+        );
+        // Let go off the row, so the press opens nothing.
+        await page.mouse.move(0, 0);
+        await page.mouse.up();
+        await page.mouse.move(0, 0);
         assert.equal(
           await pair.getByRole('link', { name: 'Runs' }).count(),
           0,

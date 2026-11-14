@@ -17,6 +17,7 @@
   title="Fits & Clipped"
   note="Each label has 16 rem, and only clipped ones show their whole text on hover and take a tab stop to show it on focus"
   layout="grid"
+  --specimen-caption-gap="4rem"
 >
   <Specimen label="Fits">
     <div class="frame">
@@ -44,8 +45,10 @@
     inline-size: min(100%, 16rem);
   }
 
+  /* The mono face is darker at one weight, so the identifier steps down to match the label. */
   .mono {
     font-family: var(--sui-mono);
+    font-weight: var(--sui-weight-regular);
     font-variant-numeric: tabular-nums;
   }
 </style>

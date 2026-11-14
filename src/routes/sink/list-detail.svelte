@@ -39,10 +39,28 @@
   code={false}
 >
   <Specimen label="No run open">
-    <LayoutPreview
-      href={resolve('/layouts/list-detail/[[run]]', {}) + '/'}
-      {source}
-      title="List detail page with no run open"
-    />
+    <div class="whole-list">
+      <LayoutPreview
+        href={resolve('/layouts/list-detail/[[run]]', {}) + '/'}
+        {source}
+        title="List detail page with no run open"
+      />
+    </div>
   </Specimen>
 </Example>
+
+<style>
+  .whole-list {
+    container-type: inline-size;
+  }
+
+  /* A phone's frame shows the list alone, as a phone does. Its twelve runs end 786px down a
+     375px window, so the frame stands that tall at its own scale, the stage's width up to
+     375px, and ends under the last run at every phone width rather than cutting through one.
+     The width is the one at which the preview starts as a phone. */
+  @media (max-width: 47.9375rem) {
+    .whole-list {
+      --preview-height: round(up, min(100cqi - 2px, 375px) * 786 / 375 + 2px, 1px);
+    }
+  }
+</style>

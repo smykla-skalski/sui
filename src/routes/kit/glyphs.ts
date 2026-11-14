@@ -1,13 +1,11 @@
 import { createRawSnippet } from 'svelte';
 
 /*
- * One symbol per sink page, drawn in the icon set's family (L-67): a 24-unit grid, a 1.75
+ * One symbol per sink page, drawn in the icon set's family (L-67): a 24-unit grid, a 2
  * stroke, round caps and joins, ink kept inside 3 to 21. They name pages of the sink, not
  * anything an app draws, so they stay here and the icon set's closed list stays as it is.
  */
 const DRAWN: Record<string, string> = {
-  all: '<path d="M12 3.5 3.5 8 12 12.5 20.5 8z"/><path d="m3.5 12 8.5 4.5 8.5-4.5"/><path d="m3.5 16 8.5 4.5 8.5-4.5"/>',
-
   buttons: '<rect x="3" y="7" width="18" height="10" rx="3"/><path d="M8 12h8"/>',
   'icon-buttons': '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
   navigation: '<circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
@@ -44,7 +42,7 @@ const DRAWN: Record<string, string> = {
   'pattern-entries': '<path d="M12 4v16M5.1 8l13.8 8M5.1 16l13.8-8"/>',
   'inherit-control': '<path d="M4 4.5h16"/><path d="M12 8v11.5"/><path d="m8 15.5 4 4 4-4"/>',
   'addition-picker':
-    '<rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke-dasharray="3 2.5"/><path d="M12 8.5v7M8.5 12h7"/>',
+    '<rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke-dasharray="1 4.5"/><path d="M12 8.5v7M8.5 12h7"/>',
   'setting-list':
     '<path d="M4 7h7M4 17h7"/><rect x="14" y="4.5" width="6.5" height="5" rx="2.5"/><rect x="14" y="14.5" width="6.5" height="5" rx="2.5"/>',
 
@@ -111,8 +109,8 @@ const DRAWN: Record<string, string> = {
 
 /** A page's symbol as markup, at a tier of the icon scale. An unknown page draws a dashed circle. */
 export function glyph(id: string, size: 'base' | 'md' = 'base'): string {
-  const drawn = DRAWN[id] ?? '<circle cx="12" cy="12" r="8.5" stroke-dasharray="3 3"/>';
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; flex: none; inline-size: var(--sui-icon-${size}); block-size: var(--sui-icon-${size})">${drawn}</svg>`;
+  const drawn = DRAWN[id] ?? '<circle cx="12" cy="12" r="8.5" stroke-dasharray="1 5"/>';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; flex: none; inline-size: var(--sui-icon-${size}); block-size: var(--sui-icon-${size})">${drawn}</svg>`;
 }
 
 /** A page's symbol as a snippet, for a navigation row or a card. */

@@ -4,6 +4,16 @@
 
   export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'shell' | 'text';
 
+  /* Each language's own name, which needs no translation; plain text's is a word, `plainTextName`. */
+  const languageNames: Partial<Record<CodeLang, string>> = {
+    json: 'JSON',
+    yaml: 'YAML',
+    toml: 'TOML',
+    markdown: 'Markdown',
+    html: 'HTML',
+    shell: 'Shell'
+  };
+
   /** One stretch of a line wearing one token class. */
   export interface TokenRun {
     /** A `tok-*` class, or undefined for plain text. */
@@ -165,6 +175,7 @@
     bare = false,
     regionLabel = word('CodeBlock.regionLabel', 'Code'),
     copyLabel = word('CodeBlock.copyLabel', 'Copy Code'),
+    plainTextName = word('CodeBlock.plainTextName', 'Text'),
     class: className = '',
     ...rest
   }: {
@@ -181,6 +192,8 @@
     regionLabel?: string;
     /** The copy control's name, saying what it copies. */
     copyLabel?: string;
+    /** What a phone's copy row calls plain text, where a language would stand. */
+    plainTextName?: string;
     /** Layout for the call site only, never the block's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
@@ -196,30 +209,37 @@ A read-only code window: mono at 14px on the inset ground, colored by the langua
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
-`lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
-copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
+`lineNumbers` draws a gutter in a comment's ink at full opacity, so a number never outranks
+the code it counts, behind a divider 12px from
+its numbers and its code, which never selects or copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame, its fill and the code's start inset for a host that frames and insets
 the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
 Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
-and carries an open quote or a continued line on to the next line. The copy control stands
-in its own column at the end of the block, always in view and never over the code, 8px in
-from the corner and centred on the first line, or in the file name's row when there is one. It copies `code` exactly as given.
+and carries an open quote or a continued line on to the next line. The copy control heads
+the code in a row of its own, a faint step off the code as the file name's row is, after the language's name, always in view and never over the
+code, or stands in the file name's row when there is one; a `bare` block keeps it in a column
+beside its first line, and takes the row only on a phone. It copies `code` exactly as given.
 
 - Semantics: a `figure` whose `figcaption` is the file name; the code is a `pre`, and a scroller that scrolls is a focusable `region` named by the label or `regionLabel`.
 - Content: plain text in one of seven languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
-- States: at rest, scrolling (a tab stop with the 2px inset ring on focus), and the copy control's own copied and failed states.
+- States: at rest, scrolling (a tab stop whose 2px ring covers the block's edge on focus, inside the scroller for a `bare` block), and the copy control's own copied and failed states.
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
-- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end.
+- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy row keeps the code the whole width at every width, and a `bare` block's copy column keeps its place at the end until a phone heads the block with the row.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
-- Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
+- Localization: `regionLabel`, `copyLabel` and `plainTextName` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
 - Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
 - Analytics: none of its own; the copy control reports its copy.
 - Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
 -->
-{#snippet copier()}
-  <div class="sui-code-block-copy"><CopyButton text={code} label={copyLabel} /></div>
+{#snippet copier(name?: string)}
+  <div class="sui-code-block-copy">
+    {#if name}<span class="sui-code-block-lang" translate="no">{name}</span>{/if}<CopyButton
+      text={code}
+      label={copyLabel}
+    />
+  </div>
 {/snippet}
 
 <figure {...rest} class={['sui-code-block', { bare, labelled: label !== undefined }, className]}>
@@ -232,7 +252,7 @@ from the corner and centred on the first line, or in the file name's row when th
   <pre
     translate="no"
     {@attach watchOverflow((value) => (scrolls = value))}
-    class="sui-code-block-scroll sui-scroll-edge"
+    class="sui-code-block-scroll sui-scroll-edge sui-scroll-edge-lines"
     style:--sui-local-code-digits={String(lines.length).length}
     dir="ltr"
     tabindex={scrolls ? 0 : undefined}
@@ -246,7 +266,9 @@ from the corner and centred on the first line, or in the file name's row when th
           ></span
         >{/each}</code
     ></pre>
-  {#if copy && label === undefined}{@render copier()}{/if}
+  {#if copy && label === undefined}{@render copier(
+      lang === 'text' ? plainTextName : languageNames[lang]
+    )}{/if}
 </figure>
 
 <style>
@@ -257,6 +279,8 @@ from the corner and centred on the first line, or in the file name's row when th
      a line, or sits in the file name's row. */
   .sui-code-block {
     --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
+    /* The block's quietest ink, a comment's and a line number's (see .tok-com). */
+    --sui-local-code-quiet: var(--sui-code-gutter);
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
@@ -276,16 +300,20 @@ from the corner and centred on the first line, or in the file name's row when th
 
   .sui-code-block-label {
     align-content: center;
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     flex: 1 1 8rem;
-    letter-spacing: 0.04em;
     min-block-size: var(--sui-local-code-row);
     overflow-wrap: anywhere;
     padding-inline: var(--sui-space-4);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* The language's name shows only in a copy row of its own, below. */
+  .sui-code-block-lang {
+    display: none;
   }
 
   /* Beside a file name too long to share its row, the control takes a row of its own, from the
@@ -318,32 +346,163 @@ from the corner and centred on the first line, or in the file name's row when th
     margin: 0;
     min-inline-size: 0;
     overflow-x: auto;
-    padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room-end: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    padding-block: var(--sui-local-code-room-start) var(--sui-local-code-room-end);
   }
 
   /* A bare block's host gives the room above and below its lines, as it does for any content,
      so its code stands where the host's words would. Under a file name the code keeps its room,
      so it never meets the line under the name. */
   .bare:not(.labelled) .sui-code-block-scroll {
-    padding-block: 0;
+    --sui-local-code-room-start: 0px;
+    --sui-local-code-room-end: 0px;
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
-     past the gutter: its numbers are as wide as the longest, in tabular figures. */
+     past the gutter and its rule: its numbers are as wide as the longest, in tabular figures.
+     The room above the first line and under the last moves into those lines, so the gutter and
+     its rule run the body's whole height. */
   .sui-code-block-scroll:has(> .numbered) {
-    --sui-local-edge-hold: calc(var(--sui-local-code-digits) * 1ch + 2 * var(--sui-space-4));
+    padding-block: 0;
+    --sui-local-edge-hold: calc(
+      var(--sui-local-code-digits) * 1ch + var(--sui-space-4) + var(--sui-space-3) +
+        var(--sui-stroke)
+    );
   }
 
   /* Under the file name the code takes the block's whole width. */
   .labelled .sui-code-block-scroll {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     border-start-end-radius: 0;
     border-start-start-radius: 0;
     flex-basis: 100%;
   }
 
-  /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
+  /* A framed block heads its code with a row of its own at every width, as a code window's tab
+     row does: the language's name at its start, on the code's edge and in the file name's type,
+     and the copy control at its end, so the block names itself and the code takes the whole
+     width under the row. The name's smaller cap stands on the control's baseline, so the row
+     reads as one line of words. At a large text size the name and the control share no line,
+     so the control wraps under the name and keeps to the end (WCAG 1.4.4). A block with no copy
+     control has no row to part from its code, so it keeps its own top edge. */
+  .sui-code-block:not(.labelled, .bare) > .sui-code-block-copy {
+    align-items: baseline;
+    box-sizing: border-box;
+    column-gap: var(--sui-space-3);
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-block-start: 0;
+    order: -1;
+    padding-block-start: var(--sui-space-2);
+  }
+
+  /* The head row, the file name's or the copy row, stands a faint step off the code under it,
+     as a code window's tab row does, so the row reads as the block's head and not a first line.
+     The block clips it to its own inner corners, however the row wraps; nothing in a framed
+     block draws past its edge, its copy control standing 8px inside it. */
+  .sui-code-block:not(.bare) {
+    overflow: clip;
+  }
+
+  .sui-code-block:not(.bare) > :is(.sui-code-block-label, .sui-code-block-copy) {
+    background: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-head-ink),
+      var(--sui-surface-code)
+    );
+  }
+
+  /* The copy control stands a step lighter than the head in both themes: the code's own white
+     in light, and in dark more of the ink than the head takes, where a raised ground sank under
+     it. */
+  .sui-code-block:not(.bare) > .sui-code-block-copy {
+    --sui-surface-base: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-chip-ink),
+      var(--sui-surface-code)
+    );
+  }
+
+  .sui-code-block:not(.bare) .sui-code-block-lang {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-primary);
+    display: block;
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
+      var(--sui-mono);
+    margin-inline-end: auto;
+    padding-block: var(--sui-block-snap-room);
+    padding-inline-start: calc(var(--sui-space-4) - var(--sui-space-2));
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-code-block:not(.labelled, .bare):has(> .sui-code-block-copy) > .sui-code-block-scroll {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
+    border-start-end-radius: 0;
+    border-start-start-radius: 0;
+    flex-basis: 100%;
+    --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+  }
+
+  /* A bare block, inset by its host as under a disclosure's words, keeps the control in a
+     column beside its first line, and takes the row only on a phone, whose column is too
+     narrow to give the control a column beside every line. */
+  @media (max-width: 47.9375rem) {
+    .sui-code-block.bare:not(.labelled) > .sui-code-block-copy {
+      align-items: baseline;
+      box-sizing: border-box;
+      column-gap: var(--sui-space-3);
+      flex-basis: 100%;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-block-start: 0;
+      order: -1;
+      padding-block-start: var(--sui-space-2);
+    }
+
+    .bare .sui-code-block-lang {
+      align-content: center;
+      block-size: var(--sui-block-snap);
+      color: var(--sui-text-primary);
+      display: block;
+      font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
+        var(--sui-mono);
+      margin-inline: calc(-1 * var(--sui-space-2)) auto;
+      padding-block: var(--sui-block-snap-room);
+      text-box: trim-both cap alphabetic;
+    }
+
+    .bare:not(.labelled):has(> .sui-code-block-copy) > .sui-code-block-scroll {
+      border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
+      border-start-end-radius: 0;
+      border-start-start-radius: 0;
+      flex-basis: 100%;
+      --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    }
+  }
+
+  /* A framed block draws the ring over its own edge, round the code and the copy control
+     together, as a field draws it over its frame, so no second box stands inside the first.
+     Under focus the scroller keeps its fades whole, with no ring of its own to keep clear. */
   .sui-code-block-scroll:focus-visible {
+    outline: none;
+  }
+
+  .sui-code-block:not(.bare):has(> .sui-code-block-scroll:focus-visible) {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: calc(-1 * var(--sui-stroke));
+  }
+
+  .sui-code-block:not(.bare) > .sui-code-block-scroll {
+    --sui-local-edge-corner: 0px;
+    --sui-local-edge-ring: 0px;
+  }
+
+  /* A bare block has no edge of its own, so its scroller draws the ring inside itself,
+     rounded even though the block is square, so the ring never has sharp corners. */
+  .bare .sui-code-block-scroll:focus-visible {
     border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
@@ -370,12 +529,22 @@ from the corner and centred on the first line, or in the file name's row when th
     min-block-size: var(--sui-leading-meta);
   }
 
-  /* The gutter stays in view while long lines scroll under it. */
+  /* The gutter stays in view while long lines scroll under it, and a divider stands 12px
+     from its numbers and its code, so a number never reads as the first token of its line. */
+  .numbered > .ln:first-child > * {
+    padding-block-start: var(--sui-local-code-room-start);
+  }
+
+  .numbered > .ln:last-child > * {
+    padding-block-end: var(--sui-local-code-room-end);
+  }
+
   .no {
     background: var(--sui-surface-code);
-    color: var(--sui-code-gutter);
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    color: var(--sui-local-code-quiet);
     inset-inline-start: 0;
-    padding-inline: var(--sui-space-4);
+    padding-inline: var(--sui-space-4) var(--sui-space-3);
     position: sticky;
     text-align: end;
     user-select: none;
@@ -386,9 +555,12 @@ from the corner and centred on the first line, or in the file name's row when th
     white-space: pre;
   }
 
-  .numbered .src,
   .bare .src {
     padding-inline-start: 0;
+  }
+
+  .numbered .src {
+    padding-inline-start: var(--sui-space-3);
   }
 
   .sui-code-block-scroll::selection,
@@ -409,8 +581,11 @@ from the corner and centred on the first line, or in the file name's row when th
     color: var(--sui-code-string);
   }
 
+  /* On the bare code ground a comment steps back past the punctuation, as far as 4.5:1 lets it,
+     so a note reads apart from the code it explains. A diff keeps the shared comment ink, which
+     its tinted rows need to hold that contrast. */
   .tok-com {
-    color: var(--sui-code-comment);
+    color: var(--sui-local-code-quiet);
   }
 
   .tok-pun {

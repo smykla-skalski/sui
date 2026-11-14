@@ -63,7 +63,7 @@ margins of its own; the form that holds it sets the gap above it.
 
 - Semantics: a `role="alert"` box with the message, and a list of links when it summarises `problems`.
 - Content: `message`, one sentence that says what happened, and `problems`, one short message per field in the order the fields stand.
-- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
+- States: absent while `message` is empty, a one-line refusal, and a summary whose 16px semibold message heads its links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
 - Keyboard: a summary takes focus, Tab walks its links, and Enter on a link focuses that field.
 - Pointer and touch: each link's target is 24px tall, and 44px on a phone or any touch screen.
 - Focus: a summary takes focus when it appears and again on each `attempt`; a link moves focus to its field.
@@ -79,7 +79,7 @@ margins of its own; the form that holds it sets the gap above it.
   {#if message}
     <div
       {...rest}
-      class={['sui-form-error', className]}
+      class={['sui-form-error', className, { summary: problems.length > 0 }]}
       role="alert"
       tabindex="-1"
       {@attach arrive}
@@ -108,18 +108,23 @@ margins of its own; the form that holds it sets the gap above it.
 <style>
   /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
      hue, as an error panel is, so it owns the top of the form and its words keep their
-     contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
+     contrast. Its words read at body size beside a 16px mark, so it pads 16px above and below
+     them, and 20px at their sides, the rail an error panel's words stand on, so every danger
+     wash on a page starts its mark on one line. */
   .sui-form-error {
-    background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-surface-base));
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
+    background: var(--sui-danger-wash);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: var(--sui-radius-control);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
-    padding: var(--sui-space-4);
+    padding: var(--sui-space-4) var(--sui-space-5);
   }
 
-  .sui-form-error:focus-visible {
+  /* Focus moves here by script, after a pointer submit too, where :focus-visible would draw no
+     ring, so any focus rings it and the reader sees where the keyboard now stands (GOV.UK's
+     error summary rings the same way). Only script and a click inside it focus it. */
+  .sui-form-error:focus {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
@@ -135,6 +140,13 @@ margins of its own; the form that holds it sets the gap above it.
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
+  }
+
+  /* A summary's message heads its links, so it reads at the 16px semibold a failed line's
+     title wears. */
+  .summary > .sui-form-error-message {
+    font-size: var(--sui-font-size-state-title);
+    font-weight: var(--sui-weight-semibold);
   }
 
   /* Centred on the first line's cap height, however many lines the message wraps to. */
@@ -158,7 +170,7 @@ margins of its own; the form that holds it sets the gap above it.
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-1);
     list-style: none;
     margin: 0;
     padding: 0;

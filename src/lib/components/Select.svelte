@@ -296,13 +296,17 @@ assistive technology, because a native picker cannot be held open.
 
 <style>
   /* The field's box takes the pointer even on a surface that lets it through to a link under
-     its content, as a linked card does, so its hit area answers a press. */
+     its content, as a linked card does, so its hit area answers a press. A long value is cut,
+     but the control's insets and chevron room are not, so the box never shrinks under them and
+     the control never draws past it. */
   .sui-select {
     display: inline-grid;
     pointer-events: auto;
     grid-template-columns: minmax(0, auto);
     max-inline-size: 100%;
-    min-inline-size: 0;
+    min-inline-size: calc(
+      2 * (var(--sui-field-inset) + var(--sui-stroke)) + var(--sui-icon-base) + var(--sui-space-2)
+    );
     vertical-align: middle;
   }
 

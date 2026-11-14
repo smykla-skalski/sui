@@ -78,7 +78,8 @@ they read as a group of their own and never as one more line of the description,
 band's gutter also reaches their ink.
 
 The header is a band of the surface ground over the page's canvas, and its foot is one
-hairline (`--sui-border-band`) the band's full width, so the view under it starts on a clean
+hairline (`--sui-border-band`) the band's full width, painted over `--sui-border-band-ground`
+where a holder sets one, as the shell does so the foot meets its sidebar's edge in one ink, so the view under it starts on a clean
 cut, as a page's body starts below a toolbar, and the cut still shows where the band and the
 page share one ground. Place it flush with the top and sides of the page's content area: the
 band pads by the pane gutter on every side, 24px and 16px on a phone, the inset the page gives its content, so its words
@@ -164,6 +165,13 @@ and the header owes only the difference. A holder that hides the kicker at some 
      two grounds are. With tabs, their own line is the foot: the row runs to the band's edges,
      its first tab's words still on the copy's start, so the current tab's bar sits on the foot. */
   .sui-page-header:not(.tabbed) {
+    background:
+      linear-gradient(
+          var(--sui-border-band-ground, transparent),
+          var(--sui-border-band-ground, transparent)
+        )
+        bottom / 100% var(--sui-stroke) no-repeat border-box,
+      var(--sui-surface-base);
     border-block-end: var(--sui-stroke) solid var(--sui-border-band);
   }
 
@@ -252,10 +260,9 @@ and the header owes only the difference. A holder that hides the kicker at some 
     text-wrap: balance;
   }
 
-  /* A script lands focus on the title as a reading position, after a navigation or from a
-     ListDetail. It is never a tab stop or a control, so it draws no ring, which around a box
-     trimmed to the cap would cut the descenders and run into the kicker above. */
-  .sui-page-header-title:focus {
+  /* A script lands focus on the title as a reading position after a navigation, so it draws
+     no ring. A ListDetail landing marks it and it wears the kit's heading ring. */
+  .sui-page-header-title:focus:not([data-sui-landed]) {
     outline: none;
   }
 

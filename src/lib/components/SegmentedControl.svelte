@@ -640,7 +640,9 @@ itself, so the choice shows from the first frame.
      chosen against that room rather than the control's own box, so the short form can be only
      as wide as its select, the part touching it, and still turns back into segments once the
      room grows. The parts that only measure or wait hang from the host's end, toward its start,
-     so they never widen the page. */
+     so they never widen the page. The short form never shrinks under its words and chevron, so
+     a host short of even that room moves its own parts aside instead of cutting the select;
+     only the short form claims it, as the segments' first layout must claim no width. */
   @container style(--sui-local-segmented-room) {
     .sui-segmented-measure {
       inline-size: var(--sui-local-segmented-room);
@@ -650,11 +652,17 @@ itself, so the choice shows from the first frame.
 
     .sui-segmented-picker {
       contain: none;
+      min-inline-size: max-content;
     }
   }
 
   @supports (animation-timeline: scroll()) {
     @container style(--sui-local-segmented-room) {
+      .sui-segmented {
+        animation: sui-segmented-short-aside var(--sui-ease-linear) both;
+        animation-timeline: --sui-segmented-fit;
+      }
+
       .sui-segmented > .sui-segmented-track {
         animation-name: sui-segmented-short-track-aside;
       }
@@ -663,10 +671,21 @@ itself, so the choice shows from the first frame.
 
   @supports not (animation-timeline: scroll()) {
     @container style(--sui-local-segmented-room) {
+      .short {
+        grid-template-columns: minmax(auto, max-content);
+      }
+
       .short > .sui-segmented-track {
         inset-inline-end: 0;
         position: absolute;
       }
+    }
+  }
+
+  @keyframes sui-segmented-short-aside {
+    from,
+    to {
+      grid-template-columns: minmax(auto, max-content);
     }
   }
 

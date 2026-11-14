@@ -64,7 +64,7 @@
 <Example
   title="States"
   note="The count and the end note hold the start, the button holds the end, and a failure takes the count’s place"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="More to load">
@@ -103,7 +103,7 @@
 <Example
   title="Content"
   note="Without a total the count says only how many rows show"
-  layout="grid"
+  layout="stack"
   ground="canvas"
 >
   <Specimen label="Total unknown">
@@ -120,31 +120,33 @@
   layout="stack"
   ground="canvas"
 >
-  <Section title="Activity" level={4} id="load-more-activity-title">
-    <ObjectList
-      id="load-more-activity"
-      aria-labelledby="load-more-activity-title"
-      aria-busy={loading}
-    >
-      {#each EVENTS.slice(0, shown) as event, index (event)}
-        <ObjectRow href="#load-more">
-          {#snippet main()}
-            <span class="name">{event}</span>
-            <span class="sum">Event {index + 1}</span>
-          {/snippet}
-        </ObjectRow>
-      {/each}
-    </ObjectList>
-    <LoadMore
-      list="load-more-activity"
-      more={shown < EVENTS.length}
-      {shown}
-      total={EVENTS.length}
-      {loading}
-      {problem}
-      onmore={next}
-    />
-  </Section>
+  <Specimen label="Live">
+    <Section title="Activity" level={4} id="load-more-activity-title">
+      <ObjectList
+        id="load-more-activity"
+        aria-labelledby="load-more-activity-title"
+        aria-busy={loading}
+      >
+        {#each EVENTS.slice(0, shown) as event, index (event)}
+          <ObjectRow href="#load-more">
+            {#snippet main()}
+              <span class="name">{event}</span>
+              <span class="sum">Event {index + 1}</span>
+            {/snippet}
+          </ObjectRow>
+        {/each}
+      </ObjectList>
+      <LoadMore
+        list="load-more-activity"
+        more={shown < EVENTS.length}
+        {shown}
+        total={EVENTS.length}
+        {loading}
+        {problem}
+        onmore={next}
+      />
+    </Section>
+  </Specimen>
 </Example>
 
 <style>

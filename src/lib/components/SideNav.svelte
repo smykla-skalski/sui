@@ -403,7 +403,7 @@ following a row closes the drawer.
      padding and the heading's inline margin are the same token. */
   .sui-side-nav {
     box-sizing: border-box;
-    timeline-scope: --sui-side-nav-tree;
+    timeline-scope: --sui-side-nav-rows;
     color: var(--sui-sidebar-text);
     display: flex;
     flex: 1;
@@ -411,17 +411,41 @@ following a row closes the drawer.
     gap: var(--sui-space-4);
     min-block-size: 0;
     padding: var(--sui-space-4) var(--sui-space-3);
+    /* The head starts at a page header's gutter, and its kicker is set as the page's eyebrow,
+       so their capitals share one line. */
+    padding-block-start: var(--sui-rhythm-pane-gutter);
   }
 
-  /* A hairline parts the title from the rows, as one parts the foot, so a row fading under it
-     never reads as cut by the title. */
+  /* Once rows scroll under the title a hairline parts them, as one parts the foot, so a row
+     passing under it never reads as cut by the title. At rest no row is under it, so the head
+     draws no second rule beside the page header's. The line fades in over the first 8px of the
+     rows' own scroll, by opacity, so the compositor runs it. */
   .sui-side-nav-head {
     align-items: center;
-    border-block-end: var(--sui-stroke) solid var(--sui-sidebar-border);
+    border-block-end: var(--sui-stroke) solid transparent;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-2);
     padding-block-end: var(--sui-space-3);
+    position: relative;
+  }
+
+  .sui-side-nav-head::after {
+    animation: sui-side-nav-rule var(--sui-ease-linear) both;
+    animation-range: 0 var(--sui-space-2);
+    animation-timeline: --sui-side-nav-rows;
+    background: var(--sui-sidebar-border);
+    block-size: var(--sui-stroke);
+    content: '';
+    inset: auto 0 calc(-1 * var(--sui-stroke));
+    opacity: 0;
+    position: absolute;
+  }
+
+  @keyframes sui-side-nav-rule {
+    to {
+      opacity: 1;
+    }
   }
 
   /* The head's content spans the sidebar, as the foot's does, while the names keep an inset. */
@@ -492,6 +516,7 @@ following a row closes the drawer.
      focus stops clear of them. */
   .sui-side-nav-tree {
     --sui-local-tree-gap: var(--sui-space-4);
+    scroll-timeline: --sui-side-nav-rows block;
     flex: 1 1 auto;
     margin-block: calc(-1 * var(--sui-local-tree-gap));
     margin-inline: calc(-1 * var(--sui-space-3));
@@ -500,7 +525,6 @@ following a row closes the drawer.
     overscroll-behavior: contain;
     padding: var(--sui-local-tree-gap) var(--sui-space-3);
     scroll-padding-block: var(--sui-local-tree-gap);
-    scroll-timeline: --sui-side-nav-tree block;
     scrollbar-width: thin;
   }
 
@@ -517,13 +541,15 @@ following a row closes the drawer.
     padding: 0;
   }
 
+  /* A heading over a group of links, the same step as a PageToc's title, so a page's two
+     indexes title their links alike. */
   .sui-side-nav-group {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
@@ -587,7 +613,7 @@ following a row closes the drawer.
     border: 0;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
-    color: var(--sui-sidebar-text-muted);
+    color: var(--sui-sidebar-text-rest);
     cursor: pointer;
     display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
@@ -611,7 +637,7 @@ following a row closes the drawer.
   @media (hover: hover) {
     .sui-side-nav-row:hover:not(:active, [aria-current='page']) {
       background: var(--sui-sidebar-item-hover);
-      color: var(--sui-sidebar-text-secondary);
+      color: var(--sui-sidebar-text);
     }
   }
 
@@ -622,6 +648,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-row:focus-visible {
+    color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
@@ -779,7 +806,7 @@ following a row closes the drawer.
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
-    padding-block-start: var(--sui-space-3);
+    padding-block-start: var(--sui-space-4);
     position: relative;
   }
 
@@ -797,7 +824,7 @@ following a row closes the drawer.
     .sui-side-nav-foot::before {
       animation: sui-side-nav-more var(--sui-ease-linear) both;
       animation-range: calc(100% - 2px) calc(100% - 1px);
-      animation-timeline: --sui-side-nav-tree;
+      animation-timeline: --sui-side-nav-rows;
       block-size: var(--sui-stroke);
       box-shadow: 0 calc(-1 * var(--sui-space-1)) var(--sui-space-2) var(--sui-shadow-color);
       content: '';
@@ -998,8 +1025,17 @@ following a row closes the drawer.
     }
   }
 
-  /* Forced colors keep system colors, so the plate and its words survive the mode. */
+  /* Forced colors keep system colors, so the plate and its words survive the mode, and the
+     head's line is a border, which the mode draws where it drops a fill. */
   @media (forced-colors: active) {
+    .sui-side-nav-head {
+      border-block-end-color: CanvasText;
+    }
+
+    .sui-side-nav-head::after {
+      content: none;
+    }
+
     .sui-side-nav-thumb,
     .sui-side-nav-list:not(.measured) .sui-side-nav-row[aria-current='page'] {
       background-color: Highlight;

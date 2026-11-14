@@ -6,6 +6,7 @@
   import {
     centred,
     css,
+    definition,
     em,
     heatSteps,
     heatmapLayout,
@@ -43,10 +44,11 @@
     rangeLabel?: (from: string, to: string) => string;
   } = $props();
 
-  /* Five steps of the first chart colour. Every cell prints its value, so text ink holds 4.5:1
-     on the four lower steps in both themes, and the top step is the colour itself with its value
-     in the surface's ink, so the peak stands clear. The lowest holds 1.3:1 on its ground, so a
-     cell that holds a little never reads as an empty one. */
+  /* Five steps of the first chart colour. Every cell prints its value, so its ink holds 4.5:1 on
+     every step in both themes, and the top step is the colour itself with its value in the
+     surface's ink, so the peak stands clear. The lowest holds 1.6:1 on its ground, so a cell
+     that holds a little never reads as an empty one, and the four above it stand evenly apart, so
+     no two neighbours read as one and the peak does not leap. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
@@ -106,16 +108,16 @@ A matrix of numbers, where a stronger colour means a higher value. Colour is nev
 carrier: every cell prints its value, a legend under the matrix names the range each of the
 five colour steps covers, in whole numbers when every value is one (12–15, 16–19), and a cell
 with no value is drawn with a dashed edge and a dash, named in the legend and the table. Cells
-keep their size, so the matrix is as wide as its columns and scrolls sideways in a narrower
-container.
+keep their height, and columns widen to an even share of the band, so the matrix fills it; a
+column is never narrower than its square cell, and past that the matrix scrolls sideways.
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the matrix as one `role="img"`, a legend list and a disclosure holding a table of every cell.
 - Content: row and column names, cells with a number or `null`, and a formatter; a title and a one-sentence description are required.
-- States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus.
+- States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus, and its chevron turns down while the table shows.
 - Keyboard: Tab reaches the matrix when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
-- Responsive: the matrix stands on a band of the chart ground that reaches the edges of a card holding it, and starts exactly at the band's inner edge; cells keep their size and the matrix scrolls sideways with a fade on each edge that has more past it; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table; the server draws the matrix where it stands once the page runs.
+- Responsive: the matrix stands on a band of the chart ground that reaches the edges of a card holding it, and starts exactly at the band's inner edge; columns share the band's width in whole pixels, never narrower than a square cell, and past that the matrix scrolls sideways with a fade on each edge that has more past it; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table; the server draws the matrix where it stands once the page runs.
 - Accessibility: the printed value carries each cell's number, with ink at 4.5:1 on every step, so a cell needs no edge; a cell with no value has a dashed edge at 3:1, forced colors outline every cell, and the table has the title as its caption and names an empty cell in words.
 - Localization: `rowHeading`, `noDataLabel` and the frame's words are props with English defaults; default numbers follow the page language, the matrix reads left to right in every page, and names in a script the chart's own face does not hold are measured once the page runs.
 - Performance: one rect and one text a cell, which suits a few hundred cells; the table renders only while it is open. Nothing animates; an edge fade switches on the matrix's own scroll timeline.
@@ -134,70 +136,75 @@ container.
   {#snippet plot(measure: Measure)}
     {@const box = layout(measure, rows)}
     {@const cell = minus(box.size, px(2 * box.inset))}
-    <svg
-      style:inline-size={css(box.width)}
-      style:block-size={css(box.height)}
-      role="img"
-      aria-label="{title}{mark('stop')}{description}"
-    >
-      {#each columns as column, columnIndex (columnIndex)}
-        <text
-          class="axis"
-          text-anchor="middle"
-          style:translate={at(
-            plus(box.left, times(box.size, columnIndex + 0.5)),
-            box.columnBaseline
-          )}>{clip(column, COLUMN_MOST)}</text
-        >
-      {/each}
-      {#each rows as row, rowIndex (rowIndex)}
-        {@const cy = plus(box.top, times(box.size, rowIndex + 0.5))}
-        <text
-          class="axis"
-          text-anchor="end"
-          style:translate={at(box.labelEnd, plus(cy, em(box.cap / 2)))}>{clip(row, ROW_MOST)}</text
-        >
+    {@const wide = minus(box.across, px(2 * box.inset))}
+    <div class="plot" style:--sui-local-matrix={css(box.width)}>
+      <svg
+        style:--sui-local-heat-column={definition(box.across)}
+        style:block-size={css(box.height)}
+        role="img"
+        aria-label="{title}{mark('stop')}{description}"
+      >
         {#each columns as column, columnIndex (columnIndex)}
-          {@const cellValue = value(row, column)}
-          {@const cx = plus(box.left, times(box.size, columnIndex + 0.5))}
-          {@const cellX = minus(cx, times(cell, 0.5))}
-          {@const cellY = minus(cy, times(cell, 0.5))}
-          {#if cellValue === null}
-            <!-- The dashed edge is drawn inside the cell's box, so an empty cell is no larger than a filled one. -->
-            <rect
-              style:x={css(plus(cellX, px(0.5)))}
-              style:y={css(plus(cellY, px(0.5)))}
-              style:width={css(minus(cell, px(1)))}
-              style:height={css(minus(cell, px(1)))}
-              rx="4.5"
-              class="missing"
-              ><title>{row}{mark('comma')}{column}{mark('colon')}{noDataLabel}</title></rect
-            >
-            <text
-              class="value none"
-              text-anchor="middle"
-              style:translate={at(cx, centred(measure('—'), cy))}>—</text
-            >
-          {:else}
-            {@const words = formatValue(cellValue)}
-            <rect
-              style:x={css(cellX)}
-              style:y={css(cellY)}
-              style:width={css(cell)}
-              style:height={css(cell)}
-              rx="5"
-              class="cell step-{steps.step(cellValue)}"
-              data-labelled><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
-            >
-            <text
-              class="value step-{steps.step(cellValue)}"
-              text-anchor="middle"
-              style:translate={at(cx, centred(measure(words, false, true), cy))}>{words}</text
-            >
-          {/if}
+          <text
+            class="axis"
+            text-anchor="middle"
+            style:translate={at(
+              plus(box.left, times(box.across, columnIndex + 0.5)),
+              box.columnBaseline
+            )}>{clip(column, COLUMN_MOST)}</text
+          >
         {/each}
-      {/each}
-    </svg>
+        {#each rows as row, rowIndex (rowIndex)}
+          {@const cy = plus(box.top, times(box.size, rowIndex + 0.5))}
+          <text
+            class="axis"
+            text-anchor="end"
+            style:translate={at(box.labelEnd, plus(cy, em(box.cap / 2)))}
+            >{clip(row, ROW_MOST)}</text
+          >
+          {#each columns as column, columnIndex (columnIndex)}
+            {@const cellValue = value(row, column)}
+            {@const cx = plus(box.left, times(box.across, columnIndex + 0.5))}
+            {@const cellX = plus(box.left, times(box.across, columnIndex), px(box.inset))}
+            {@const cellY = minus(cy, times(cell, 0.5))}
+            {#if cellValue === null}
+              <!-- The dashed edge is drawn inside the cell's box, so an empty cell is no larger than a filled one. -->
+              <rect
+                style:x={css(plus(cellX, px(0.5)))}
+                style:y={css(plus(cellY, px(0.5)))}
+                style:width={css(minus(wide, px(1)))}
+                style:height={css(minus(cell, px(1)))}
+                rx="4.5"
+                class="missing"
+                ><title>{row}{mark('comma')}{column}{mark('colon')}{noDataLabel}</title></rect
+              >
+              <text
+                class="value none"
+                text-anchor="middle"
+                style:translate={at(cx, centred(measure('—'), cy))}>—</text
+              >
+            {:else}
+              {@const words = formatValue(cellValue)}
+              <rect
+                style:x={css(cellX)}
+                style:y={css(cellY)}
+                style:width={css(wide)}
+                style:height={css(cell)}
+                rx="5"
+                class="cell step-{steps.step(cellValue)}"
+                data-labelled
+                ><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
+              >
+              <text
+                class="value step-{steps.step(cellValue)}"
+                text-anchor="middle"
+                style:translate={at(cx, centred(measure(words, false, true), cy))}>{words}</text
+              >
+            {/if}
+          {/each}
+        {/each}
+      </svg>
+    </div>
   {/snippet}
   <ul class="legend" role="list">
     {#each legend as range, index (index)}
@@ -237,16 +244,24 @@ container.
 </ChartFrame>
 
 <style>
+  /* The matrix takes its band's width in whole pixels and scrolls past its narrowest. It is its
+     own container, so its columns share its width and the server draws each where it stands. */
+  .plot {
+    container-type: inline-size;
+    inline-size: max(round(down, 100%, 1px), var(--sui-local-matrix));
+  }
   svg {
     display: block;
+    inline-size: 100%;
   }
   .axis {
     fill: var(--sui-text-secondary);
   }
   /* Tabular figures, which the face's table measures too, so values of one length stand as wide
-     as each other and a cell grown to its widest value holds it. */
+     as each other and a cell grown to its widest value holds it. On dark every value is white,
+     since the text ink falls under 4.5:1 on the step under the peak, so the cells keep one ink. */
   .value {
-    fill: var(--sui-text-primary);
+    fill: light-dark(var(--sui-text-primary), var(--sui-on-brand-action));
     font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-medium);
   }
@@ -254,16 +269,21 @@ container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 20%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 33%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 36%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 48%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 52%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 62%, transparent);
   }
+  /* The dark peak is lighter than the light one, so the step under it stops lower to keep the
+     peak a clear step above it. */
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
+    --sui-local-heat: light-dark(
+      color-mix(in srgb, var(--sui-chart-1) 77%, transparent),
+      color-mix(in srgb, var(--sui-chart-1) 75%, transparent)
+    );
   }
   .step-4 {
     --sui-local-heat: var(--sui-chart-1);

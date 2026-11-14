@@ -58,7 +58,7 @@ it a bounded width anywhere else.
 
 - Semantics: a `span` whose words are the whole text, so a screen reader always hears all of it; a cut label inside no control becomes a tab stop.
 - Content: one line of plain text, cut with an ellipsis at the end of its box.
-- States: fits (a plain span), clipped (the ellipsis, and the tip on hover, long press and focus), and focused (the 2px ring when it is its own tab stop).
+- States: fits (a plain span), clipped (the ellipsis, and the tip on hover, long press and focus), and focused (the 2px ring when it is its own tab stop, set past the ascenders and descenders).
 - Keyboard: a cut label inside a control shows its tip on that control's focus; a cut label alone takes Tab itself, and Escape closes the tip.
 - Pointer and touch: hover shows the whole text after a pause, and a long press shows it on touch, with the system's long-press menu and word selection held off a cut label.
 - Focus: it never moves focus; it takes focus only while cut and outside any control.
@@ -96,10 +96,22 @@ it a bounded width anywhere else.
     white-space: nowrap;
   }
 
+  /* The box is trimmed to the cap and the baseline, so the ring's foot is set 4px further out,
+     past a label's descent, and its top 3px, past the font's ascent. Its start stands 2px further
+     out too, nearer the room the ellipsis leaves at its end. The margins give that room back,
+     so the label never moves. */
   .sui-clipped-label:focus-visible {
     border-radius: var(--sui-radius-chip);
+    margin-block: calc(1px - var(--sui-space-1)) calc(-1 * var(--sui-space-1));
+    margin-inline-start: -2px;
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+    /* The snap room's end half, which only a browser without calc-size() pads, plus the 4px. */
+    padding-block-end: calc(
+      var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px) + var(--sui-space-1)
+    );
+    padding-block-start: calc(var(--sui-space-1) - 1px);
+    padding-inline-start: 2px;
   }
 
   /* A long press shows the tip on touch, so the system's own long-press menu and word selection

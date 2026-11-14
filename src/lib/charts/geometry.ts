@@ -582,6 +582,8 @@ export type HeatmapLayout = {
   left: Length;
   top: Length;
   size: Length;
+  /** A column's width: an even share of the plot past `left`, never under `size`. */
+  across: Length;
   inset: number;
   labelEnd: Length;
   columnBaseline: Length;
@@ -593,7 +595,9 @@ export type HeatmapLayout = {
  * first column name wider than its cell, starts at 0, the column names' ink tops the matrix at
  * 0, and the last cell, or a column name wider than it, ends the width. Square cells are
  * 4rem, or larger where neighbouring column names would come within half a rem of each
- * other or a printed value would come within a quarter rem of its cell's edge.
+ * other or a printed value would come within a quarter rem of its cell's edge. A column widens
+ * to an even share of a wider plot, in whole pixels, so the matrix fills its band; `width` is the
+ * matrix at its narrowest, past which it scrolls.
  */
 export function heatmapLayout(input: {
   measure: Measure;
@@ -618,16 +622,20 @@ export function heatmapLayout(input: {
       return Math.max(...spans.map(([, end]) => end)) - Math.min(...spans.map(([start]) => start));
     })
   );
-  const size = most(rem(4), plus(em(reach), rem(0.5)), plus(em(widest), rem(0.5), px(2 * inset)));
+  // The cells stand on whole pixels, so their fills end sharp at every text size.
+  const size = roundUp(
+    most(rem(4), plus(em(reach), rem(0.5)), plus(em(widest), rem(0.5), px(2 * inset)))
+  );
   const columns = lineInk(columnInk);
   const gutter = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
   // A lone first column keeps the 4rem cell, so a wider name of its own can reach past 0.
-  const left = most(
+  const start = most(
     gutter,
     ...spans.slice(0, 1).map(([start]) => minus(em(-start), times(size, 0.5)))
   );
+  const left = roundUp(start);
   const columnBaseline = em(columns.ascent);
-  const top = plus(columnBaseline, em(columns.descent), gap, px(-inset));
+  const top = roundUp(plus(columnBaseline, em(columns.descent), gap, px(-inset)));
   const ends = columnInk.map((ink, index) =>
     plus(left, times(size, index + 0.5), em(inkSpan(ink, 0, 'middle')[1]))
   );
@@ -637,8 +645,17 @@ export function heatmapLayout(input: {
     left,
     top,
     size,
+    across: named(
+      '--sui-local-heat-column',
+      most(
+        size,
+        roundDown(
+          times(plus(share(1), minus(px(inset), left)), 1 / Math.max(1, input.columns.length))
+        )
+      )
+    ),
     inset,
-    labelEnd: minus(plus(left, px(inset)), gap),
+    labelEnd: minus(plus(start, px(inset)), gap),
     columnBaseline,
     cap: measure('H').ascent
   };

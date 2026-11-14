@@ -54,6 +54,47 @@ suite('lists', together, () => {
   suite('the pattern entries', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test("a block's names and every quiet copy control's words read at the 13px caption tier", async () => {
+      const page = await opened();
+      const sizes = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '#code-block :is(.sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang), .sui-copy-button:not(.toolbar, .bare))'
+          )
+        ].map((name) => `${name.textContent}: ${getComputedStyle(name).fontSize}`)
+      );
+      assert.ok(sizes.length >= 8, `only ${sizes.length} names and controls`);
+      assert.deepEqual(
+        sizes.filter((size) => !size.endsWith(': 13px')),
+        [],
+        'a name reads off the caption tier'
+      );
+    });
+
+    test("a day feed's times read at the 13px caption tier, a step under their 14px entries", async () => {
+      const page = await opened();
+      const sizes = await page.evaluate(() => [
+        ...new Set(
+          [...document.querySelectorAll('#day-heading .entries time')].map(
+            (time) => getComputedStyle(time).fontSize
+          )
+        )
+      ]);
+      assert.deepEqual(sizes, ['13px']);
+    });
+
+    test('a day feed keeps a form measure on a wide page, so each time stays near its entry', async () => {
+      const page = await opened();
+      const widths = await page.evaluate(() => {
+        const feed = /** @type {Element} */ (document.querySelector('#day-heading .days'));
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const stage = /** @type {Element} */ (feed.parentElement).getBoundingClientRect().width;
+        return { feed: feed.getBoundingClientRect().width / rem, stage: stage / rem };
+      });
+      assert.ok(widths.stage > 40, `the stage is only ${widths.stage}rem wide`);
+      assert.ok(widths.feed <= 40, `the feed spans ${widths.feed}rem`);
+    });
+
     test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
       const page = await opened();
       const list = page
@@ -297,6 +338,709 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test('each directional glyph stands over its mirror, centred in its row beside its label, on the icon page', async () => {
+      const page = await opened();
+      const lines = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons table tbody tr')].map((row) =>
+          [...row.querySelectorAll('svg')].map((svg) => {
+            const box = svg.getBoundingClientRect();
+            const line = row.getBoundingClientRect();
+            return {
+              middle: box.left + box.width / 2,
+              top: box.top,
+              high: line.top + line.height / 2 - (box.top + box.height / 2)
+            };
+          })
+        )
+      );
+      assert.equal(lines.length, 2, 'one line for each direction');
+      const [ltr, rtl] = lines;
+      assert.ok(ltr.length >= 5 && ltr.length === rtl.length, 'every glyph has its mirror');
+      for (const [index, glyph] of ltr.entries())
+        assert.ok(
+          Math.abs(glyph.middle - rtl[index].middle) < 0.5,
+          `glyph ${index + 1} stands ${glyph.middle - rtl[index].middle}px off its mirror's column`
+        );
+      assert.ok(rtl[0].top - ltr[0].top <= 40, 'the mirrors stand on the next short line');
+      // An inline glyph rides on its cell's text baseline, above the label's capitals beside it.
+      for (const { high } of [...ltr, ...rtl])
+        assert.ok(Math.abs(high) < 0.5, `a glyph stands ${high}px above the middle of its row`);
+    });
+
+    test('a failed refresh over its rows keeps 20px inside its tint all round once its retry wraps', async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const inset = await strip.evaluate((node) => {
+        const tint = getComputedStyle(node, '::before');
+        const box = node.getBoundingClientRect();
+        const edge = parseFloat(tint.borderTopWidth);
+        const top = box.top + parseFloat(tint.top) + edge;
+        const bottom = box.bottom - parseFloat(tint.bottom) - edge;
+        const words = /** @type {Element} */ (
+          node.querySelector('.sui-error-state-copy')
+        ).getBoundingClientRect();
+        const retry = /** @type {Element} */ (node.querySelector('button')).getBoundingClientRect();
+        return {
+          above: words.top - top,
+          below: bottom - retry.bottom,
+          side: words.left - box.left - edge,
+          wrapped: retry.top >= words.bottom
+        };
+      });
+      assert.ok(inset.wrapped, 'the retry stands beside the words on a phone');
+      for (const [where, value] of [
+        ['above', inset.above],
+        ['below', inset.below],
+        ['at the side', inset.side]
+      ])
+        assert.ok(
+          Math.abs(Number(value) - 20) < 0.5,
+          `the strip keeps ${value}px ${where} inside its tint`
+        );
+    });
+
+    test("L-59 L-90 on a phone a failed refresh's retry wraps under its words", async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const at = await strip.evaluate((node) => {
+        const left = (/** @type {string} */ selector) =>
+          /** @type {Element} */ (node.querySelector(selector)).getBoundingClientRect().left;
+        return { words: left('.sui-error-state-title'), retry: left('button') };
+      });
+      assert.ok(
+        Math.abs(at.retry - at.words) < 0.5,
+        `the retry starts ${at.retry - at.words}px off its words`
+      );
+    });
+
+    test('a day feed keeps every time on the row end edge on a phone', async () => {
+      const page = await opened();
+      const ends = await page.evaluate(() =>
+        [...document.querySelectorAll('#day-heading .entries > li')].map((row) => {
+          const time = /** @type {Element} */ (row.querySelector('time')).getBoundingClientRect();
+          return Math.round(row.getBoundingClientRect().right - time.right);
+        })
+      );
+      assert.ok(ends.length >= 7, `only ${ends.length} entries`);
+      assert.deepEqual(
+        [...new Set(ends)],
+        [0],
+        `the times end ${ends.join(', ')}px from the row end`
+      );
+    });
+
+    test('a day feed sets each heading on its entries and parts its days at least twice as far', async () => {
+      const page = await opened();
+      const rooms = await page.evaluate(() =>
+        [...document.querySelectorAll('#day-heading .day')].slice(1).map((day) => {
+          const before = /** @type {Element} */ (day.previousElementSibling);
+          const rows = before.querySelectorAll('li');
+          const heading = /** @type {Element} */ (day.firstElementChild).getBoundingClientRect();
+          const first = /** @type {Element} */ (day.querySelector('li')).getBoundingClientRect();
+          return {
+            between: heading.top - rows[rows.length - 1].getBoundingClientRect().bottom,
+            within: first.top - heading.bottom,
+            rows:
+              rows.length > 1
+                ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().bottom
+                : 0
+          };
+        })
+      );
+      assert.ok(rooms.length >= 4, `only ${rooms.length + 1} days`);
+      for (const { between, within } of rooms)
+        assert.ok(
+          between >= 2 * within,
+          `a day stands ${between}px under the last, its heading ${within}px over its entries`
+        );
+      const step = Math.max(...rooms.map(({ rows }) => rows));
+      for (const { within } of rooms)
+        assert.ok(
+          within <= step,
+          `a heading stands ${within}px over its entries, farther than their ${step}px step`
+        );
+    });
+
+    test('a state title stands a size over its explanation on a phone', async () => {
+      const page = await opened();
+      const pairs = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-empty-state, .sui-error-state)')].map(
+          (panel) => {
+            const size = (/** @type {string} */ part) =>
+              parseFloat(
+                getComputedStyle(/** @type {Element} */ (panel.querySelector(part))).fontSize
+              );
+            return {
+              title: size(':is(.sui-empty-state-title, .sui-error-state-title)'),
+              words: size(':is(.sui-empty-state-description, .sui-error-state-description)')
+            };
+          }
+        )
+      );
+      assert.ok(pairs.length >= 6, `only ${pairs.length} panels`);
+      for (const { title, words } of pairs)
+        assert.ok(title > words, `a ${title}px title stands over ${words}px words`);
+    });
+
+    test('every danger wash on the states page starts its mark 20px inside its edge', async () => {
+      const page = await opened();
+      const insets = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-error-state, .sui-form-error)')].map(
+          (root) => {
+            const mark = /** @type {Element} */ (root.querySelector('svg'));
+            const edge = root.classList.contains('over')
+              ? getComputedStyle(root, '::before')
+              : getComputedStyle(root);
+            return (
+              mark.getBoundingClientRect().left -
+              root.getBoundingClientRect().left -
+              parseFloat(edge.borderLeftWidth)
+            );
+          }
+        )
+      );
+      assert.ok(insets.length >= 4, `only ${insets.length} parts`);
+      assert.deepEqual([...new Set(insets)], [20], `marks stand ${insets.join(', ')}px inside`);
+    });
+
+    test('every empty and error state on the states page stands under its list heading', async () => {
+      const page = await opened();
+      const bare = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-empty-state, .sui-error-state)')]
+          .filter((state) => !state.closest('.sui-section')?.querySelector('h4'))
+          .map((state) => state.textContent?.trim().slice(0, 40))
+      );
+      assert.deepEqual(bare, [], 'a state stands with no list heading over it');
+    });
+
+    test('an empty state’s dashed edge bends at the panel’s own radius and runs at its own stroke', async () => {
+      const page = await opened();
+      const panel = page.locator('#states .sui-empty-state').first();
+      await panel.scrollIntoViewIfNeeded();
+      await panel.evaluate((element) => {
+        element.style.setProperty('--sui-radius-control', '16px');
+        element.style.setProperty('--sui-stroke', '2px');
+      });
+      const shot = await panel.screenshot({ scale: 'css' });
+      await panel.evaluate((element) => element.removeAttribute('style'));
+      const ink = await page.evaluate(
+        async (data) => {
+          const image = await createImageBitmap(await (await fetch(data)).blob());
+          const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+            new OffscreenCanvas(image.width, image.height).getContext('2d')
+          );
+          context.drawImage(image, 0, 0);
+          const red = (/** @type {number} */ x, /** @type {number} */ y) =>
+            context.getImageData(x, y, 1, 1).data[0];
+          const inked = (/** @type {number} */ x, /** @type {number} */ y) => red(x, y) < 230;
+          // A 16px corner reaches the left side only at 16px down, and a side's first dash
+          // runs from there for 4px, 2px thick.
+          return { curve: inked(0, 8), dash: inked(0, 17), thick: inked(1, 17) };
+        },
+        `data:image/png;base64,${shot.toString('base64')}`
+      );
+      assert.deepEqual(ink, { curve: false, dash: true, thick: true });
+    });
+
+    test('a retry stands raised over its failure wash in both themes, edged and hovering in the hue at one strength', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const panel = /** @type {HTMLElement} */ (
+          document.querySelector('#states .sui-error-state:not(.over)')
+        );
+        const retry = /** @type {Element} */ (panel.querySelector('button'));
+        // A color-mix() resolves to color(srgb 0-1 ...), a plain fill to rgb(0-255 ...).
+        const channels = (/** @type {string} */ color) =>
+          (color.match(/[\d.]+/g) ?? [])
+            .map(Number)
+            .map((value) => (color.startsWith('color(') ? value * 255 : value));
+        const light = (/** @type {string} */ color) => {
+          const [r, g, b] = channels(color);
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        return ['light', 'dark'].map((theme) => {
+          panel.dataset.suiTheme = theme;
+          const veil = document.createElement('div');
+          veil.style.background = 'var(--sui-interactive-hover-layer)';
+          panel.append(veil);
+          const hover = getComputedStyle(veil).backgroundColor;
+          const [r, g, b] = channels(hover);
+          const strength = Number(hover.match(/\/\s*([\d.]+)\)/)?.[1] ?? 1);
+          veil.style.background = 'var(--sui-control-border)';
+          const [er, eg, eb] = channels(getComputedStyle(veil).backgroundColor);
+          veil.remove();
+          const rest = light(getComputedStyle(retry).backgroundColor);
+          const wash = light(getComputedStyle(panel).backgroundColor);
+          delete panel.dataset.suiTheme;
+          return {
+            theme,
+            raised: rest > wash,
+            hue: r > g && r > b,
+            edge: er > eg && er > eb,
+            strength
+          };
+        });
+      });
+      assert.equal(
+        found[1].strength,
+        found[0].strength,
+        'the retry hovers in a different strength of the hue on dark than on light'
+      );
+      for (const { theme, raised, hue, edge } of found) {
+        assert.ok(raised, `in ${theme} the retry sinks below its failure wash`);
+        assert.ok(hue, `in ${theme} the retry's hover veil is not the danger hue`);
+        assert.ok(edge, `in ${theme} the retry's edge is a grey on the danger wash`);
+      }
+    });
+
+    test('a resting retry holds no more room around its words than its short busy words need', async () => {
+      const page = await opened();
+      const room = await page.evaluate(() => {
+        const retry = /** @type {Element} */ (
+          document.querySelector('#states .sui-error-state:not(.over) button')
+        );
+        const words = /** @type {Element} */ (retry.querySelector('.said'));
+        return (retry.getBoundingClientRect().width - words.getBoundingClientRect().width) / 2;
+      });
+      // "Retrying…" behind its spinner needs 29px a side; "Trying Again…" held 41px.
+      assert.ok(room <= 30, `the retry keeps ${room}px a side around "Try Again"`);
+    });
+
+    test('a copy button at rest is as wide as its resting and copied words, not its hidden failure', async () => {
+      const page = await opened();
+      const fits = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .sui-copy-button')].map((button) => {
+          const words = (/** @type {Element} */ span) => {
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            return range.getBoundingClientRect().width;
+          };
+          const [rest, copied] = [...button.querySelectorAll('.sui-copy-button-labels > span')];
+          const style = getComputedStyle(button);
+          const frame =
+            parseFloat(style.paddingInlineStart) +
+            parseFloat(style.paddingInlineEnd) +
+            parseFloat(style.borderInlineStartWidth) +
+            parseFloat(style.borderInlineEndWidth);
+          return {
+            name: rest.textContent,
+            spare:
+              button.getBoundingClientRect().width - frame - Math.max(words(rest), words(copied))
+          };
+        })
+      );
+      assert.ok(fits.length >= 4, `only ${fits.length} copy buttons`);
+      for (const { name, spare } of fits)
+        assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
+    });
+
+    test('a file glyph’s status mark spans 5 units and keeps a clear pixel inside the document', async () => {
+      const page = await opened();
+      const marks = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons .grid li')].flatMap((item) => {
+          const name = item.querySelector('.name')?.textContent ?? '';
+          const svg = item.querySelector('svg');
+          const mark = svg?.querySelectorAll('path')[1];
+          if (!svg || !mark || !name.startsWith('file-')) return [];
+          const scale = svg.getBoundingClientRect().width / 24;
+          const half = parseFloat(svg.getAttribute('stroke-width') ?? '0') / 2;
+          const box = mark.getBBox();
+          // The outline `M6 3h8l4 4v14H6z` and its fold `M14 3v5h4` leave the inside from
+          // 6 + half to 18 - half across, and from the fold's foot down.
+          return [
+            {
+              name,
+              span: Math.max(box.width, box.height),
+              clear:
+                Math.min(
+                  box.x - half - (6 + half),
+                  18 - half - (box.x + box.width + half),
+                  box.y - half - (8 + half)
+                ) * scale
+            }
+          ];
+        })
+      );
+      assert.equal(marks.length, 4, `only ${marks.length} file status glyphs`);
+      for (const { name, span } of marks.filter(({ name }) => name !== 'file-missing'))
+        assert.ok(span >= 5, `${name}'s mark spans only ${span} units`);
+      for (const { name, clear } of marks)
+        assert.ok(clear >= 1, `${name}'s mark stands ${clear.toFixed(2)}px inside the document`);
+    });
+
+    test('the icon set names each glyph in the glyph’s own ink', async () => {
+      const page = await opened();
+      const apart = await page.evaluate(() => {
+        const ink = (/** @type {Element | null} */ node) =>
+          node ? getComputedStyle(node).color : '';
+        return [...document.querySelectorAll('#icons .grid li')]
+          .filter((item) => ink(item.querySelector('.name')) !== ink(item.querySelector('svg')))
+          .map((item) => item.querySelector('.name')?.textContent);
+      });
+      assert.deepEqual(apart, [], 'names in another ink than their glyph');
+    });
+
+    test('a small settings glyph keeps a clear pixel between its knobs and its rails on whole pixels', async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons svg')]
+          .filter((svg) => svg.getBoundingClientRect().width <= 12 && svg.querySelector('circle'))
+          .map((svg) => {
+            const scale = svg.getBoundingClientRect().width / 24;
+            const half = parseFloat(svg.getAttribute('stroke-width') ?? '0') / 2;
+            const knobs = [...svg.querySelectorAll('circle')].map((circle) => circle.getBBox());
+            let gap = Infinity;
+            for (const [i, a] of knobs.entries())
+              for (const b of knobs.slice(i + 1)) {
+                const across = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width));
+                const down = Math.max(b.y - (a.y + a.height), a.y - (b.y + b.height));
+                gap = Math.min(gap, (Math.max(across, down) - 2 * half) * scale);
+              }
+            const top = svg.getBoundingClientRect().top;
+            const rails = [...svg.querySelectorAll('circle')].map(
+              (circle) => (((top + circle.cy.baseVal.value * scale) % 1) + 1) % 1
+            );
+            return { size: svg.getBoundingClientRect().width, gap, rails };
+          })
+      );
+      assert.ok(gaps.length >= 2, `only ${gaps.length} small glyphs with knobs`);
+      for (const { size, gap, rails } of gaps) {
+        assert.ok(gap >= 1, `at ${size}px two knobs stand ${gap.toFixed(2)}px apart`);
+        for (const rail of rails)
+          assert.ok(
+            Math.abs(rail - 0.5) < 0.1,
+            `at ${size}px a rail runs ${rail.toFixed(2)}px into its pixel, off the pixel's middle`
+          );
+      }
+    });
+
+    test('a numbered code block parts its gutter from its code by a divider 12px from each, the body tall', async () => {
+      const page = await opened();
+      const rows = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .numbered > .ln')].map((line) => {
+          const number = /** @type {HTMLElement} */ (line.querySelector('.no'));
+          const code = /** @type {HTMLElement} */ (line.querySelector('.src'));
+          const text = document.createRange();
+          text.selectNodeContents(number);
+          const style = getComputedStyle(number);
+          const edge = number.getBoundingClientRect().right;
+          const rule = parseFloat(style.borderRightWidth);
+          return {
+            line: number.textContent,
+            rule,
+            ruleColor: style.borderRightColor,
+            before: edge - rule - text.getBoundingClientRect().right,
+            after:
+              code.getBoundingClientRect().left +
+              parseFloat(getComputedStyle(code).paddingLeft) -
+              edge
+          };
+        })
+      );
+      assert.ok(rows.length >= 2, `only ${rows.length} numbered lines`);
+      for (const { line, rule, ruleColor, before, after } of rows) {
+        assert.equal(rule, 1, `line ${line} draws no divider`);
+        assert.notEqual(ruleColor, 'rgba(0, 0, 0, 0)', `line ${line} draws a clear divider`);
+        assert.ok(
+          Math.abs(before - 12) < 0.5,
+          `line ${line}'s number ends ${before}px off its divider`
+        );
+        assert.ok(
+          Math.abs(after - 12) < 0.5,
+          `line ${line}'s code starts ${after}px past its divider`
+        );
+      }
+      const spans = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .numbered')].map((code) => {
+          const body = /** @type {HTMLElement} */ (code.parentElement);
+          const box = body.getBoundingClientRect();
+          const numbers = code.querySelectorAll('.no');
+          const top = box.top + body.clientTop;
+          return {
+            above: numbers[0].getBoundingClientRect().top - top,
+            below:
+              top + body.clientHeight - numbers[numbers.length - 1].getBoundingClientRect().bottom
+          };
+        })
+      );
+      for (const { above, below } of spans)
+        assert.ok(
+          Math.abs(above) < 0.5 && Math.abs(below) < 0.5,
+          `the divider stops ${above}px under the body's top and ${below}px over its foot`
+        );
+    });
+
+    test('a code block comment and line number step back past its punctuation and hold 4.5:1 in both themes', async () => {
+      const page = await opened();
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.evaluate(() => new Promise(requestAnimationFrame));
+        const inks = await page.evaluate(() => {
+          // A mixed ink computes as color(srgb r g b) in 0 to 1, a plain one as rgb() in 0 to 255.
+          const rgb = (/** @type {string} */ value) =>
+            (value.replace(/^color\(srgb/, '').match(/[\d.]+/g) ?? [])
+              .slice(0, 3)
+              .map((channel) =>
+                value.startsWith('color(') ? Number(channel) * 255 : Number(channel)
+              );
+          const luminance = (/** @type {number[]} */ channels) => {
+            const [r, g, b] = channels.map((channel) => {
+              const c = channel / 255;
+              return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          const block = /** @type {Element} */ (
+            [...document.querySelectorAll('#code-block .sui-code-block')].find(
+              (each) => each.querySelector('.tok-com') && each.querySelector('.tok-pun')
+            )
+          );
+          let painted = /** @type {Element | null} */ (block.querySelector('pre'));
+          while (painted && getComputedStyle(painted).backgroundColor === 'rgba(0, 0, 0, 0)')
+            painted = painted.parentElement;
+          const ground = luminance(
+            rgb(getComputedStyle(/** @type {Element} */ (painted)).backgroundColor)
+          );
+          const contrast = (/** @type {string} */ selector) => {
+            const ink = luminance(
+              rgb(getComputedStyle(/** @type {Element} */ (block.querySelector(selector))).color)
+            );
+            return (Math.max(ink, ground) + 0.05) / (Math.min(ink, ground) + 0.05);
+          };
+          return {
+            comment: contrast('.tok-com'),
+            punct: contrast('.tok-pun'),
+            ink: getComputedStyle(/** @type {Element} */ (block.querySelector('.tok-com'))).color,
+            number: getComputedStyle(
+              /** @type {Element} */ (document.querySelector('#code-block .no'))
+            ).color
+          };
+        });
+        assert.ok(inks.comment >= 4.5, `in ${scheme} a comment holds ${inks.comment.toFixed(2)}:1`);
+        assert.ok(
+          inks.comment < inks.punct - 0.4,
+          `in ${scheme} a comment (${inks.comment.toFixed(2)}:1) does not step back past its punctuation (${inks.punct.toFixed(2)}:1)`
+        );
+        assert.equal(inks.number, inks.ink, `in ${scheme} a line number is not in a comment's ink`);
+      }
+      await page.emulateMedia({ colorScheme: null });
+    });
+
+    test('a code block draws its head line and its gutter rule in its frame’s own edge in both themes', async () => {
+      const page = await opened();
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.evaluate(() => new Promise(requestAnimationFrame));
+        const lines = await page.evaluate(() =>
+          [...document.querySelectorAll('#code-block .sui-code-block:not(.bare)')].flatMap(
+            (block) => {
+              const frame = getComputedStyle(block).borderTopColor;
+              const head = getComputedStyle(
+                /** @type {Element} */ (block.querySelector('.sui-code-block-scroll'))
+              );
+              const gutter = block.querySelector('.no');
+              return [
+                ...(head.borderTopStyle === 'solid'
+                  ? [{ what: 'head line', frame, line: head.borderTopColor }]
+                  : []),
+                ...(gutter
+                  ? [
+                      {
+                        what: 'gutter rule',
+                        frame,
+                        line: getComputedStyle(gutter).borderInlineEndColor
+                      }
+                    ]
+                  : [])
+              ];
+            }
+          )
+        );
+        for (const what of ['head line', 'gutter rule'])
+          assert.ok(
+            lines.some((each) => each.what === what),
+            `in ${scheme} no ${what} was found`
+          );
+        for (const { what, frame, line } of lines)
+          assert.equal(line, frame, `in ${scheme} the ${what} is ${line}, the frame ${frame}`);
+      }
+      await page.emulateMedia({ colorScheme: null });
+    });
+
+    test('a framed code block heads its code with a faint step and lifts its copy control off the head in both themes', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const channels = (/** @type {string} */ color) =>
+          (color.match(/[\d.]+/g) ?? []).map(Number);
+        // A color-mix() resolves to color(srgb 0-1 ...), a plain fill to rgb(0-255 ...).
+        const luminance = (/** @type {string} */ color) => {
+          const scale = color.startsWith('color(') ? 1 : 255;
+          const [r, g, b] = channels(color).map((value) => {
+            const c = value / scale;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const heads = [
+          ...document.querySelectorAll(
+            '#code-block .sui-code-block:not(.bare) > :is(.sui-code-block-label, .sui-code-block-copy)'
+          )
+        ];
+        return ['light', 'dark'].flatMap((theme) =>
+          heads.map((head) => {
+            const block = /** @type {HTMLElement} */ (head.parentElement);
+            block.dataset.suiTheme = theme;
+            const [a, b] = [head, block]
+              .map((element) => luminance(getComputedStyle(element).backgroundColor) + 0.05)
+              .sort((x, y) => y - x);
+            const control = head.querySelector('button');
+            const lift =
+              control === null
+                ? null
+                : (luminance(getComputedStyle(control).backgroundColor) + 0.05) /
+                  (luminance(getComputedStyle(head).backgroundColor) + 0.05);
+            delete block.dataset.suiTheme;
+            return { theme, ratio: a / b, lift };
+          })
+        );
+      });
+      assert.ok(found.length >= 4, `only ${found.length} heads`);
+      for (const { theme, ratio, lift } of found) {
+        assert.ok(ratio > 1.01, `in ${theme} a head is drawn on the code's own ground`);
+        assert.ok(ratio < 1.11, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
+        if (lift !== null)
+          assert.ok(lift >= 1.08, `in ${theme} a copy control lifts only ${lift.toFixed(2)}:1`);
+      }
+    });
+
+    test('a framed copy control edges its Copied words in the success ink and keeps its focus ring a gap off that edge', async () => {
+      const page = await opened();
+      await page.evaluate(() => {
+        navigator.clipboard.writeText = () => Promise.resolve();
+      });
+      const copy = page.locator('#code-block .sui-copy-button:not(.bare)', {
+        hasText: 'Copy Version'
+      });
+      const look = () =>
+        copy.evaluate((button) => {
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('i');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const style = getComputedStyle(button);
+          return {
+            edge: style.borderTopColor,
+            ring: style.outlineStyle === 'none' ? null : style.outlineColor,
+            width: style.outlineWidth,
+            offset: style.outlineOffset,
+            success: ink('--sui-success'),
+            focus: ink('--sui-focus')
+          };
+        });
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.mouse.move(0, 0);
+        await copy.focus();
+        await page.keyboard.press('Enter');
+        await copy.and(page.locator('[data-copied]')).waitFor();
+        const focused = await look();
+        assert.equal(focused.edge, focused.success, `in ${scheme} a Copied edge is not success`);
+        assert.equal(focused.ring, focused.focus, `in ${scheme} Copied dropped its focus ring`);
+        assert.equal(
+          focused.width,
+          '2px',
+          `in ${scheme} the Copied ring thins to ${focused.width}`
+        );
+        assert.equal(
+          focused.offset,
+          '2px',
+          `in ${scheme} the Copied ring touches the success edge (${focused.offset} off)`
+        );
+        await copy.hover();
+        const hovered = await look();
+        assert.equal(hovered.edge, hovered.success, `in ${scheme} a hover took the Copied edge`);
+        await copy.locator(':scope:not([data-copied])').waitFor();
+      }
+      await page.emulateMedia({ colorScheme: null });
+    });
+
+    test('on a phone a code block heads its copy control inside its edge and gives its code the whole width', async () => {
+      const page = await opened();
+      const blocks = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .sui-code-block:not(.labelled)')].map(
+          (block) => {
+            const box = block.getBoundingClientRect();
+            const copy = block.querySelector('.sui-code-block-copy');
+            const control = copy?.querySelector('button')?.getBoundingClientRect();
+            const code = /** @type {Element} */ (
+              block.querySelector('pre')
+            ).getBoundingClientRect();
+            // Where the words of an element start: past its own start padding.
+            const startOf = (/** @type {Element | null | undefined} */ element) =>
+              element
+                ? element.getBoundingClientRect().left +
+                  parseFloat(getComputedStyle(element).paddingInlineStart)
+                : 0;
+            const name = copy?.querySelector('.sui-code-block-lang');
+            const scroller = /** @type {Element} */ (block.querySelector('pre'));
+            return {
+              copy: copy !== null,
+              parted: getComputedStyle(scroller).borderTopWidth !== '0px',
+              lang: name?.textContent ?? null,
+              baselines: [name, copy?.querySelector('button')].map((element) => {
+                if (!element) return 0;
+                const probe = document.createElement('span');
+                probe.style.cssText = 'display: inline-block; inline-size: 0; block-size: 0';
+                const words = element.querySelector('span:not(:has(*))') ?? element;
+                words.append(probe);
+                const top = probe.getBoundingClientRect().top;
+                probe.remove();
+                return top;
+              }),
+              onEdge: name ? startOf(name) - startOf(block.querySelector('.src')) : 0,
+              past: control ? control.right - box.right : 0,
+              above: control ? code.top - control.bottom : 0,
+              spare: box.width - code.width
+            };
+          }
+        )
+      );
+      const copied = blocks.filter((block) => block.copy);
+      assert.ok(
+        blocks.every((block) => block.parted === block.copy),
+        'only a block with a copy row parts its code from the row with a line'
+      );
+      assert.ok(copied.length > 0, 'the section shows no code block with a copy control');
+      for (const block of copied) {
+        assert.ok(block.past <= -8, `a copy control ends ${block.past}px from its block's edge`);
+        assert.ok(block.above >= 0, `a copy control reaches ${-block.above}px into the code`);
+        assert.ok(block.spare <= 2, `the code leaves ${block.spare}px of its block's width`);
+        assert.ok(
+          Math.abs(block.baselines[0] - block.baselines[1]) < 0.5 || !block.lang,
+          `a language's name stands ${block.baselines[0] - block.baselines[1]}px off the control's baseline`
+        );
+        assert.ok(
+          Math.abs(block.onEdge) < 0.5,
+          `a language's name stands ${block.onEdge}px off the code's edge`
+        );
+      }
+      assert.deepEqual(
+        copied.map((block) => block.lang).filter(Boolean),
+        ['YAML', 'TOML', 'Markdown', 'Shell', 'Text', 'Shell'],
+        'each copy row names its language, plain text too'
+      );
+    });
+
     // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).
     test('an addition choice keeps its note a type step under its name on a phone', async () => {
       const page = await opened();
@@ -352,6 +1096,131 @@ suite('lists', together, () => {
         assert.equal(pixel, ring, 'the held cells cover the focus ring');
       }
     );
+
+    test('a table stands each column where its loaded values will, loading, empty or failed, from its columns’ samples', async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      try {
+        for (const width of [1440, 390]) {
+          await page.setViewportSize({ width, height: 900 });
+          const groups = await page.evaluate(() =>
+            [
+              ['Striped', 'Loading, wide'],
+              ['Refreshing', 'Empty', 'Loading', 'Failed']
+            ].map((names) =>
+              names.map((name) => {
+                const specimen = [...document.querySelectorAll('#data-table .specimen')].find(
+                  (each) => each.querySelector('figcaption')?.textContent?.trim() === name
+                );
+                const table = /** @type {Element} */ (specimen?.querySelector('table'));
+                const left = table.getBoundingClientRect().left;
+                return [...table.querySelectorAll('thead th')]
+                  .map((heading) => Math.round(heading.getBoundingClientRect().left - left))
+                  .join(' ');
+              })
+            )
+          );
+          for (const starts of groups)
+            assert.deepEqual(
+              new Set(starts).size,
+              1,
+              `at ${width}px the columns start apart: ${starts.join(' | ')}`
+            );
+        }
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+    });
+
+    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen', async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      const read = [];
+      try {
+        for (const width of [375, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          read.push(
+            await page
+              .locator('#data-table .specimen', { hasText: /^\s*Row headers, sortable/ })
+              .locator('.sui-data-table')
+              .evaluate((table) => {
+                const caption = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('.caption:not(.hint)'))
+                );
+                const cell = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('tbody td'))
+                );
+                return [caption.fontSize, caption.fontWeight, cell.fontSize];
+              })
+          );
+        }
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+      assert.deepEqual(read, [
+        ['16px', '600', '16px'],
+        ['16px', '600', '15px']
+      ]);
+    });
+
+    test('a table that scrolls draws a hairline at its end edge while more columns are past it, and none at the end', async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      try {
+        await page.setViewportSize({ width: 375, height: 900 });
+        const read = await page
+          .locator('#data-table .specimen', { hasText: /^\s*Row headers, sortable/ })
+          .locator('.viewport')
+          .evaluate(async (viewport) => {
+            const frame = /** @type {HTMLElement} */ (viewport.querySelector('.frame'));
+            const line = () => {
+              const style = getComputedStyle(viewport, '::before');
+              return [style.opacity, style.inlineSize];
+            };
+            const settle = () =>
+              new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            frame.scrollLeft = 0;
+            await settle();
+            const start = line();
+            frame.scrollLeft = frame.scrollWidth;
+            await settle();
+            const end = line();
+            frame.scrollLeft = 0;
+            return { start, end };
+          });
+        assert.deepEqual(read, { start: ['1', '1px'], end: ['0', '1px'] });
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+    });
+
+    test("a refreshing table says so on its caption's baseline, led by the refresh mark in the info hue", async () => {
+      const page = await opened();
+      const read = await page
+        .locator('#data-table .specimen', { hasText: /^\s*Refreshing/ })
+        .locator('.sui-data-table')
+        .evaluate((table) => {
+          const line = table.querySelector('.refreshing');
+          const caption = table.querySelector('.caption:not(.hint)');
+          const probe = document.createElement('i');
+          probe.style.color = 'var(--sui-info)';
+          table.append(probe);
+          const info = getComputedStyle(probe).color;
+          probe.remove();
+          const mark = line?.querySelector('svg');
+          const baseline = (/** @type {Element | null | undefined} */ box) =>
+            box?.getBoundingClientRect().bottom ?? NaN;
+          return [
+            line?.textContent?.trim(),
+            !!line?.checkVisibility(),
+            mark ? getComputedStyle(mark).color === info : false,
+            Math.abs(baseline(line?.querySelector('.refreshing-words')) - baseline(caption)) <= 0.5,
+            line?.parentElement?.getBoundingClientRect().height ===
+              caption?.getBoundingClientRect().height
+          ];
+        });
+      assert.deepEqual(read, ['Refreshing…', true, true, true, true]);
+    });
 
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
     test(
@@ -493,7 +1362,7 @@ suite('lists', together, () => {
         const page = await opened();
         const trigger = page
           .locator('#list-toolbar')
-          .getByRole('button', { name: 'Sort & Filter' });
+          .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ });
         // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
         // would send a reopened dialog's focus to a hidden control.
         const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
@@ -527,7 +1396,7 @@ suite('lists', together, () => {
         // The last bar's menu has never opened, so it holds no placement from an earlier open.
         const trigger = page
           .locator('#list-toolbar')
-          .getByRole('button', { name: 'Sort & Filter' })
+          .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ })
           .last();
         // Mid-screen, and at the viewport's foot, where a box first drawn under its trigger
         // would stand off the screen.
@@ -624,6 +1493,11 @@ suite('lists', together, () => {
           await counted.getByRole('searchbox').elementHandle(),
           brief
         );
+        // Over the empty state the bar still draws its count, so it says the search left nothing.
+        assert.equal(
+          (await counted.locator('.sui-list-toolbar-count').textContent())?.trim(),
+          'No results'
+        );
       }
     );
 
@@ -640,7 +1514,22 @@ suite('lists', together, () => {
           );
           const triggers = page
             .locator('#list-toolbar')
-            .getByRole('button', { name: 'Sort & Filter' });
+            .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ });
+          // A menu that holds only the sort is named for it, and one the filter has folded
+          // into takes the bar's tools label.
+          const named = await page
+            .locator('#list-toolbar .sui-list-toolbar:has(.sui-list-toolbar-trigger)')
+            .evaluateAll((bars) =>
+              bars.map((bar) => [
+                bar.querySelector('.sui-list-toolbar-segments')?.checkVisibility() !== false,
+                /** @type {HTMLElement} */ (
+                  bar.querySelector('.sui-list-toolbar-trigger button')
+                ).innerText.trim()
+              ])
+            );
+          for (const [inBar, name] of named) {
+            assert.equal(name, inBar ? 'Sort by' : 'Sort & Filter', `at ${width}px`);
+          }
           const count = await triggers.count();
           for (let index = 0; index < count; index++) {
             const trigger = triggers.nth(index);
@@ -842,6 +1731,131 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('a failed refresh over its rows keeps its words 16px inside its tint, as a form error does, above and below', async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const inset = await strip.evaluate((node) => {
+        const tint = getComputedStyle(node, '::before');
+        const box = node.getBoundingClientRect();
+        const edge = parseFloat(tint.borderTopWidth);
+        const words = /** @type {Element} */ (
+          node.querySelector('.sui-error-state-copy')
+        ).getBoundingClientRect();
+        return {
+          above: words.top - (box.top + parseFloat(tint.top) + edge),
+          below: box.bottom - parseFloat(tint.bottom) - edge - words.bottom
+        };
+      });
+      for (const [where, value] of Object.entries(inset))
+        assert.ok(Math.abs(value - 16) < 0.5, `the strip keeps ${value}px ${where} its words`);
+    });
+
+    test('a failed refresh and the rows it keeps stand on the surface a list lives on', async () => {
+      const page = await opened();
+      const ground = await page
+        .locator('#states .stage', { hasText: 'Refresh failed' })
+        .getAttribute('data-ground');
+      assert.equal(ground, 'surface');
+    });
+
+    test('a diff block draws a code block’s head, line numbers and room round its lines', async () => {
+      const page = await opened();
+      const read = await page.evaluate(() => {
+        const look = (/** @type {string} */ head, /** @type {string} */ no) => {
+          const top = /** @type {HTMLElement} */ (document.querySelector(head));
+          const number = /** @type {HTMLElement} */ (document.querySelector(no));
+          const first = number.closest('.ln');
+          const style = getComputedStyle(top);
+          return {
+            height: top.getBoundingClientRect().height,
+            fill: style.backgroundColor,
+            ink: getComputedStyle(number).color,
+            air: first?.matches(':first-child')
+              ? number.getBoundingClientRect().top +
+                parseFloat(getComputedStyle(number).paddingTop) -
+                /** @type {Element} */ (number.closest('pre')).getBoundingClientRect().top -
+                /** @type {Element} */ (number.closest('pre')).clientTop
+              : null
+          };
+        };
+        return {
+          code: look(
+            '#code-block .sui-code-block-label',
+            '#code-block .numbered > .ln:first-child .no'
+          ),
+          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no'),
+          empty: (() => {
+            const empty = /** @type {Element} */ (
+              document.querySelector('#diff-block .sui-diff-block-empty')
+            );
+            const number = /** @type {Element} */ (document.querySelector('#diff-block .no'));
+            const words = /** @type {Element} */ (
+              document.querySelector('#diff-block .sui-diff-block-sources > span')
+            );
+            return {
+              height: empty.getBoundingClientRect().height,
+              face: getComputedStyle(empty).fontFamily,
+              ink: getComputedStyle(empty).color,
+              numbers: {
+                face: getComputedStyle(words).fontFamily,
+                ink: getComputedStyle(number).color
+              }
+            };
+          })()
+        };
+      });
+      const { code, diff, empty } = read;
+      assert.equal(diff.height, code.height, 'head row height');
+      assert.equal(diff.fill, code.fill, 'head fill');
+      assert.equal(diff.ink, code.ink, 'line number ink');
+      assert.equal(diff.air, code.air, 'air over the first line’s words');
+      // Two empty sides draw one row of the head's height in the line numbers' ink, so the block
+      // never reads as a field, and in the words' sans, as words are never mono (L-20).
+      assert.deepEqual(
+        { height: empty.height, face: empty.face, ink: empty.ink },
+        { height: diff.height, ...empty.numbers },
+        'an empty diff draws one body row'
+      );
+    });
+
+    test('a diff numbers each kept or added line by its line in the new text', async () => {
+      const page = await opened();
+      const numbers = await page
+        .locator('#diff-block .sui-diff-block')
+        .first()
+        .evaluate((block) =>
+          [...block.querySelectorAll('.ln .no')].map((no) => no.textContent).filter(Boolean)
+        );
+      // renovate.json's new text runs 5 lines; its 2 removed lines take none of them.
+      assert.deepEqual(numbers, ['1', '2', '3', '4', '5']);
+    });
+
+    test('a diff’s toned edge line carries its tone to the frame', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() =>
+        [...document.querySelectorAll('#diff-block .sui-diff-block-scroll')].flatMap((pre) => {
+          const box = pre.getBoundingClientRect();
+          const found = [];
+          const first = pre.querySelector('code > .ln:first-child');
+          const last = pre.querySelector('code > .ln:last-child');
+          if (first?.matches('[data-op]:not([data-op=" "])'))
+            found.push(first.getBoundingClientRect().top - box.top - pre.clientTop);
+          if (last?.matches('[data-op]:not([data-op=" "])'))
+            found.push(box.bottom - pre.clientTop - last.getBoundingClientRect().bottom);
+          return found;
+        })
+      );
+      assert.ok(edges.length > 0, 'no block starts or ends on a toned line');
+      assert.deepEqual(
+        edges.filter((gap) => Math.abs(gap) > 0.5),
+        [],
+        'a toned edge line stops short of the frame'
+      );
+    });
+
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {
@@ -886,34 +1900,47 @@ suite('lists', together, () => {
     test('L-64 a slow wait takes the shape of the placeholder rows around it', long, async () => {
       const page = await opened();
       await page.waitForSelector('#skeleton .sui-skeleton-rows.slow', { state: 'attached' });
-      const problems = await page.evaluate(() => {
-        const found = [];
-        const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
-        // Each line's top and height inside its row, so two rows compare line by line.
-        const lines = (/** @type {Element} */ row, /** @type {string} */ selector) =>
-          [...row.querySelectorAll(selector)]
-            .map((line) => `${box(line).top - box(row).top}+${box(line).height}`)
-            .join(' ');
-        const groups = document.querySelectorAll('#skeleton .sui-skeleton-rows.slow');
-        if (groups.length < 2) found.push(`only ${groups.length} slow waits were found`);
-        for (const group of groups) {
-          const [said, next] = group.querySelectorAll(':scope > .row');
-          const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
-          // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
-          // it stand a whole row's height.
-          const spare = /** @type {Element} */ (next.cloneNode(true));
-          group.append(spare);
-          const whole = box(next).height;
-          spare.remove();
-          if (box(said).height !== whole)
-            found.push(`${kind}: the slow row is ${box(said).height}px, its neighbour ${whole}px`);
-          const words = lines(said, '.words > span');
-          const bars = lines(next, '.main > .bar');
-          if (words !== bars)
-            found.push(`${kind}: the words stand at ${words}, the bars at ${bars}`);
-        }
-        return found;
-      });
+      // On a narrow phone the waiting rows drop their side under the name, so the slow row
+      // must hold that slot too.
+      const shapes = () =>
+        page.evaluate(() => {
+          const found = [];
+          const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
+          // Each line's top and height inside its row, so two rows compare line by line.
+          const lines = (/** @type {Element} */ row, /** @type {string} */ selector) =>
+            [...row.querySelectorAll(selector)]
+              .map((line) => `${box(line).top - box(row).top}+${box(line).height}`)
+              .join(' ');
+          const groups = document.querySelectorAll('#skeleton .sui-skeleton-rows.slow');
+          if (groups.length < 2) found.push(`only ${groups.length} slow waits were found`);
+          for (const group of groups) {
+            const [said, next] = group.querySelectorAll(':scope > .row');
+            const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
+            // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
+            // it stand a whole row's height.
+            const spare = /** @type {Element} */ (next.cloneNode(true));
+            group.append(spare);
+            const whole = box(next).height;
+            spare.remove();
+            if (box(said).height !== whole)
+              found.push(
+                `${kind}: the slow row is ${box(said).height}px, its neighbour ${whole}px`
+              );
+            const words = lines(said, '.words > span');
+            const bars = lines(next, '.main > .bar');
+            if (words !== bars)
+              found.push(`${kind}: the words stand at ${words}, the bars at ${bars}`);
+          }
+          return found;
+        });
+      const wide = page.viewportSize();
+      const problems = await shapes();
+      await page.setViewportSize({ width: 320, height: 800 });
+      try {
+        problems.push(...(await shapes()).map((problem) => `320px ${problem}`));
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
       assert.deepEqual(problems, []);
     });
 
@@ -1110,6 +2137,61 @@ suite('lists', together, () => {
       }
     );
 
+    test('a failed table leads its words with the 16px danger mark 8px off, centred on their capitals, as a field’s message does', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() =>
+        [...document.querySelectorAll('#data-table .sui-data-table .problem')].map((line) => {
+          const mark = /** @type {Element} */ (
+            line.querySelector(':scope > svg')
+          ).getBoundingClientRect();
+          const words = /** @type {Element} */ (
+            line.querySelector('.problem-words')
+          ).getBoundingClientRect();
+          return [
+            mark.width,
+            words.left - mark.right,
+            Math.abs((mark.top + mark.bottom) / 2 - (words.top + words.bottom) / 2) <= 0.5
+          ];
+        })
+      );
+      assert.ok(found.length >= 2, 'no failed table on the page');
+      for (const line of found) assert.deepEqual(line, [16, 8, true]);
+    });
+
+    test('a sortable heading is a 28px control with a 16px arrow, its ground 8px past its words and its words on its values’ edge, and takes the 16px of its row a chip took', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const sorting = /** @type {Element} */ (document.querySelector('#data-table table'));
+        const heading = /** @type {Element} */ (sorting.querySelector('thead th:nth-child(2)'));
+        const control = /** @type {Element} */ (
+          heading.querySelector('.sort')
+        ).getBoundingClientRect();
+        const words = /** @type {Element} */ (
+          heading.querySelector('.sort > span')
+        ).getBoundingClientRect();
+        const arrow = /** @type {Element} */ (
+          heading.querySelector('.sort > svg')
+        ).getBoundingClientRect();
+        const value = /** @type {Element} */ (
+          sorting.querySelector('tbody tr td:nth-child(2) .value')
+        ).getBoundingClientRect();
+        const cell = getComputedStyle(heading);
+        const line =
+          heading.getBoundingClientRect().height -
+          parseFloat(cell.paddingTop) -
+          parseFloat(cell.paddingBottom) -
+          parseFloat(cell.borderBottomWidth);
+        return [
+          control.height,
+          arrow.width,
+          control.right - words.right,
+          Math.abs(words.right - value.right) <= 0.5,
+          line
+        ];
+      });
+      assert.deepEqual(found, [28, 16, 8, true, 16]);
+    });
+
     test(
       "a striped table keeps the plain table's text edge, and its stripes reach past it",
       long,
@@ -1140,6 +2222,89 @@ suite('lists', together, () => {
       }
     );
 
+    test(
+      "a focused diff block that scrolls draws its ring's corners clear of its edge fade",
+      long,
+      async () => {
+        const page = await opened();
+        // No diff on the page is wide enough to scroll on a desktop, so one is narrowed to.
+        const diff = page.locator('#diff-block .sui-diff-block').first();
+        await diff.evaluate((element) =>
+          /** @type {HTMLElement} */ (element).style.setProperty('inline-size', '16rem')
+        );
+        const block = diff.locator('.sui-diff-block-scroll[tabindex="0"]');
+        await block.scrollIntoViewIfNeeded();
+        await page.keyboard.press('Shift');
+        await block.focus();
+        const box = await block.evaluate(async (scroller) => {
+          scroller.scrollLeft = 0;
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          return scroller.getBoundingClientRect().toJSON();
+        });
+        const shot = await page.screenshot({
+          clip: {
+            x: Math.round(box.x),
+            y: Math.round(box.y),
+            width: Math.round(box.width),
+            height: 6
+          }
+        });
+        // The top 6px of each end, where the ring bends round its corner over the padding: the
+        // end corner, where the fade runs at rest, must draw the start corner's arc mirrored.
+        const apart = await page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+              new OffscreenCanvas(image.width, image.height).getContext('2d')
+            );
+            context.drawImage(image, 0, 0);
+            const start = context.getImageData(0, 0, 10, 6).data;
+            const end = context.getImageData(image.width - 10, 0, 10, 6).data;
+            let worst = 0;
+            for (let y = 0; y < 6; y++)
+              for (let x = 0; x < 10; x++) {
+                const a = (y * 10 + x) * 4;
+                const b = (y * 10 + (9 - x)) * 4;
+                // Only the ring's own pixels: past the arc the start corner shows the page and
+                // the end corner the block's ground beside its copy column, which also tints the
+                // arc's soft edge, so a faded arc reads about 400 apart and a whole one under 60.
+                if (Math.min(start[a], end[b]) > 160) continue;
+                worst = Math.max(
+                  worst,
+                  Math.abs(start[a] - end[b]) +
+                    Math.abs(start[a + 1] - end[b + 1]) +
+                    Math.abs(start[a + 2] - end[b + 2])
+                );
+              }
+            return worst;
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+        await diff.evaluate((element) =>
+          /** @type {HTMLElement} */ (element).style.removeProperty('inline-size')
+        );
+        assert.ok(apart < 120, `the end corner's arc differs from the start's by ${apart}`);
+      }
+    );
+
+    test('a focused code block draws its ring over its own edge, round its copy control too', async () => {
+      const page = await opened();
+      const block = page.locator('#code-block .sui-code-block-scroll[tabindex="0"]').first();
+      await block.scrollIntoViewIfNeeded();
+      await page.keyboard.press('Shift');
+      await block.focus();
+      const rings = await block.evaluate((scroller) => {
+        const frame = /** @type {Element} */ (scroller.parentElement);
+        const look = getComputedStyle(frame);
+        return {
+          scroller: getComputedStyle(scroller).outlineStyle,
+          frame: look.outlineStyle,
+          over: parseFloat(look.outlineOffset) + parseFloat(look.borderTopWidth)
+        };
+      });
+      assert.deepEqual(rings, { scroller: 'none', frame: 'solid', over: 0 });
+    });
+
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page
@@ -1163,8 +2328,62 @@ suite('lists', together, () => {
       assert.match(at.words ?? '', /Usage for this month loaded/);
     });
 
+    test('the filtered specimen hands focus to the toggle that takes the pressed one’s place', async () => {
+      const page = await opened();
+      const focused = () => page.evaluate(() => document.activeElement?.textContent?.trim());
+      await page.getByRole('button', { name: 'Show Every Repository' }).click();
+      assert.equal(await focused(), 'Show Archived Only');
+      await page.getByRole('button', { name: 'Show Archived Only' }).click();
+      assert.equal(await focused(), 'Show Every Repository');
+    });
+
     test(
-      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side share their foot',
+      'a retry that succeeds leaves the failed panels beside it at their height, and its rows stand as far over their button as the filtered rows do',
+      long,
+      async () => {
+        const page = await opened();
+        const members = page
+          .locator('#states .specimen', { hasText: 'Access Is Not Available' })
+          .locator('.sui-error-state');
+        const retry = page
+          .locator('#states .specimen', { hasText: 'Repositories Could Not Load' })
+          .getByRole('button', { name: 'Try Again' });
+        await retry.scrollIntoViewIfNeeded();
+        const height = () => members.evaluate((node) => node.getBoundingClientRect().height);
+        const before = await height();
+        await retry.click();
+        const back = page.getByRole('button', { name: 'Show the Failure Again' });
+        await settles(back.waitFor({ timeout: brief.timeout }));
+        const after = await height();
+        // From the last row's ink to the button under the rows, in each specimen.
+        const under = (/** @type {string} */ id) =>
+          page.evaluate((id) => {
+            const section = /** @type {Element} */ (
+              document.getElementById(id)?.closest('.sui-section')
+            );
+            const names = section.querySelectorAll('.name');
+            const last = names[names.length - 1].getBoundingClientRect().bottom;
+            const buttons = section.querySelectorAll('button');
+            return buttons[buttons.length - 1].getBoundingClientRect().top - last;
+          }, id);
+        // The filtered specimen opens emptied; its rows snap to the block grid before their first paint.
+        await page.getByRole('button', { name: 'Show Every Repository' }).click();
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(done)));
+        const [recovered, filtered] = [
+          await under('sink-states-recovered'),
+          await under('sink-states-filtered')
+        ];
+        await back.click();
+        assert.equal(after, before);
+        assert.ok(
+          Math.abs(recovered - filtered) < 0.5,
+          `recovered rows stand ${recovered}px over their button, filtered rows ${filtered}px`
+        );
+      }
+    );
+
+    test(
+      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side end on one line, each retry one gap under its words',
       long,
       async () => {
         const page = await opened();
@@ -1189,31 +2408,36 @@ suite('lists', together, () => {
         const problems = [];
         if (at.strip.left < at.rows.left || at.strip.right > at.rows.right)
           problems.push('the strip reaches past the rows');
+        if (
+          Math.abs(at.strip.left + at.tint - at.rows.left) >= 0.5 ||
+          Math.abs(at.strip.right - at.tint - at.rows.right) >= 0.5
+        )
+          problems.push("the strip's tint steps in from the rows' edges");
         if (at.words.left - at.strip.left - at.tint < 12) problems.push('the words crowd the tint');
         if (at.strip.right - at.tint - at.retry.right < 12)
           problems.push('the retry crowds the tint');
 
         // An earlier test may have retried one panel into words, so each retry is weighed
-        // against its own panel's foot rather than against another retry.
+        // against its own panel's words rather than against another retry.
         const feet = await page
           .locator('#states .specimen .sui-error-state:not(.over)')
           .evaluateAll((panels) =>
             panels.map((panel) => {
-              const { bottom } = panel.getBoundingClientRect();
-              const { borderBlockEndWidth, paddingBlockEnd } = getComputedStyle(panel);
-              const retry = panel.querySelector('button')?.getBoundingClientRect().bottom;
+              const words = panel.querySelector('.sui-error-state-copy')?.getBoundingClientRect();
+              const retry = panel.querySelector('.sui-error-state-retry')?.getBoundingClientRect();
               return {
-                panel: Math.round(bottom),
+                panel: Math.round(panel.getBoundingClientRect().bottom),
                 above:
                   retry &&
-                  bottom - parseFloat(borderBlockEndWidth) - parseFloat(paddingBlockEnd) - retry
+                  words &&
+                  retry.top - words.bottom - parseFloat(getComputedStyle(panel).rowGap)
               };
             })
           );
         if (feet.length < 2 || new Set(feet.map(({ panel }) => panel)).size !== 1)
           problems.push(`the panels on one line end apart: ${feet.map(({ panel }) => panel)}`);
         if (feet.some(({ above }) => above && Math.abs(above) >= 0.5))
-          problems.push(`a retry stands above its panel's foot: ${feet.map(({ above }) => above)}`);
+          problems.push(`a retry stands off its words: ${feet.map(({ above }) => above)}`);
         assert.deepEqual(problems, []);
       }
     );
@@ -1271,6 +2495,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
+        // An earlier test on this page may leave the pointer where a row scrolls under it, and a
+        // hovered row would differ between the two shots.
+        await page.mouse.move(0, 0);
         /** @type {[string, string, string][]} */
         const lists = [
           ['#object-list .sui-object-list', ':scope > li > *', ':scope > li > *'],
@@ -1345,7 +2572,7 @@ suite('lists', together, () => {
     test("a skeleton's rows stand as tall as the kit rows that take their place", async () => {
       const page = await opened();
       const example = page.locator('#skeleton .example').filter({
-        has: page.getByRole('button', { name: 'Show the Rows' })
+        has: page.getByRole('button', { name: 'Show Rows' })
       });
       // A handle, since the button that names the example changes its words once pressed.
       const region = await example.locator('.sui-skeleton').elementHandle();
@@ -1357,14 +2584,43 @@ suite('lists', together, () => {
         region.evaluate(
           (element) => element.closest('.sui-section')?.getBoundingClientRect().height
         );
+      // The placeholders come 150ms after the region turns busy and stay at least 400ms after
+      // it settles, so each side is measured once what it shows has turned, not its busy flag.
+      const placeholders = (/** @type {boolean} */ shown) =>
+        page.waitForFunction(
+          ([element, shown]) => !!element.querySelector('.sui-skeleton-rows') === shown,
+          /** @type {const} */ ([region, shown])
+        );
+      await placeholders(true);
       const waiting = await height();
-      await example.getByRole('button', { name: 'Show the Rows' }).click();
-      await page.waitForFunction(
-        (element) => element.getAttribute('aria-busy') === 'false',
-        region
-      );
+      await example.getByRole('button', { name: 'Show Rows' }).click();
+      await placeholders(false);
       const loaded = await height();
       assert.equal(loaded, waiting, 'the page moves when the rows arrive');
+      // On a narrow phone a loaded row's side could drop under its name, and the head's action
+      // could crowd its title, so the rows arrive there too.
+      const firstLoad = page.locator('#skeleton .example', { hasText: 'First Load' });
+      const wide = page.viewportSize();
+      // A short row keeps its side beside its name while both fit. Every kit row drops its side
+      // at 320px and keeps it from 370px. Near 360px the rows split by 3px of pill width, which
+      // a placeholder cannot know, so that width is left out.
+      const moved = [];
+      try {
+        for (const width of [320, 370, 430, 600]) {
+          await page.setViewportSize({ width, height: 800 });
+          await firstLoad.getByRole('button', { name: 'Load Again' }).click();
+          await placeholders(true);
+          const phoneWaiting = await height();
+          await firstLoad.getByRole('button', { name: 'Show Rows' }).click();
+          await placeholders(false);
+          const phoneLoaded = await height();
+          if (phoneLoaded !== phoneWaiting)
+            moved.push(`${width}px: ${phoneWaiting} -> ${phoneLoaded}`);
+        }
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+      assert.deepEqual(moved, [], 'the page moves when the rows arrive on a phone');
     });
   });
 

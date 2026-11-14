@@ -21,8 +21,8 @@
   /**
    * A unified diff of two small texts: longest common subsequence over lines, with the
    * deletions of a changed region before the insertions that replace them. Where a deletion
-   * and an insertion pair up, the stretch past their common prefix and suffix is emphasised
-   * on both. Shared first and last lines are kept without entering the quadratic table, and a
+   * and an insertion pair up, the words and marks that differ between them are emphasised on
+   * both, whole words at a time. Shared first and last lines are kept without entering the quadratic table, and a
    * middle too large for it is drawn as all of its old lines removed and its new ones added.
    */
   export function unifiedDiff(before: string, after: string): DiffLine[] {
@@ -105,21 +105,75 @@
 
   const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
+  const WORDISH = /^[\p{L}\p{N}_]/u;
+  const SPACE = /^\s/u;
+  /** The most stretches a paired line marks before its changes read as one stretch. */
+  const MOST_STRETCHES = 3;
+
+  /** A line cut into runs of word graphemes, runs of space, and single other graphemes. */
+  function wordRuns(text: string): string[] {
+    const out: string[] = [];
+    let kind = '';
+    for (const { segment } of GRAPHEMES.segment(text)) {
+      const next = WORDISH.test(segment) ? 'word' : SPACE.test(segment) ? 'space' : 'mark';
+      if (next !== 'mark' && next === kind) out[out.length - 1] += segment;
+      else out.push(segment);
+      kind = next;
+    }
+    return out;
+  }
+
+  /*
+   * A paired line marks the words and marks the other side does not share, by longest common
+   * subsequence over whole words, so a changed word is marked whole and the quotes and brackets
+   * both sides keep stay plain. Changes split only by space read as one stretch, and a line
+   * with more than three stretches marks one from its first change to its last. A line too long
+   * for the table is drawn without marks. Both lines of a pair read one alignment, from the
+   * removed line to the added one, so a tie never leaves different words plain on each side.
+   */
   function withEmphasis(op: '+' | '-', text: string, other: string | null): DiffLine {
     if (other === null || other === text) return { op, text };
-    const a = [...GRAPHEMES.segment(text)].map((part) => part.segment);
-    const b = [...GRAPHEMES.segment(other)].map((part) => part.segment);
-    const shortest = Math.min(a.length, b.length);
-    let common = 0;
-    while (common < shortest && a[common] === b[common]) common += 1;
-    let suffix = 0;
-    while (suffix < shortest - common && a[a.length - 1 - suffix] === b[b.length - 1 - suffix])
-      suffix += 1;
-    let start = 0;
-    for (let at = 0; at < common; at += 1) start += a[at].length;
-    let end = text.length;
-    for (let at = 0; at < suffix; at += 1) end -= a[a.length - 1 - at].length;
-    return end > start ? { op, text, emphasis: [[start, end]] } : { op, text };
+    const a = wordRuns(text);
+    const b = wordRuns(other);
+    if ((a.length + 1) * (b.length + 1) > TABLE_LIMIT) return { op, text };
+    const [removed, added] = op === '-' ? [a, b] : [b, a];
+    const table = Array.from({ length: removed.length + 1 }, () =>
+      new Array<number>(added.length + 1).fill(0)
+    );
+    for (let i = removed.length - 1; i >= 0; i -= 1)
+      for (let j = added.length - 1; j >= 0; j -= 1)
+        table[i][j] =
+          removed[i] === added[j]
+            ? table[i + 1][j + 1] + 1
+            : Math.max(table[i + 1][j], table[i][j + 1]);
+    const shared = new Array<boolean>(a.length).fill(false);
+    for (let i = 0, j = 0; i < removed.length && j < added.length;) {
+      if (removed[i] === added[j]) {
+        shared[op === '-' ? i : j] = true;
+        i += 1;
+        j += 1;
+      } else if (table[i + 1][j] >= table[i][j + 1]) i += 1;
+      else j += 1;
+    }
+    const stretches: [number, number][] = [];
+    let offset = 0;
+    let gap = false;
+    a.forEach((run, at) => {
+      const end = offset + run.length;
+      if (!shared[at]) {
+        const last = stretches.at(-1);
+        if (last && (last[1] === offset || gap)) last[1] = end;
+        else stretches.push([offset, end]);
+        gap = false;
+      } else if (stretches.length > 0 && SPACE.test(run)) {
+        gap = stretches.at(-1)![1] === offset;
+      } else gap = false;
+      offset = end;
+    });
+    if (stretches.length === 0) return { op, text };
+    const emphasis: DiffEmphasis[] =
+      stretches.length > MOST_STRETCHES ? [[stretches[0][0], stretches.at(-1)![1]]] : stretches;
+    return { op, text, emphasis };
   }
 
   /** Re-cuts token runs so the stretches inside `ranges` are marked, splitting a run at an edge. */
@@ -187,6 +241,12 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const lines = $derived(prepared ?? unifiedDiff(before, after));
+  /* A line's number is its line in the new text, so the numbers of a window agree with the file
+     it shows; removed lines take no line of it. */
+  const numbers = $derived.by(() => {
+    let at = 0;
+    return lines.map((line) => (line.op === '-' ? 0 : ++at));
+  });
   const tokens = $derived.by(() => {
     const out: TokenRun[][] = lines.map(() => []);
     // Removed and added rows are different documents. Carry shell state through each version,
@@ -221,12 +281,13 @@
 A small unified diff, drawn from two texts or from lines prepared elsewhere. It shows an
 excerpt worth reading, never a whole file. Each line wears its tone, and a glyph beside the
 color says the same thing: plus for added, minus for removed, a tilde for a line changed in
-place. The glyph stands in the gutter on a step of the tone. The stretch that actually changed
-inside a paired line is a step deeper again and underlined in the line's ink, marked as
-inserted, deleted or changed.
+place. The glyph stands in the gutter on a step of the tone. The words that actually changed
+inside a paired line, whole words at a time and at most three stretches, are a step deeper
+again and underlined in the line's ink, marked as inserted, deleted or changed.
 
-Line numbers count the window, not the file, and only kept lines wear one: an added or
-removed line has no single number to claim. A change only in the final newline draws an added
+Line numbers count the new text's lines in the window, not the file, so a kept, added or
+changed line wears its line in the new text, in the line's ink, and a removed line, which has
+no line there, wears none. A change only in the final newline draws an added
 or removed empty line. Two empty sides say `emptyLabel`.
 
 - Semantics: a `figure` whose `figcaption` holds the file name and the two sources; the lines are a `pre`, a scroller that scrolls is a focusable `region`, and changed stretches are `ins`, `del` and `mark`.
@@ -248,8 +309,16 @@ or removed empty line. Two empty sides say `emptyLabel`.
       {#if label !== undefined}<span class="sui-diff-block-name" translate="no">{label}</span>{/if}
       {#if labels}
         <span class="sui-diff-block-sources">
-          <span><span class="del" aria-hidden="true">−</span>{joiner('space')}{labels.before}</span>
-          <span><span class="add" aria-hidden="true">+</span>{joiner('space')}{labels.after}</span>
+          <span
+            ><span class="del" aria-hidden="true" translate="no">−</span>{joiner(
+              'space'
+            )}{labels.before}</span
+          >
+          <span
+            ><span class="add" aria-hidden="true" translate="no">+</span>{joiner(
+              'space'
+            )}{labels.after}</span
+          >
         </span>
       {/if}
     </figcaption>
@@ -263,12 +332,12 @@ or removed empty line. Two empty sides say `emptyLabel`.
       translate="no"
       {@attach watchOverflow((value) => (scrolls = value))}
       dir="ltr"
-      class="sui-diff-block-scroll sui-scroll-edge"
+      class="sui-diff-block-scroll sui-scroll-edge sui-scroll-edge-lines"
       tabindex={scrolls ? 0 : undefined}
       role={scrolls ? 'region' : undefined}
       aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
         >{#each lines as line, index (index)}<span class="ln" data-op={line.op}
-            ><span class="no" aria-hidden="true">{line.op === ' ' ? index + 1 : ''}</span><span
+            ><span class="no" aria-hidden="true">{line.op === '-' ? '' : numbers[index]}</span><span
               class="op"
               ><span aria-hidden="true">{glyph[line.op]}</span>{#if line.op !== ' '}<VisuallyHidden
                   translate="yes">{opLabels[line.op]}{joiner('space')}</VisuallyHidden
@@ -285,7 +354,14 @@ or removed empty line. Two empty sides say `emptyLabel`.
 </figure>
 
 <style>
+  /* A diff is a code block's sibling: the same 44px head row a faint step off the code, the same
+     quiet line numbers on a 16px start rail, and the same air over its first line and under its
+     last, which centres a line in the head row's height, held in those lines' cells. */
   .sui-diff-block {
+    --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
+    --sui-local-code-room: calc(
+      (var(--sui-local-code-row) - var(--sui-leading-meta) - var(--sui-space-1)) / 2
+    );
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
@@ -293,26 +369,46 @@ or removed empty line. Two empty sides say `emptyLabel`.
     color: var(--sui-text-primary);
     margin: 0;
     min-inline-size: 0;
+    overflow: clip;
   }
 
   .sui-diff-block-legend {
-    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
+    align-content: center;
+    align-items: center;
+    background: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-head-ink),
+      var(--sui-surface-code)
+    );
+    border-block-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
     justify-content: space-between;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    min-block-size: var(--sui-local-code-row);
+    padding: var(--sui-space-2) var(--sui-space-4);
   }
 
   .sui-diff-block-name {
     color: var(--sui-text-primary);
     font-family: var(--sui-mono);
+    font-weight: var(--sui-weight-medium);
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+  }
+
+  /* The head's words trimmed to their capitals in even boxes, so they centre in the row (L-102). */
+  .sui-diff-block-name,
+  .sui-diff-block-sources > * {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-diff-block-sources {
@@ -321,16 +417,17 @@ or removed empty line. Two empty sides say `emptyLabel`.
     gap: inherit;
   }
 
+  /* Two empty sides still read as a diff and not a field: one row of the body's height, its
+     words in the line numbers' quiet ink on their 16px start rail, and in the sans, as words
+     are and code is not (L-20). */
   .sui-diff-block-empty {
     align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-muted);
+    block-size: var(--sui-local-code-row);
+    color: var(--sui-code-gutter);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
-    padding: var(--sui-space-3);
-    padding-block: calc(var(--sui-space-3) + var(--sui-block-snap-half, 0px))
-      calc(var(--sui-space-3) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
+    padding-inline: var(--sui-space-4);
     text-box: trim-both cap alphabetic;
   }
 
@@ -364,9 +461,9 @@ or removed empty line. Two empty sides say `emptyLabel`.
     min-inline-size: 100%;
   }
 
-  /* Every line is one height with its air inside its cells, so a tone runs from edge to edge,
-     the gutter's step fills the line's height, and the block has no strip of bare ground above
-     its first line or below its last. */
+  /* Every line is one height with its air inside its cells, so a tone runs the line's height and
+     the gutter's step fills it. The block's own air stands in the first and last lines' cells,
+     so a removed or added edge line carries its tone to the frame. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
@@ -378,9 +475,17 @@ or removed empty line. Two empty sides say `emptyLabel`.
     padding-block: calc(var(--sui-space-1) / 2);
   }
 
+  .ln:first-child > * {
+    padding-block-start: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
+  }
+
+  .ln:last-child > * {
+    padding-block-end: calc(var(--sui-local-code-room) + var(--sui-space-1) / 2);
+  }
+
   .no {
     color: var(--sui-code-gutter);
-    padding-inline: var(--sui-space-3);
+    padding-inline: var(--sui-space-4) var(--sui-space-3);
     text-align: end;
     user-select: none;
   }
@@ -410,7 +515,20 @@ or removed empty line. Two empty sides say `emptyLabel`.
     background: var(--sui-diff-chg-bg);
   }
 
-  .ln[data-op='+'] .op,
+  /* A minus is a short bar where a plus is a cross, so both glyphs stand at the code face's
+     heaviest weight, 500 (L-19): the removed side's mark keeps its ink beside the added side's. */
+  .op > [aria-hidden],
+  .add,
+  .del {
+    font-weight: var(--sui-weight-medium);
+  }
+
+  /* The head's glyphs are the lines' glyphs, drawn in the code's face beside the sans words. */
+  .sui-diff-block-sources :is(.add, .del) {
+    font-family: var(--sui-mono);
+  }
+
+  .ln[data-op='+'] :is(.no, .op),
   .add {
     color: var(--sui-diff-add-ink);
   }
@@ -420,7 +538,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
     color: var(--sui-diff-del-ink);
   }
 
-  .ln[data-op='~'] .op {
+  .ln[data-op='~'] :is(.no, .op) {
     color: var(--sui-diff-chg-ink);
   }
 

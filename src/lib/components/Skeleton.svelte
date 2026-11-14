@@ -113,7 +113,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
 - Focus: it never takes focus, and the loaded rows arrive without moving it.
-- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column.
+- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column; on a phone a row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot.
 - Accessibility: the placeholders are hidden from assistive technology, and the status says what is awaited, when the wait is slow and when it ends; under forced colors each bar keeps an outline.
 - Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`, or by `marks.space` after a label that ends in its own ellipsis; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
 - Performance: each bar shows its part of one light that only `transform` moves, so the compositor runs it, for at most `patience` milliseconds, and none under reduced motion.
@@ -136,6 +136,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
               ><span class="name">{slowLabel}</span>{#if bars}<span>{slowDescription}</span
                 >{/if}</span
             >
+            <!-- The side's slot, held only where a phone drops the side under the name. -->
+            {#if bars}<span class="bar side slot"></span>{/if}
           {:else}
             <span class="main"
               ><span class="bar"></span>{#if bars}<span class="bar"></span>{/if}</span
@@ -200,7 +202,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-4);
-    grid-template-columns: minmax(0, 1fr) min(5rem, 20%);
+    /* The side stands for a pill, as wide as a short one. */
+    grid-template-columns: minmax(0, 1fr) min(3.5rem, 20%);
     min-block-size: var(--sui-skeleton-row);
     padding-block: var(--sui-skeleton-lead);
   }
@@ -234,27 +237,44 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .bar {
     background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);
-    border-radius: var(--sui-radius-pill);
-    clip-path: inset(0 round var(--sui-radius-pill));
+    border-radius: var(--sui-radius-placeholder);
+    clip-path: inset(0 round var(--sui-radius-placeholder));
     display: block;
-    inline-size: min(12rem, 50%);
+    inline-size: 12rem;
+    max-inline-size: 50%;
   }
 
+  /* The first bar stands for the name, which a row sets at the body size, so it is one of the
+     name's caps tall; a plain row measures its one line in that face too. */
+  .main > .bar:first-child,
+  .sui-skeleton-rows:not(.bars) .row {
+    font-size: var(--sui-font-size-body);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A meta line is about as long as a short row's, so a phone keeps the bars' side beside them
+     at the widths where it keeps a loaded row's. */
   .bar + .bar {
-    inline-size: min(18rem, 80%);
+    inline-size: 13.5rem;
+    max-inline-size: 80%;
   }
 
   /* Every other row is shorter, so the bars read as words rather than as a grid. */
   .row:nth-child(even) .bar:first-child {
-    inline-size: min(9rem, 38%);
+    inline-size: 9rem;
+    max-inline-size: 38%;
   }
 
   .row:nth-child(even) .bar + .bar {
-    inline-size: min(14rem, 64%);
+    inline-size: 12rem;
+    max-inline-size: 64%;
   }
 
-  /* The side centres on the two lines, as a loaded row's side does. */
+  /* The side centres on the two lines, as a loaded row's side does, and keeps the round ends of
+     the pill it stands for. */
   .bar.side {
+    border-radius: var(--sui-radius-pill);
+    clip-path: inset(0 round var(--sui-radius-pill));
     inline-size: auto;
     margin-block-start: round(calc((var(--sui-skeleton-lines) - round(up, 1cap, 1px)) / 2), 1px);
   }
@@ -272,12 +292,16 @@ under reduced motion. Use it only where the shape of what is coming is already k
     scale: -1 1;
   }
 
+  .bar.slot {
+    display: none;
+  }
+
   .slow .bar::after {
     animation: none;
     content: none;
   }
 
-  /* The slow words take a row's shape: a title where the name stands, in a name's ink, and a
+  /* The slow words take a row's shape: a title where the name stands, in a name's size and ink, and a
      quieter line where the line under it stands, each cap to baseline on its bar's place. A
      one-line row keeps one line, the title, so it stays as tall as its neighbours; the status
      says the rest. */
@@ -298,9 +322,55 @@ under reduced motion. Use it only where the shape of what is coming is already k
     text-box: trim-both cap alphabetic;
   }
 
+  /* A status in a name's place: the name's ink and size, so the wait reads first, at 500 under
+     a loaded name's 600, so it never reads as a row called "Still loading…". */
   .name {
     color: var(--sui-text-primary);
-    font-weight: var(--sui-weight-semibold);
+    font-size: var(--sui-font-size-body);
+    font-weight: var(--sui-weight-medium);
+  }
+
+  /* On a phone a row's side stays beside its lines while both fit at their full width, and drops
+     under them once they do not, as an `ObjectRow`'s does, so the rows follow it: each bar's
+     full length is its words' width, and the side bar stands for a pill, as wide as a short one
+     and in a pill's 20px slot, 12px under the lines once it drops. */
+  @media (max-width: 47.9375rem) {
+    .bars .row {
+      display: flex;
+      flex-wrap: wrap;
+      row-gap: var(--sui-space-3);
+    }
+
+    .bars .main {
+      align-content: start;
+      flex: 1 1 max-content;
+      min-block-size: var(--sui-skeleton-lines);
+    }
+
+    .bars .words {
+      align-content: start;
+      flex: 1 1 max-content;
+      min-block-size: var(--sui-skeleton-lines);
+    }
+
+    .bars .bar.slot {
+      display: block;
+      visibility: hidden;
+    }
+
+    .bars .bar.side {
+      --sui-local-side-cap: round(up, 1cap, 1px);
+      --sui-local-side-over: round(
+        down,
+        calc((var(--sui-tier-mark) - var(--sui-local-side-cap)) / 2),
+        1px
+      );
+      align-self: center;
+      flex: none;
+      inline-size: 3.5rem;
+      margin-block: var(--sui-local-side-over)
+        calc(var(--sui-tier-mark) - var(--sui-local-side-cap) - var(--sui-local-side-over));
+    }
   }
 
   @keyframes sui-skeleton-sheen {
