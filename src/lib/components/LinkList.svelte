@@ -45,7 +45,7 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
 - Focus: nothing here moves focus.
 - Responsive: a long label or note wraps at its own edge; on a phone or a touch screen the links step one 44px touch target apart, a row's hairline between them, so they read as rows.
 - Accessibility: a screen reader hears a list with its count; each note is the link's description, and an external link says "(opens another site)" after it; name the list with `aria-labelledby` when the page holds more than one.
-- Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page.
+- Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page, and each label and note keeps its own direction (`bdi`), so an English note such as "3 repositories differ" keeps its number first there.
 - Performance: one link per item, with no script.
 - Analytics: none of its own; each link is a plain `a`, so the page's navigation tracking hears it.
 - Failure: with no links it draws nothing, so leave its heading out too or say so in one quiet sentence.
@@ -60,11 +60,12 @@ so the list keeps a row's pitch; a note stands one copy gap under its link.
             href={link.href}
             external={link.external}
             standalone
-            aria-describedby={link.note ? `${id}-${index}` : undefined}>{link.label}</Link
+            aria-describedby={link.note ? `${id}-${index}` : undefined}
+            ><bdi>{link.label}</bdi></Link
           ></span
         >
         {#if link.note}
-          <span class="sui-link-list-note" id="{id}-{index}">{link.note}</span>
+          <span class="sui-link-list-note" id="{id}-{index}"><bdi>{link.note}</bdi></span>
         {/if}
       </li>
     {/each}

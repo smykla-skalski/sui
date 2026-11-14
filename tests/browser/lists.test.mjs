@@ -1868,6 +1868,27 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('an English note in a right-to-left link list keeps its own order', async () => {
+      const page = await opened();
+      const [first, last] = await page.evaluate(() => {
+        const note = /** @type {Element} */ (
+          [...document.querySelectorAll('#link-list [dir="rtl"] .sui-link-list-note')].find(
+            (node) => node.textContent?.startsWith('3 repositories')
+          )
+        );
+        const walker = document.createTreeWalker(note, NodeFilter.SHOW_TEXT);
+        const text = /** @type {Text} */ (walker.nextNode());
+        const glyph = (/** @type {number} */ index) => {
+          const range = document.createRange();
+          range.setStart(text, index);
+          range.setEnd(text, index + 1);
+          return range.getBoundingClientRect().left;
+        };
+        return [glyph(0), glyph(text.length - 1)];
+      });
+      assert.ok(first < last, 'the number moved to the end of "3 repositories differ"');
+    });
+
     test('a refreshing timeline says so over its kept events, its mark on whole pixels', async () => {
       const page = await opened();
       const specimen = page.locator('#timeline .specimen', { hasText: 'Refreshing' }).first();
