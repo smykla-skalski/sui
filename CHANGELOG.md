@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A comment in a `CodeBlock` steps back past the punctuation, as far as 4.5:1 on the code ground lets it (about 4.9:1 light and 6.8:1 dark), where it stood darker than the punctuation on light and level with it on dark. A `DiffBlock` keeps the shared comment ink, which its tinted rows need.
 - A `FormError` and an `ErrorState` over its rows stand their mark 20px inside the edge, the rail an error panel's words stand on, so every danger wash on a page starts its mark on one line, where they stood 16px in. On a phone the wrapped strip keeps 20px all round.
 - A copy control in a `CodeBlock`'s head rests on the block's subtle edge on light, quieter than the frame round it, where the control edge made it the strongest repeated shape on the page. On dark it keeps the control edge, where its fill is a small step off the head.
 - An `EmptyState` or `ErrorState` panel pads its words by 32px above and below, up from 28px, so an empty view reads as a place to rest and not a note (L-59). A phone keeps 20px all round.

@@ -581,8 +581,14 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     color: var(--sui-code-string);
   }
 
+  /* On the bare code ground a comment steps back past the punctuation, as far as 4.5:1 lets it,
+     so a note reads apart from the code it explains. A diff keeps the shared comment ink, which
+     its tinted rows need to hold that contrast. */
   .tok-com {
-    color: var(--sui-code-comment);
+    color: light-dark(
+      color-mix(in srgb, var(--sui-text-muted) 95%, var(--sui-surface-code)),
+      color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code))
+    );
   }
 
   .tok-pun {

@@ -693,6 +693,54 @@ suite('lists', together, () => {
       await page.emulateMedia({ colorScheme: null });
     });
 
+    test('a code block comment steps back past its punctuation and holds 4.5:1 in both themes', async () => {
+      const page = await opened();
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.evaluate(() => new Promise(requestAnimationFrame));
+        const inks = await page.evaluate(() => {
+          // A mixed ink computes as color(srgb r g b) in 0 to 1, a plain one as rgb() in 0 to 255.
+          const rgb = (/** @type {string} */ value) =>
+            (value.replace(/^color\(srgb/, '').match(/[\d.]+/g) ?? [])
+              .slice(0, 3)
+              .map((channel) =>
+                value.startsWith('color(') ? Number(channel) * 255 : Number(channel)
+              );
+          const luminance = (/** @type {number[]} */ channels) => {
+            const [r, g, b] = channels.map((channel) => {
+              const c = channel / 255;
+              return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          const block = /** @type {Element} */ (
+            [...document.querySelectorAll('#code-block .sui-code-block')].find(
+              (each) => each.querySelector('.tok-com') && each.querySelector('.tok-pun')
+            )
+          );
+          let painted = /** @type {Element | null} */ (block.querySelector('pre'));
+          while (painted && getComputedStyle(painted).backgroundColor === 'rgba(0, 0, 0, 0)')
+            painted = painted.parentElement;
+          const ground = luminance(
+            rgb(getComputedStyle(/** @type {Element} */ (painted)).backgroundColor)
+          );
+          const contrast = (/** @type {string} */ selector) => {
+            const ink = luminance(
+              rgb(getComputedStyle(/** @type {Element} */ (block.querySelector(selector))).color)
+            );
+            return (Math.max(ink, ground) + 0.05) / (Math.min(ink, ground) + 0.05);
+          };
+          return { comment: contrast('.tok-com'), punct: contrast('.tok-pun') };
+        });
+        assert.ok(inks.comment >= 4.5, `in ${scheme} a comment holds ${inks.comment.toFixed(2)}:1`);
+        assert.ok(
+          inks.comment < inks.punct - 0.4,
+          `in ${scheme} a comment (${inks.comment.toFixed(2)}:1) does not step back past its punctuation (${inks.punct.toFixed(2)}:1)`
+        );
+      }
+      await page.emulateMedia({ colorScheme: null });
+    });
+
     test('a framed code block heads its code with a faint step in both themes', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
