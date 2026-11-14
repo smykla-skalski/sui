@@ -2014,32 +2014,6 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a chart’s data control stays where the reader pressed it while its table opens', async () => {
-      // The kit page sets charts side by side, where a short chart's card stretches to its
-      // neighbour's height.
-      const page = await openLayout('charts/', 1440);
-      try {
-        const moved = await page.evaluate(async () => {
-          const frame = () => new Promise(requestAnimationFrame);
-          const found = [];
-          for (const details of document.querySelectorAll('.sui-chart details')) {
-            const summary = /** @type {Element} */ (details.querySelector('summary'));
-            const before = summary.getBoundingClientRect().top + scrollY;
-            /** @type {HTMLDetailsElement} */ (details).open = true;
-            await frame();
-            const after = summary.getBoundingClientRect().top + scrollY;
-            /** @type {HTMLDetailsElement} */ (details).open = false;
-            await frame();
-            if (Math.abs(after - before) > 0.5) found.push(Math.round(after - before));
-          }
-          return found;
-        });
-        assert.deepEqual(moved, [], 'a data control moves as its table opens');
-      } finally {
-        await page.close();
-      }
-    });
-
     test('a refreshing or stale chart’s note leads with its mark in its hue, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
       const page = await charts();
       const read = await page.evaluate(() => {

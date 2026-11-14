@@ -440,6 +440,10 @@
     }
   }
 
+  details:not([open]) {
+    margin-block-start: auto;
+  }
+
   /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
      no frame or ground at rest, so it hands back the room above and below its words: they
      stand one gap under the legend and their baseline, to the nearest pixel, on a card's
