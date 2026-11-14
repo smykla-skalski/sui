@@ -249,6 +249,11 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .main > .bar:first-child,
   .sui-skeleton-rows:not(.bars) .row {
     font-size: var(--sui-font-size-body);
+  }
+
+  /* A plain row with no side gives its bar the whole row; one with a side keeps the side's
+     column, so the side stands beside the name, as a loaded row's pill does. */
+  .sui-skeleton-rows:not(.bars) .row:not(:has(> .side)) {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -276,6 +281,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
     border-radius: var(--sui-radius-pill);
     clip-path: inset(0 round var(--sui-radius-pill));
     inline-size: auto;
+    max-inline-size: none;
     margin-block-start: round(calc((var(--sui-skeleton-lines) - round(up, 1cap, 1px)) / 2), 1px);
   }
 

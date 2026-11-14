@@ -257,7 +257,7 @@ over its short word `expandShort` there with its whole words in a tooltip, bring
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
 hairline marks where each group starts. A strip that stands alone keeps its `kicker` in the primary ink over a hairline,
 8px from the strip's top, the line and the rows; beside a rail the rail's places name the place instead. The `foot` is told when the
-sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
+sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the line of its title, rows are 44px, and
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
@@ -469,10 +469,10 @@ following a row closes the drawer.
     grid-column: 1;
   }
 
-  /* The close button centres on the first line of the names (L-94): a holder with no height at
-     that line's middle lets the button reach as far over it as under it. */
-  /* The way out of the drawer takes a dialog close's 18px glyph and secondary ink, so it reads
-     beside the place's name as a dialog's close does beside its title. */
+  /* The way out of the drawer takes a dialog close's 18px glyph and secondary ink, and centres
+     on the place's name, past any kicker over it, as a dialog's close does on its title (L-94):
+     a holder with no height at that line's middle lets the button reach as far over it as under
+     it. */
   .sui-side-nav-close {
     --sui-icon-base: var(--sui-icon-md);
     --sui-local-icon-rest: var(--sui-text-secondary);
@@ -482,6 +482,10 @@ following a row closes the drawer.
     display: grid;
     grid-column: 2;
     grid-row: 1;
+  }
+
+  .sui-side-nav-kicker ~ .sui-side-nav-close {
+    grid-row: 2;
   }
 
   /* The kicker and the group headings are compact caps, a step under the 14px rows they head,

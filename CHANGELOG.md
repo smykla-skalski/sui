@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Skeleton: a one-line row with a side keeps the side beside its bar, a pill's 56px wide, so a waiting list of one-line rows stands at the loaded rows' pitch. DetailLayout: an aside stacked under the main column keeps the section tier, and only an aside beside it takes the sub-section tier. SideNav: the drawer's close button centres on the title's line, past any kicker.
 - AppShell: a phone bar keeps its title hidden while the page's own h1 is still below the screen, and a shell in a frame further down a page reads its own screen, so the bar never names the page over the heading that names it.
 - ListDetail: Back to an item keeps its detail where the reader left it while focus lands on its title, where the landing scrolled a title partly above the pane back into view.
 - ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
