@@ -556,7 +556,7 @@ following a row closes the drawer.
   .sui-side-nav-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
