@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `SideNav` starts its head at a page header's gutter, 24px and 16px on a phone, so its kicker and the page header's eyebrow share one cap line, where they stood 7px apart.
 - A `SideNav`'s foot starts 16px under its hairline, the gap that parts the rows from it, so the row in the foot stands as far from the rule as from the column's end, where 12px read as pushed up to the rule.
 - A `Section` whose content opens with a sub-section or a chart stands it the sub-section gap under its copy, 24px and 20px on a phone, so the inner title reads as its own head, where 16px read as the section's second line.
 - A `SideNav` draws the hairline under its title only once rows scroll under it, fading in over their first 8px, so at rest the shell shows one rule beside the page header's, not two at different heights. Inside an `AppShell` a `PageHeader`'s foot takes the sidebar's line ink, so the two rules meet as one.

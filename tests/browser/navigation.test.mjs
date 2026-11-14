@@ -280,6 +280,24 @@ suite('navigation', together, () => {
     }
   });
 
+  test('the side nav kicker and the page header eyebrow share one cap line', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const [nav, header] = await page.evaluate(() =>
+        ['.sui-side-nav-kicker', '.sui-page-header-eyebrow'].map(
+          (name) =>
+            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().top
+        )
+      );
+      assert.ok(
+        Math.abs(nav - header) <= 0.5,
+        `the kicker stands at ${nav}, the eyebrow at ${header}`
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a nav row rests in an ink 2:1 from the current one, over its headings on light, and hover and focus take the primary ink', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {

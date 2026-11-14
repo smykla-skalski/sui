@@ -401,6 +401,8 @@ following a row closes the drawer.
     gap: var(--sui-space-4);
     min-block-size: 0;
     padding: var(--sui-space-4) var(--sui-space-3);
+    /* The head starts at a page header's gutter, so its kicker and the page's share one line. */
+    padding-block-start: var(--sui-rhythm-pane-gutter);
   }
 
   /* Once rows scroll under the title a hairline parts them, as one parts the foot, so a row
