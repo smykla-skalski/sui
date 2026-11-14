@@ -1132,7 +1132,38 @@ suite('lists', together, () => {
       }
     });
 
-    test("a refreshing table says so on its caption's line, led by the refresh mark in the info hue", async () => {
+    test('a table’s caption is a chart title’s 16px 600 on a phone and on a wide screen', async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      const read = [];
+      try {
+        for (const width of [375, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          read.push(
+            await page
+              .locator('#data-table .specimen', { hasText: /^\s*Row headers, sortable/ })
+              .locator('.sui-data-table')
+              .evaluate((table) => {
+                const caption = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('.caption:not(.hint)'))
+                );
+                const cell = getComputedStyle(
+                  /** @type {Element} */ (table.querySelector('tbody td'))
+                );
+                return [caption.fontSize, caption.fontWeight, cell.fontSize];
+              })
+          );
+        }
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+      assert.deepEqual(read, [
+        ['16px', '600', '16px'],
+        ['16px', '600', '15px']
+      ]);
+    });
+
+    test("a refreshing table says so on its caption's baseline, led by the refresh mark in the info hue", async () => {
       const page = await opened();
       const read = await page
         .locator('#data-table .specimen', { hasText: /^\s*Refreshing/ })
@@ -1146,13 +1177,13 @@ suite('lists', together, () => {
           const info = getComputedStyle(probe).color;
           probe.remove();
           const mark = line?.querySelector('svg');
-          const top = (/** @type {Element | null | undefined} */ box) =>
-            box?.getBoundingClientRect().top ?? NaN;
+          const baseline = (/** @type {Element | null | undefined} */ box) =>
+            box?.getBoundingClientRect().bottom ?? NaN;
           return [
             line?.textContent?.trim(),
             !!line?.checkVisibility(),
             mark ? getComputedStyle(mark).color === info : false,
-            Math.abs(top(line?.querySelector('.refreshing-words')) - top(caption)) <= 0.5,
+            Math.abs(baseline(line?.querySelector('.refreshing-words')) - baseline(caption)) <= 0.5,
             line?.parentElement?.getBoundingClientRect().height ===
               caption?.getBoundingClientRect().height
           ];
