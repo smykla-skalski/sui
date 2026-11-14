@@ -131,7 +131,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 - Keyboard: Tab reaches a relative time, which shows its whole instant, and each action, in reading order; a clock time is not a tab stop.
 - Pointer and touch: an action keeps its own target; on a phone or a touch screen a wide timeline with actions spaces its events by the 44px target, so targets never meet.
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
-- Responsive: a container query under 25rem of its own width stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
+- Responsive: under a card's width (36rem) the pill and action drop under the words, on their edge, while each time keeps its column, and under 25rem it stands each time over its words, on the words' edge past an avatar's seat, stands each event 4px further from the next, sets the words at the body size and drops the pill and action under them, from the words' edge.
 - Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`, or `refreshingLabel` over kept events; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
 - Localization: `emptyLabel`, `loadingLabel` and `refreshingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
 - Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
@@ -489,6 +489,30 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
       .sui-timeline:has(.sui-timeline-action) > .sui-timeline-event {
         --sui-local-timeline-target: var(--sui-touch-target);
       }
+    }
+  }
+
+  /* Under a card's width a pill and an action beside the words leave them too narrow a column,
+     so they drop under the words, a copy gap down and on the words' edge, while each time keeps
+     its column beside them. */
+  @container sui-timeline (25rem < width <= 36rem) {
+    .sui-timeline:has(> li > .sui-timeline-side) {
+      grid-template-columns: max-content minmax(0, 1fr);
+    }
+
+    .sui-timeline-event {
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-timeline-side {
+      block-size: auto;
+      flex-wrap: wrap;
+      grid-column: 2;
+      justify-content: flex-start;
+    }
+
+    .sui-timeline:has(.sui-timeline-face) .sui-timeline-side {
+      margin-inline-start: calc(var(--sui-space-5) + var(--sui-space-2));
     }
   }
 

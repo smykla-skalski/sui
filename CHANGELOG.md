@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Timeline` under a card's width (36rem) drops each pill and action under its words, on their edge, while each time keeps its column, so a 32rem list gives its words 344px where they had 232px and wrapped to four lines.
 - A focused `RelativeTime` stands its ring 1px off its words at each side, so in a sentence such as "Synced 42 minutes ago" the ring keeps inside the word space and no longer draws on the word before it; the ring stands 2px under the dots, and the hover veil reaches as far as the ring.
 - A focused standalone `Link`, as in a `LinkList` or a `FactList` value, stands its ring 4px further below its words, so the ring clears the underline and the descenders by 5px, where it stood 1px off; a link in running copy keeps the plain ring.
 - `LinkList`: each label and note keeps its own direction, so an English note in a right-to-left list, such as "3 repositories differ", keeps its number first.

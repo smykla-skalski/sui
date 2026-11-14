@@ -1927,6 +1927,41 @@ suite('lists', together, () => {
       assert.ok(first < last, 'the number moved to the end of "3 repositories differ"');
     });
 
+    test("under a card's width a timeline drops its pill and action under the words, on their edge", async () => {
+      const page = await opened();
+      // A timeline lays out only the words near the screen.
+      await page.locator('#timeline .measure').scrollIntoViewIfNeeded();
+      await page.waitForFunction(() =>
+        [...document.querySelectorAll('#timeline .measure .sui-timeline-words')].every((words) =>
+          words.checkVisibility({ contentVisibilityAuto: true })
+        )
+      );
+      const events = await page.evaluate(() =>
+        [...document.querySelectorAll('#timeline .measure .sui-timeline-event')]
+          .filter((event) => event.querySelector('.sui-timeline-side'))
+          .map((event) => {
+            const box = (/** @type {string} */ part) =>
+              /** @type {Element} */ (event.querySelector(part)).getBoundingClientRect();
+            const [time, words, side] = [
+              box('.sui-timeline-time'),
+              box('.sui-timeline-words'),
+              box('.sui-timeline-side')
+            ];
+            return {
+              time: time.top,
+              words: [words.left, words.top, words.bottom],
+              side: [side.left, side.top]
+            };
+          })
+      );
+      assert.ok(events.length > 0, 'the 32rem timeline shows a pill or an action');
+      for (const { time, words, side } of events) {
+        assert.equal(time, words[1], 'the time stands beside its words');
+        assert.ok(side[1] >= words[2], 'the pill and action stand beside the words');
+        assert.ok(Math.abs(side[0] - words[0]) <= 0.5, "the pill and action leave the words' edge");
+      }
+    });
+
     test('a refreshing timeline says so over its kept events, its mark on whole pixels', async () => {
       const page = await opened();
       const specimen = page.locator('#timeline .specimen', { hasText: 'Refreshing' }).first();
