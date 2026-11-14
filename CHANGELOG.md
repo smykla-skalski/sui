@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A bottom bar's tiles stand 8px in from its edges, as the rail's do from its column's, where they stood 4px in and their plate all but met the bar's rule; the bar is 8px taller.
 - A line, scatter or range chart draws each gridline on one whole row or column of pixels, the one its value falls in, where most straddled two and drew as a faint 2px smear.
 - A `DataTableColumn` takes a `sample`, a typical widest value, which its heading holds unseen, so the column has its loaded width while the rows load, fail or are empty, and the table does not move when they arrive, where it shifted its columns up to 80px.
 - A bottom bar's count rides its glyph's corner, as the rail's does, where it stood beside the glyph; under 18rem, where the tiles shrink to their words, it stays beside.

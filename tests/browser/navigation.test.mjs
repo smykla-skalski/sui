@@ -550,7 +550,7 @@ suite('navigation', together, () => {
   });
 
   test(
-    'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
+    'with bottomNav a phone keeps the places in a bottom bar, its tiles 8px in as the rail’s, and the drawer holds only the pages',
     long,
     async () => {
       const page = await openLayout('layouts/app-shell/bottom-nav/', 375);
@@ -564,7 +564,19 @@ suite('navigation', together, () => {
                 gap: innerHeight - box.bottom,
                 tiles: [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
                   Math.round(tile.getBoundingClientRect().height)
-                )
+                ),
+                room: (() => {
+                  const tiles = [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
+                    tile.getBoundingClientRect()
+                  );
+                  const rule = parseFloat(getComputedStyle(rail).borderBlockStartWidth);
+                  return [
+                    tiles[0].left - box.left,
+                    tiles[0].top - box.top - rule,
+                    box.right - tiles[tiles.length - 1].right,
+                    box.bottom - tiles[0].bottom
+                  ].map(Math.round);
+                })()
               }
             : null;
         });
@@ -575,6 +587,7 @@ suite('navigation', together, () => {
           bar.tiles.every((height) => height >= 44),
           `tiles are ${bar.tiles.join(', ')}px`
         );
+        assert.deepEqual(bar.room, [8, 8, 8, 8], 'the tiles stand 8px in, as the rail’s do');
         const drawer = await openDrawer(page);
         assert.equal(
           await drawer.locator('.sui-rail').count(),

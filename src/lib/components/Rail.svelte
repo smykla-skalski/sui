@@ -355,7 +355,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     content: attr(data-count);
   }
 
-  /* In a shell with a bottom bar, on a phone, the tiles stand side by side and share the row. */
+  /* In a shell with a bottom bar, on a phone, the tiles stand side by side and share the row,
+     8px in from the bar's edges as the rail's tiles are from its column's. */
   @container sui-shell (max-width: 47.9375rem) {
     .sui-rail[data-bar] {
       block-size: auto;
@@ -366,8 +367,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       gap: 0;
       inline-size: 100%;
       overflow: visible;
-      padding: var(--sui-space-1) var(--sui-space-1)
-        calc(var(--sui-space-1) + env(safe-area-inset-bottom));
+      padding: var(--sui-space-2) var(--sui-space-2)
+        calc(var(--sui-space-2) + env(safe-area-inset-bottom));
     }
 
     .sui-rail[data-bar] :is(.sui-rail-brand, .sui-rail-rule) {
