@@ -5,7 +5,7 @@
 - `LinkList`: each label and note keeps its own direction, so an English note in a right-to-left list, such as "3 repositories differ", keeps its number first.
 - `Timeline`: a refresh over loaded events shows the refresh mark and `refreshingLabel` (Refreshing…) 12px over them, as a table's caption line does, and says it in the status, where the busy list looked loaded.
 - `Link`: an external link's arrow is 12px with 7px of ink, near the text's cap height, where its 4px of ink read as a stray mark; its line keeps its height.
-- `FactLine` moves a short fact to the next line whole, where its last word could stand alone there, and draws its dot as a 2px circle on whole pixels on the words' x-height, right after the last word, so every dot has one weight (two typed dots on one line could differ 3.76:1 against 2.50:1).
+- `FactLine` moves a short fact to the next line whole, where its last word could stand alone there, and draws its dot as a 2px circle on whole pixels on the words' x-height, right after the last word, so every dot has one weight (two typed dots on one line could differ 3.76:1 against 2.50:1). A fact that breaks inside itself sits on the line by its first line, so a row that trims its lines to the cap height, such as an `ObjectRow` summary at twice the text size, still holds it.
 - A fact row's pill whose words wrap grows its row, where it ran over the row under it, and a stacked pill stands one copy gap under its label.
 - A line or scatter chart whose first point has a marker stands it 8px clear of the y ticks' words, the gap they keep from a plot with none.
 - A mono fact value, such as a path, wraps after its separators before it breaks inside a word.

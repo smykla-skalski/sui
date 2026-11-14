@@ -60,8 +60,10 @@ option) keeps its own typed separator instead.
   /* Each fact is one box, so a short fact moves to the next line whole rather than leaving its
      last word alone there, and only a fact longer than the line breaks inside itself. Its width
      rounds up to the pixel and its last line keeps to its end edge, so the dot after its last
-     word ends on a whole pixel. */
+     word ends on a whole pixel. A fact that breaks sits on the line by its first line, as text
+     does, so a parent that trims its lines to the cap height still holds the fact's lines. */
   .sui-fact-line > :global(*) {
+    baseline-source: first;
     display: inline-block;
     inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
