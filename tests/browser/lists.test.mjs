@@ -1097,21 +1097,39 @@ suite('lists', together, () => {
       }
     );
 
-    test('a loading table stands each column where the loaded one will, from its columns’ samples', async () => {
+    test('a table stands each column where its loaded values will, loading, empty or failed, from its columns’ samples', async () => {
       const page = await opened();
-      const starts = await page.evaluate(() =>
-        ['Striped', 'Loading, wide'].map((name) => {
-          const specimen = [...document.querySelectorAll('#data-table .specimen')].find((each) =>
-            each.querySelector('figcaption')?.textContent?.trim().startsWith(name)
+      const wide = page.viewportSize();
+      try {
+        for (const width of [1440, 390]) {
+          await page.setViewportSize({ width, height: 900 });
+          const groups = await page.evaluate(() =>
+            [
+              ['Striped', 'Loading, wide'],
+              ['Refreshing', 'Empty', 'Loading', 'Failed']
+            ].map((names) =>
+              names.map((name) => {
+                const specimen = [...document.querySelectorAll('#data-table .specimen')].find(
+                  (each) => each.querySelector('figcaption')?.textContent?.trim() === name
+                );
+                const table = /** @type {Element} */ (specimen?.querySelector('table'));
+                const left = table.getBoundingClientRect().left;
+                return [...table.querySelectorAll('thead th')]
+                  .map((heading) => Math.round(heading.getBoundingClientRect().left - left))
+                  .join(' ');
+              })
+            )
           );
-          const table = /** @type {Element} */ (specimen?.querySelector('table'));
-          const left = table.getBoundingClientRect().left;
-          return [...table.querySelectorAll('thead th')]
-            .map((heading) => Math.round(heading.getBoundingClientRect().left - left))
-            .join(' ');
-        })
-      );
-      assert.equal(starts[1], starts[0], 'the loading columns start where the loaded ones do');
+          for (const starts of groups)
+            assert.deepEqual(
+              new Set(starts).size,
+              1,
+              `at ${width}px the columns start apart: ${starts.join(' | ')}`
+            );
+        }
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
     });
 
     test("a refreshing table says so on its caption's line, led by the refresh mark in the info hue", async () => {

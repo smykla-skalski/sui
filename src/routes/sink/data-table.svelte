@@ -40,10 +40,10 @@
   ];
 
   const releaseColumns: DataTableColumn<Release>[] = [
-    { key: 'version', label: 'Version', nowrap: true },
-    { key: 'status', label: 'Status', nowrap: true },
-    { key: 'size', label: 'Bundle size', numeric: true },
-    { key: 'published', label: 'Published', nowrap: true }
+    { key: 'version', label: 'Version', nowrap: true, sample: '0.3.0' },
+    { key: 'status', label: 'Status', nowrap: true, sample: 'Superseded' },
+    { key: 'size', label: 'Bundle size', numeric: true, sample: amount(84.7, 'kB') },
+    { key: 'published', label: 'Published', nowrap: true, sample: day(2026, 9, 2) }
   ];
   const releases: Release[] = [
     { version: '0.3.0', status: 'Current', size: amount(84.7, 'kB'), published: day(2026, 10, 17) },

@@ -10,7 +10,7 @@
     nowrap?: boolean;
     /** Makes the heading a button that sorts the rows by this column. */
     sortable?: boolean;
-    /** A typical widest value, which a loading placeholder holds unseen, so the column already has its loaded width and the table does not move when the rows arrive. */
+    /** A typical widest value, which the heading holds unseen, so the column has its loaded width while the rows load, fail or are empty, and the table does not move when they arrive. */
     sample?: string;
   };
 
@@ -151,7 +151,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, each column as wide as its `sample` will be, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy, and `refreshingLabel` on the caption's line after the refresh mark), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, each column as wide as its `sample`, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy, and `refreshingLabel` on the caption's line after the refresh mark), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
@@ -218,7 +218,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
               <th
                 scope="col"
                 data-align={alignOf(column)}
-                class={{ nowrap: column.nowrap || column.numeric }}
+                class={{ nowrap: column.nowrap || column.numeric, numeric: column.numeric }}
                 aria-sort={sort?.key === column.key ? sort.direction : undefined}
               >
                 {#if column.sortable}
@@ -236,6 +236,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                 {:else}
                   <span class="value">{column.label}</span>
                 {/if}
+                {#if column.sample}<span class="sample" aria-hidden="true">{column.sample}</span
+                  >{/if}
               </th>
             {/each}
           </tr>
@@ -248,11 +250,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
               <tr class="placeholder" aria-hidden="true">
                 {#each columns as column (column.key)}
                   <td data-align={alignOf(column)} class={{ numeric: column.numeric }}
-                    ><span class="value"
-                      ><span class="bar"></span>{#if column.sample}<span class="sample"
-                          >{column.sample}</span
-                        >{/if}</span
-                    ></td
+                    ><span class="value"><span class="bar"></span></span></td
                   >
                 {/each}
               </tr>
@@ -513,6 +511,26 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
+  }
+
+  /* A column's sample stands under its heading at no height, set as its values are, so the
+     column is as wide as its loaded values in every state: loading, empty or failed. */
+  thead .sample {
+    block-size: 0;
+    display: block;
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    overflow: hidden;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  .held thead th:first-child .sample {
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .numeric .sample {
+    font-variant-numeric: tabular-nums;
   }
 
   /* A sort heading is a chip-tier control (L-37) whose ground reaches a space past its words.
@@ -845,20 +863,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   .placeholder:nth-child(3n) .bar {
     inline-size: 78%;
-  }
-
-  /* A column's sample takes its width and no height, so the placeholder column stands as wide
-     as the loaded one will, in the row heading's weight where the rows name themselves. */
-  .placeholder .sample {
-    block-size: 0;
-    display: block;
-    overflow: hidden;
-    visibility: hidden;
-    white-space: nowrap;
-  }
-
-  .held .placeholder > :first-child .sample {
-    font-weight: var(--sui-weight-semibold);
   }
 
   .placeholder .numeric .bar {
