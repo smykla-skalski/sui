@@ -1615,6 +1615,38 @@ suite('lists', together, () => {
       assert.equal(ground, 'surface');
     });
 
+    test('a diff block draws a code block’s head, line numbers and room round its lines', async () => {
+      const page = await opened();
+      const read = await page.evaluate(() => {
+        const look = (/** @type {string} */ head, /** @type {string} */ no) => {
+          const top = /** @type {HTMLElement} */ (document.querySelector(head));
+          const number = /** @type {HTMLElement} */ (document.querySelector(no));
+          const first = number.closest('.ln');
+          const style = getComputedStyle(top);
+          return {
+            height: top.getBoundingClientRect().height,
+            fill: style.backgroundColor,
+            ink: getComputedStyle(number).color,
+            room: first?.matches(':first-child')
+              ? parseFloat(getComputedStyle(number).paddingTop)
+              : null
+          };
+        };
+        return {
+          code: look(
+            '#code-block .sui-code-block-label',
+            '#code-block .numbered > .ln:first-child .no'
+          ),
+          diff: look('#diff-block .sui-diff-block-legend', '#diff-block .ln:first-child .no')
+        };
+      });
+      const { code, diff } = read;
+      assert.equal(diff.height, code.height, 'head row height');
+      assert.equal(diff.fill, code.fill, 'head fill');
+      assert.equal(diff.ink, code.ink, 'line number ink');
+      assert.equal(diff.room, code.room, 'room over the first line');
+    });
+
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {

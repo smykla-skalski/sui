@@ -285,7 +285,12 @@ or removed empty line. Two empty sides say `emptyLabel`.
 </figure>
 
 <style>
+  /* A diff is a code block's sibling: the same 44px head row a faint step off the code, the same
+     quiet line numbers on a 16px start rail, and the same room over its first line and under its
+     last. */
   .sui-diff-block {
+    --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
+    --sui-local-code-room: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
@@ -293,23 +298,34 @@ or removed empty line. Two empty sides say `emptyLabel`.
     color: var(--sui-text-primary);
     margin: 0;
     min-inline-size: 0;
+    overflow: clip;
   }
 
   .sui-diff-block-legend {
-    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
+    align-content: center;
+    align-items: center;
+    background: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-head-ink),
+      var(--sui-surface-code)
+    );
+    border-block-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
     justify-content: space-between;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    min-block-size: var(--sui-local-code-row);
+    padding: var(--sui-space-2) var(--sui-space-4);
   }
 
   .sui-diff-block-name {
     color: var(--sui-text-primary);
     font-family: var(--sui-mono);
+    font-weight: var(--sui-weight-medium);
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
@@ -378,9 +394,17 @@ or removed empty line. Two empty sides say `emptyLabel`.
     padding-block: calc(var(--sui-space-1) / 2);
   }
 
+  .ln:first-child > * {
+    padding-block-start: var(--sui-local-code-room);
+  }
+
+  .ln:last-child > * {
+    padding-block-end: var(--sui-local-code-room);
+  }
+
   .no {
     color: var(--sui-code-gutter);
-    padding-inline: var(--sui-space-3);
+    padding-inline: var(--sui-space-4) var(--sui-space-3);
     text-align: end;
     user-select: none;
   }

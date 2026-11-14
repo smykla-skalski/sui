@@ -280,10 +280,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   .sui-code-block {
     --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
     /* The block's quietest ink, a comment's and a line number's (see .tok-com). */
-    --sui-local-code-quiet: light-dark(
-      color-mix(in srgb, var(--sui-text-muted) 95%, var(--sui-surface-code)),
-      color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code))
-    );
+    --sui-local-code-quiet: var(--sui-code-gutter);
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);

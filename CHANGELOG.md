@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `DiffBlock` draws a `CodeBlock`'s head: a 44px row a faint step off the code, with the file name at 13px medium and a subtle rule under it. Its line numbers take the code block's quiet gutter ink on a 16px start rail, and its first and last lines get the code block's room. `--sui-code-gutter` is now that quiet ink in both themes.
 - The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.
 - An `EmptyState` and an `ErrorState` title, and a `FormError` summary's message, read at 17px on a phone, a step over the 16px body there, where they stood level with it, and a step under the 18px heading over them.
 - A `CodeBlock` head steps 4% ink off the code on light, down from 6%, so five heads on a page weigh less than the code under them, and its copy control on dark takes 10% ink, up from 7%, so it lifts off the head as far as the white control does on light.
