@@ -381,10 +381,11 @@
                names the data, so it never reads as the header's Check Again. -->
           <Callout compact>
             <!-- A history glyph says the data is old; a refresh glyph would read as a second
-                 Reload. The failure leads at a title's weight, so it reads before its reason. -->
+                 Reload. The failure leads at a title's weight, so it reads before its reason,
+                 and the data's age, what the reader weighs the page by, takes a step under it. -->
             {#snippet icon()}<Icon name="history" size="sm" />{/snippet}
             <span class="lead">The refresh failed</span>, so this page shows data from
-            <RelativeTime value={finished} />
+            <span class="age"><RelativeTime value={finished} /></span>
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading Data…' : 'Reload Data'}
@@ -571,6 +572,10 @@
 
   .lead {
     font-weight: var(--sui-weight-semibold);
+  }
+
+  .age {
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
