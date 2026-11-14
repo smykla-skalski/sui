@@ -338,6 +338,21 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test('each directional glyph shares a line with its mirror on the icon page', async () => {
+      const page = await opened();
+      const rows = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons table tbody tr')].map((row) => {
+          const glyphs = [...row.querySelectorAll('svg')].map((svg) => svg.getBoundingClientRect());
+          return { glyphs: glyphs.length, apart: Math.abs(glyphs[0].top - glyphs[1]?.top) };
+        })
+      );
+      assert.ok(rows.length >= 5, `only ${rows.length} direction rows`);
+      for (const { glyphs, apart } of rows) {
+        assert.equal(glyphs, 2, 'a row holds a glyph and its mirror');
+        assert.ok(apart < 0.5, `a glyph stands ${apart}px off its mirror's line`);
+      }
+    });
+
     test('a failed refresh over its rows keeps 16px inside its tint all round once its retry wraps', async () => {
       const page = await opened();
       const strip = page

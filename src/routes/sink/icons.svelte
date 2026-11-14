@@ -67,20 +67,75 @@
   title="Direction"
   note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
 >
-  <Variants
-    rows={directional}
-    columns={directions}
-    axis="name"
-    rowLabel={(name) => `"${name}"`}
-    columnLabel={(direction) => (direction === 'ltr' ? 'Left to right' : 'Right to left')}
-  >
-    {#snippet cell(name, direction)}
-      <span class="facing" dir={direction}><Icon {name} size="md" /></span>
-    {/snippet}
-  </Variants>
+  <!-- Two columns stand side by side at every width, so a glyph and its mirror share a line
+       even on a phone, where a folded matrix would set them a screen apart. -->
+  <table class="facings">
+    <thead>
+      <tr>
+        <th scope="col"><code>name</code></th>
+        {#each directions as direction (direction)}
+          <th scope="col">{direction === 'ltr' ? 'Left to right' : 'Right to left'}</th>
+        {/each}
+      </tr>
+    </thead>
+    <tbody>
+      {#each directional as name (name)}
+        <tr>
+          <th scope="row"><code translate="no">"{name}"</code></th>
+          {#each directions as direction (direction)}
+            <td><span class="facing" dir={direction}><Icon {name} size="md" /></span></td>
+          {/each}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
 </Example>
 
 <style>
+  .facings {
+    border-collapse: collapse;
+  }
+
+  .facings :is(th, td) {
+    padding: 0;
+    text-align: start;
+  }
+
+  .facings :is(th, td):not(:last-child) {
+    padding-inline-end: var(--sui-space-6);
+  }
+
+  .facings thead th {
+    color: var(--sui-text-muted);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-sans);
+    letter-spacing: 0.06em;
+    padding-block-end: var(--sui-space-2);
+    text-transform: uppercase;
+    text-wrap: balance;
+    vertical-align: bottom;
+  }
+
+  .facings code {
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .facings tbody :is(th, td) {
+    block-size: var(--sui-control-height-compact);
+    vertical-align: middle;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .facings :is(th, td):not(:last-child) {
+      padding-inline-end: var(--sui-space-4);
+    }
+  }
+
   .facing {
     color: var(--sui-text-primary);
     display: inline-flex;
