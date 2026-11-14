@@ -7,6 +7,7 @@
   let {
     icon,
     label,
+    href,
     toolbar = false,
     busy = false,
     disabled = false,
@@ -20,12 +21,14 @@
     icon: IconName;
     /** Says what the button does. It is the accessible name and the tooltip both. */
     label: string;
+    /** A destination draws an anchor instead of a button. */
+    href?: string;
     /** Matches the 34px control tier of the buttons and segmented controls beside it. */
     toolbar?: boolean;
     /** Draws a spinner in place of the glyph and refuses presses while the work it started runs. */
     busy?: boolean;
     disabled?: boolean;
-    element?: HTMLButtonElement | null;
+    element?: HTMLButtonElement | HTMLAnchorElement | null;
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label'> = $props();
   const spinning = shownWait(() => busy);
@@ -35,6 +38,10 @@
   const refusing = $derived(
     (busy || ariaDisabled === true || ariaDisabled === 'true') && !disabled
   );
+
+  /* A disabled link loses its address, as a disabled `Button` link does, so a middle press or
+     the context menu cannot follow it. */
+  const unreachable = $derived(href !== undefined && (disabled || refusing));
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
     if (refusing) event.preventDefault();
@@ -53,7 +60,7 @@ steps up from whatever row or card it sits on. Only a glyph every reader reads t
 stands alone: close, more, search, trash and settings. Refresh, filter, sort and any other
 action are a `Button` with the word beside the glyph.
 
-- Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
+- Semantics: a native `<button type="button">`, or an `<a href>` with `href`, named by `label` through `aria-label`, with the glyph hidden; a disabled anchor is `role="link"` with `aria-disabled` and no address.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
 - States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (the primary ink at 0.6 opacity, as a disabled button's words).
 - Keyboard: Tab reaches it and Enter or Space presses it; a busy or soft-disabled one refuses both and keeps focus.
@@ -67,16 +74,19 @@ action are a `Button` with the word beside the glyph.
 - Failure: a press while busy or soft-disabled does nothing, and a spinner that stops under reduced motion still differs from the glyph, so busy never reads as disabled alone.
 -->
 
-<button
+<svelte:element
+  this={href === undefined ? 'button' : 'a'}
   bind:this={element}
-  type="button"
+  type={href === undefined ? 'button' : undefined}
+  href={unreachable ? undefined : href}
+  role={unreachable ? 'link' : undefined}
   {...rest}
   class={['sui-icon-button', className]}
   class:toolbar
   aria-label={label}
   aria-busy={busy || undefined}
-  aria-disabled={refusing || undefined}
-  {disabled}
+  aria-disabled={refusing || unreachable || undefined}
+  disabled={href === undefined ? disabled : undefined}
   onclick={press}
 >
   {#if spinning.current}
@@ -84,7 +94,7 @@ action are a `Button` with the word beside the glyph.
   {:else}
     <Icon name={icon} size="base" />
   {/if}
-</button><Tooltip anchor={element} text={label} />
+</svelte:element><Tooltip anchor={element} text={label} />
 
 <style>
   .sui-icon-button {
