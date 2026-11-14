@@ -645,6 +645,18 @@ suite('lists', together, () => {
         assert.ok(clear >= 1, `${name}'s mark stands ${clear.toFixed(2)}px inside the document`);
     });
 
+    test('the icon set names each glyph in the glyph’s own ink', async () => {
+      const page = await opened();
+      const apart = await page.evaluate(() => {
+        const ink = (/** @type {Element | null} */ node) =>
+          node ? getComputedStyle(node).color : '';
+        return [...document.querySelectorAll('#icons .grid li')]
+          .filter((item) => ink(item.querySelector('.name')) !== ink(item.querySelector('svg')))
+          .map((item) => item.querySelector('.name')?.textContent);
+      });
+      assert.deepEqual(apart, [], 'names in another ink than their glyph');
+    });
+
     test('a small settings glyph keeps a clear pixel between its knobs and its rails on whole pixels', async () => {
       const page = await opened();
       const gaps = await page.evaluate(() =>

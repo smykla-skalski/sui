@@ -154,8 +154,9 @@
     min-inline-size: 0;
   }
 
+  /* A glyph's name in the glyph's own ink, the ink of the words an icon stands beside. */
   .name {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-note)
       var(--sui-mono);
     overflow-wrap: anywhere;

@@ -111,7 +111,7 @@
     filter: 3.5,
     // The dial's arc is drawn the long way round, so it bulges past its own endpoints.
     gauge: 2.5,
-    gear: 2.8,
+    gear: 3.1,
     /* Octicons draw to the edge of the box where this set keeps a margin, so the
        mark is nearly full-bleed. Left as it is: another product's logo is
        reproduced or it is not used. */
@@ -465,9 +465,10 @@ word would start.
     <path d="M5 5.25h14M5 10.75h14M5 16.25h7" />
     <path d="M16.5 13.75v5M14 16.25h5" />
   {:else if name === 'gear'}
-    <circle cx="12" cy="12" r="3.2" />
+    <!-- Eight teeth on one closed rim, so the gear never reads as the sun's loose rays. -->
+    <circle cx="12" cy="12" r="3" />
     <path
-      d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"
+      d="M10.07 5.69L10.44 3.14L13.56 3.14L13.93 5.69A6.6 6.6 0 0 1 15.1 6.17L17.16 4.63L19.37 6.84L17.83 8.9A6.6 6.6 0 0 1 18.31 10.07L20.86 10.44L20.86 13.56L18.31 13.93A6.6 6.6 0 0 1 17.83 15.1L19.37 17.16L17.16 19.37L15.1 17.83A6.6 6.6 0 0 1 13.93 18.31L13.56 20.86L10.44 20.86L10.07 18.31A6.6 6.6 0 0 1 8.9 17.83L6.84 19.37L4.63 17.16L6.17 15.1A6.6 6.6 0 0 1 5.69 13.93L3.14 13.56L3.14 10.44L5.69 10.07A6.6 6.6 0 0 1 6.17 8.9L4.63 6.84L6.84 4.63L8.9 6.17A6.6 6.6 0 0 1 10.07 5.69z"
     />
   {:else if name === 'calendar'}
     <rect x="4" y="5.5" width="16" height="15" rx="2.5" />
