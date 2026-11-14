@@ -55,7 +55,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 12px arrow, its ink near the text's cap height, kept on the line of its last word.
-- States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
+- States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off, its foot 4px further down on a standalone link so it clears the underline and the descenders), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -129,6 +129,13 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
      own width and neighbours on one line never overlap. */
   .standalone {
     position: relative;
+  }
+
+  /* The ring's foot clears the underline and the descenders by 4px more, as a clipped label's
+     does. The padding of an inline box moves no words. A link in running copy keeps the plain
+     ring, which would otherwise cross the next line's words. */
+  .standalone:focus-visible {
+    padding-block-end: var(--sui-space-1);
   }
 
   .standalone::after {

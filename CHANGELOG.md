@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A focused standalone `Link`, as in a `LinkList` or a `FactList` value, stands its ring 4px further below its words, so the ring clears the underline and the descenders by 5px, where it stood 1px off; a link in running copy keeps the plain ring.
 - `LinkList`: each label and note keeps its own direction, so an English note in a right-to-left list, such as "3 repositories differ", keeps its number first.
 - `Timeline`: a refresh over loaded events shows the refresh mark and `refreshingLabel` (Refreshing…) 12px over them, as a table's caption line does, and says it in the status, where the busy list looked loaded.
 - `Link`: an external link's arrow is 12px with 7px of ink, near the text's cap height, where its 4px of ink read as a stray mark; its line keeps its height.

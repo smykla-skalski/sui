@@ -1868,6 +1868,44 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test("a focused standalone link's ring stands 3px clear of its underline and descenders", async () => {
+      const page = await opened();
+      const link = page.locator('#link-list .sui-link-list a').first();
+      await link.focus();
+      const clear = await link.evaluate((node) => {
+        const look = getComputedStyle(node);
+        const box = node.getBoundingClientRect();
+        // The content box ends at the font's descent, under any padding the focus adds.
+        const restBottom = box.bottom - parseFloat(look.paddingBlockEnd);
+        const context = /** @type {CanvasRenderingContext2D} */ (
+          document.createElement('canvas').getContext('2d')
+        );
+        context.font = look.font;
+        const glyph = context.measureText('g');
+        const baseline = restBottom - glyph.fontBoundingBoxDescent;
+        const underline =
+          baseline +
+          parseFloat(look.textUnderlineOffset) +
+          parseFloat(look.textDecorationThickness);
+        const ring = box.bottom + parseFloat(look.outlineOffset);
+        return {
+          visible: node.matches(':focus-visible'),
+          underline: ring - underline,
+          descender: ring - (baseline + glyph.actualBoundingBoxDescent)
+        };
+      });
+      await link.blur();
+      assert.ok(clear.visible, 'the link shows its focus ring');
+      assert.ok(
+        clear.underline >= 3,
+        `the ring stands ${clear.underline.toFixed(1)}px off the underline`
+      );
+      assert.ok(
+        clear.descender >= 3,
+        `the ring stands ${clear.descender.toFixed(1)}px off a descender`
+      );
+    });
+
     test('an English note in a right-to-left link list keeps its own order', async () => {
       const page = await opened();
       const [first, last] = await page.evaluate(() => {
