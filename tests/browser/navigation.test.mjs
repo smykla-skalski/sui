@@ -210,6 +210,24 @@ suite('navigation', together, () => {
       }
     );
 
+    test('L-88 every page of the kit keeps one line in its folded strip', long, async () => {
+      const page = await openLayout('./', 1440);
+      try {
+        await page.locator('.sui-side-nav-fold').click();
+        const wrapped = await page.evaluate(() => {
+          const rows = [...document.querySelectorAll('.sui-side-nav-rows .sui-side-nav-row')];
+          const heights = rows.map((row) => row.getBoundingClientRect().height);
+          const pitch = Math.min(...heights);
+          return rows
+            .filter((_, i) => heights[i] - pitch > 1)
+            .map((row) => row.textContent?.trim().replace(/\s+/g, ' '));
+        });
+        assert.deepEqual(wrapped, [], 'a strip label wraps: give its page a short');
+      } finally {
+        await page.close();
+      }
+    });
+
     test(
       'a row followed in the phone drawer closes it and hands focus to the menu button',
       long,
