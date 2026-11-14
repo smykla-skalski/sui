@@ -16,6 +16,7 @@
     plus,
     px,
     rangeLayout,
+    roundDown,
     ticksOf,
     times,
     type Length,
@@ -157,7 +158,7 @@ cut on the axis without splitting a character and stay whole in the table under 
       aria-label="{title}{mark('stop')}{description}"
     >
       {#each valueAxis.ticks as tick (tick)}
-        <rect class="grid" style:x={css(minus(x(tick, box), px(0.5)))} style:height={css(rows)} />
+        <rect class="grid" style:x={css(roundDown(x(tick, box)))} style:height={css(rows)} />
         <text
           class="axis tick"
           text-anchor="middle"

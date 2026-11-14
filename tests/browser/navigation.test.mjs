@@ -2323,6 +2323,27 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a chart’s gridlines each fill one whole row or column of pixels, at every width', async () => {
+      // Only the line's thickness counts: an end that straddles a pixel does not blur the line.
+      for (const width of [1440, 320]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const split = await page.evaluate(() =>
+            [...document.querySelectorAll('.sui-chart rect.grid')].flatMap((line) => {
+              const box = line.getBoundingClientRect();
+              const across = box.width > box.height ? [box.top, box.bottom] : [box.left, box.right];
+              return across.some((edge) => edge % 1 !== 0)
+                ? [`${box.left},${box.top} ${box.width}x${box.height}`]
+                : [];
+            })
+          );
+          assert.deepEqual(split, [], `at ${width}px, no gridline straddles two pixels`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
     test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
       const page = await openLayout('charts/', 1440);
       try {

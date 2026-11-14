@@ -14,9 +14,9 @@
     fraction,
     markerPath,
     markerReach,
-    minus,
     plus,
     px,
+    roundDown,
     sieve,
     thin,
     thinWidth,
@@ -214,7 +214,7 @@
     >
       {#each yAxis.ticks as tick (tick)}
         {@const words = formatY(tick)}
-        <rect class="grid" style:y={css(minus(y(tick, box), px(0.5)))} />
+        <rect class="grid" style:y={css(roundDown(y(tick, box)))} />
         <text
           class="axis tick"
           text-anchor="end"
@@ -353,8 +353,10 @@
   .grid {
     fill: var(--sui-chart-grid);
     height: 1px;
-    width: calc(var(--sui-local-plot-end) - var(--sui-local-plot-start));
-    x: var(--sui-local-plot-start);
+    width: calc(
+      round(up, var(--sui-local-plot-end), 1px) - round(down, var(--sui-local-plot-start), 1px)
+    );
+    x: round(down, var(--sui-local-plot-start), 1px);
   }
   .y-title {
     rotate: -90deg;
