@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `compact` `Callout` draws its bare symbol at 18px, a full callout's glyph, where it drew 16px, so a whole-page strip names its kind at a glance beside a tiled callout under it (L-56).
 - `SegmentedControl` reads its thumb's hover and press grounds from `--sui-segment-thumb-hover` and `--sui-segment-thumb-pressed`, so a holder that sets a neutral thumb never sees it flash the brand fill; the sink's sidebar theme switch takes a raised neutral thumb, so the current page keeps the column's one accent (L-85).
 - A `LinkList`'s links and a link in a `Section`'s head actions rest with no underline, since they stand apart from any sentence (L-81); hover and a press still draw it, and forced colors keep it.
 - A collapsed `SideNav` on its own starts its kicker 12px under the strip's top, level with a rail's first place, where it stood 8px from the edge.
