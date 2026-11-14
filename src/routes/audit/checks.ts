@@ -511,7 +511,12 @@ function palette(): Finding[] {
     )
   );
 
-  for (const ink of ['sidebar-text', 'sidebar-text-secondary', 'sidebar-text-muted'])
+  for (const ink of [
+    'sidebar-text',
+    'sidebar-text-secondary',
+    'sidebar-text-muted',
+    'sidebar-text-rest'
+  ])
     found.push(...atLeast('L-85', `${ink} on sidebar-bg`, c(ink, 'sidebar-bg'), 4.5));
   found.push(
     ...atLeast(
@@ -525,8 +530,8 @@ function palette(): Finding[] {
     ...atLeast('L-85', 'sidebar-focus on sidebar-bg', c('sidebar-focus', 'sidebar-bg'), 3),
     ...atLeast(
       'L-85',
-      'sidebar-active-ink against sidebar-text-muted',
-      contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
+      'sidebar-active-ink against sidebar-text-rest',
+      contrast(t('sidebar-active-ink'), t('sidebar-text-rest')),
       2
     ),
     ...atLeast(

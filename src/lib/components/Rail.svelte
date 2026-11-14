@@ -220,7 +220,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     border: 0;
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
-    color: var(--sui-sidebar-text-muted);
+    color: var(--sui-sidebar-text-rest);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -244,7 +244,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     .sui-rail-tile:hover:not(:active, [aria-current]) {
       --sui-local-tile-ground: var(--sui-sidebar-item-hover);
       background: var(--sui-local-tile-ground);
-      color: var(--sui-sidebar-text-secondary);
+      color: var(--sui-sidebar-text);
     }
   }
 
@@ -256,6 +256,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   .sui-rail-tile:focus-visible {
+    color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }

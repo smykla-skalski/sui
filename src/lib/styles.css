@@ -277,10 +277,10 @@
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
+  --sui-sidebar-text-rest: color-mix(in srgb, var(--sui-text-primary) 30%, var(--sui-text-muted));
   --sui-sidebar-item-hover: color-mix(in srgb, var(--sui-text-primary) 6%, var(--sui-sidebar-bg));
   --sui-sidebar-item-pressed: color-mix(in srgb, var(--sui-text-primary) 9%, var(--sui-sidebar-bg));
-  /* The current row's plate stands a clear step under a pressed row's, so where the reader is
-     shows at a glance (L-85). */
+  /* The current plate stands a clear step past a pressed row's (L-85). */
   --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 18%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-text-current);
   --sui-sidebar-active-glyph: var(--sui-brand-action-text);
@@ -839,6 +839,7 @@
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
+  --sui-sidebar-text-rest: var(--sui-text-muted);
   --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
   --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
   --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));
@@ -1097,6 +1098,7 @@
     --sui-sidebar-text: var(--sui-text-primary);
     --sui-sidebar-text-secondary: var(--sui-text-secondary);
     --sui-sidebar-text-muted: var(--sui-text-muted);
+    --sui-sidebar-text-rest: var(--sui-text-muted);
     --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
     --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
     --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));

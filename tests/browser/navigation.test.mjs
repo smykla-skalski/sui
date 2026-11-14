@@ -265,6 +265,79 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a nav row rests in an ink 2:1 from the current one, over its headings on light, and hover and focus take the primary ink', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      for (const theme of ['light', 'dark']) {
+        const inks = await page.evaluate((theme) => {
+          document.documentElement.dataset.theme = theme;
+          const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
+          const rgb = (/** @type {string} */ color) => {
+            // A mixed ink computes as color(srgb r g b) in shares of 1, a plain one as rgb() in bytes.
+            const scale = color.startsWith('color(') ? 255 : 1;
+            const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map((part) => Number(part) * scale);
+            const lin = (/** @type {number} */ c) =>
+              (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+            return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+          };
+          const ratio = (/** @type {string} */ a, /** @type {string} */ b) => {
+            const [x, y] = [rgb(a), rgb(b)].sort((p, q) => q - p);
+            return (x + 0.05) / (y + 0.05);
+          };
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('i');
+            probe.style.color = `var(${token})`;
+            nav.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const color = (/** @type {string} */ selector) =>
+            getComputedStyle(/** @type {Element} */ (nav.querySelector(selector))).color;
+          const rest = color('.sui-side-nav-row:not([aria-current])');
+          const ground = ink('--sui-sidebar-bg');
+          const row = /** @type {HTMLElement} */ (
+            nav.querySelector('.sui-side-nav-row:not([aria-current])')
+          );
+          row.focus({ focusVisible: true });
+          const focused = getComputedStyle(row).color;
+          row.blur();
+          return {
+            current: ratio(color('.sui-side-nav-row[aria-current]'), rest),
+            rows: ratio(rest, ground),
+            headings: ratio(color('.sui-side-nav-group'), ground),
+            focused,
+            primary: ink('--sui-sidebar-text')
+          };
+        }, theme);
+        assert.ok(
+          inks.current >= 2,
+          `${theme}: the current ink is ${inks.current.toFixed(2)}:1 from rest`
+        );
+        if (theme === 'light')
+          assert.ok(
+            inks.rows > inks.headings,
+            'light: a rest row reads no stronger than its heading'
+          );
+        assert.equal(inks.focused, inks.primary, `${theme}: a focused row keeps its rest ink`);
+      }
+      await page.evaluate(() => delete document.documentElement.dataset.theme);
+      const row = page.locator('.sui-side-nav-row:not([aria-current])').first();
+      await row.hover();
+      const hovered = await row.evaluate((row) => {
+        const probe = document.createElement('i');
+        probe.style.color = 'var(--sui-sidebar-text)';
+        row.append(probe);
+        const primary = getComputedStyle(probe).color;
+        probe.remove();
+        return [getComputedStyle(row).color, primary];
+      });
+      assert.equal(hovered[0], hovered[1], 'a hovered row keeps a quieter ink than the primary');
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'the nav answers the pointer on a row’s hover ground, pressed a step past it and short of the current plate',
     long,

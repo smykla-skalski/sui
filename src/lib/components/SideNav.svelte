@@ -562,7 +562,7 @@ following a row closes the drawer.
     border: 0;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
-    color: var(--sui-sidebar-text-muted);
+    color: var(--sui-sidebar-text-rest);
     cursor: pointer;
     display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
@@ -586,7 +586,7 @@ following a row closes the drawer.
   @media (hover: hover) {
     .sui-side-nav-row:hover:not(:active, [aria-current='page']) {
       background: var(--sui-sidebar-item-hover);
-      color: var(--sui-sidebar-text-secondary);
+      color: var(--sui-sidebar-text);
     }
   }
 
@@ -597,6 +597,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-row:focus-visible {
+    color: var(--sui-sidebar-text);
     outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
