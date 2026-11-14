@@ -468,7 +468,10 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     block-size: auto;
   }
 
+  /* A page header's foot meets the sidebar's edge, so inside the shell it is drawn in the
+     sidebar's line ink and the two rules meet as one. */
   .sui-shell-pane {
+    --sui-border-band: var(--sui-sidebar-border);
     min-inline-size: 0;
   }
 

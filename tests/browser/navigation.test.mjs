@@ -265,6 +265,21 @@ suite('navigation', together, () => {
     }
   });
 
+  test('inside the shell the page header’s rule takes the sidebar’s line ink', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const [band, edge] = await page.evaluate(() => [
+        getComputedStyle(/** @type {Element} */ (document.querySelector('.sui-page-header')))
+          .borderBottomColor,
+        getComputedStyle(/** @type {Element} */ (document.querySelector('.sui-shell-pages')))
+          .borderRightColor
+      ]);
+      assert.equal(band, edge);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a nav row rests in an ink 2:1 from the current one, over its headings on light, and hover and focus take the primary ink', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
@@ -1762,7 +1777,7 @@ suite('navigation', together, () => {
 
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
+      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -1780,8 +1795,10 @@ suite('navigation', together, () => {
               await frame();
               await frame();
             };
+            const rule = () => getComputedStyle(head, '::after');
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
+            const resting = rule().opacity;
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
             return {
@@ -1792,16 +1809,18 @@ suite('navigation', together, () => {
               overNext: next.getBoundingClientRect().top - box().bottom,
               gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
               masked: getComputedStyle(tree).maskImage !== 'none',
-              lines: [getComputedStyle(head).borderBottom, getComputedStyle(next).borderTop]
+              resting,
+              line: [rule().opacity, rule().backgroundColor, rule().blockSize],
+              next: [getComputedStyle(next).borderTopColor, getComputedStyle(next).borderTopWidth]
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
           assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
-          assert.match(found.lines[0], /^1px solid/, 'no hairline parts the title from the rows');
-          assert.equal(
-            found.lines[0],
-            found.lines[1],
-            "the part under the rows draws no line, or not the title's"
+          assert.equal(found.resting, '0', 'the head draws a rule with no row under it');
+          assert.deepEqual(
+            found.line,
+            ['1', found.next[0], found.next[1]],
+            "rows under the title meet no hairline, or not the foot's"
           );
           assert.equal(found.gap, 16);
           assert.ok(
