@@ -517,6 +517,38 @@ suite('navigation', together, () => {
     }
   );
 
+  test('a bottom bar’s count rides its glyph’s corner, as the rail’s does, its halo inside the tile', async () => {
+    for (const width of [390, 320]) {
+      const page = await openLayout('layouts/app-shell/bottom-nav/', width);
+      try {
+        const badge = await page.evaluate(() => {
+          const tile = /** @type {Element} */ (
+            document.querySelector('.sui-shell-places .sui-rail-tile:has(.sui-rail-badge)')
+          );
+          const box = tile.getBoundingClientRect();
+          const count = /** @type {Element} */ (
+            tile.querySelector('.sui-rail-badge')
+          ).getBoundingClientRect();
+          const glyph = /** @type {Element} */ (
+            tile.querySelector('.sui-rail-glyph svg')
+          ).getBoundingClientRect();
+          return [
+            glyph.right - count.left > 0 && glyph.right - count.left <= 4,
+            count.top < glyph.top,
+            count.left - 2 >= box.left && count.right + 2 <= box.right
+          ];
+        });
+        assert.deepEqual(
+          badge,
+          [true, true, true],
+          `at ${width}px: over the corner, above the glyph, inside the tile`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test(
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,

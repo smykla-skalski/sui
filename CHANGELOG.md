@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A bottom bar's count rides its glyph's corner, as the rail's does, where it stood beside the glyph; under 18rem, where the tiles shrink to their words, it stays beside.
 - A failed or empty chart centres its state in the plot's box, the error mark over the title, and sets its title at 15px over 14px words at every width, a step under the chart's 16px title, where on a phone its 17px title outranked the chart's; `--sui-font-size-chart-state-title` is new.
 - A refreshing `DataTable` says `refreshingLabel` on its caption's line, led by the refresh mark in the info hue, as a refreshing chart does, where only a screen reader heard it and the rows looked current.
 - `Rail` tiles stand 8px in from the column's sides, where they stood 4px in and their plate all but met the edge; the tile gives up its own inline padding, so its words keep their 55px.
