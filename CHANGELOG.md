@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A focused `RelativeTime` stands its ring on its words' edge, so in "Synced 42 minutes ago" the ring stands clear of the d of "Synced", where at 1px off it touched the letter: a space in the sans is 2.5px wide. The hover veil reaches as far as the ring.
 - A `LinkList` note stands 2px further under its link, so 6px of air stand between the link's underline and the note, where the line stood 4px over it and read as part of the note. Law L-24 grants a linked name's description this 10px gap.
 - A `Timeline` actor's avatar is 24px, with its initials at the 11px step, where it was 20px with 9px initials; its words stand past the wider seat and the list keeps its pitch.
 - The sink's Fact Line Narrow Width example sets its facts in the same ink and size as the others, in an 18rem column where each fact stays whole on a phone, and its two Facts lines stand 48px apart, so they never read as one line with a dot missing. A row of specimens takes `--specimen-column-gap` as a grid does.

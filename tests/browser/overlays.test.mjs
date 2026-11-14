@@ -758,7 +758,7 @@ suite('overlays', together, () => {
 
     // The dots are the box's ground, so a parent that stretches the box would draw them past
     // the words.
-    test('a relative time draws its dots under its words only, its ring 3px past them at each side', async () => {
+    test('a relative time draws its dots under its words only, its ring 2px past them at each side', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
           (time) => {
@@ -781,10 +781,10 @@ suite('overlays', together, () => {
       assert.ok(widths.length > 0);
       for (const [dots, words, box, ring] of widths) {
         assert.ok(Math.abs(dots - words) <= 0.5, `dots run ${dots}px under ${words}px of words`);
-        // In a sentence a space is about 4px, so a ring that reaches further draws on the
-        // letters of the word before or after the time.
+        // In a sentence a space is 2.5px, so a ring that reaches further draws on the letters
+        // of the word before or after the time, as on the d of "Synced 42 minutes ago".
         const reach = (box - words) / 2 + ring;
-        assert.ok(reach <= 3.5, `the ring reaches ${reach}px past its words`);
+        assert.ok(reach <= 2.5, `the ring reaches ${reach}px past its words`);
       }
     });
 
