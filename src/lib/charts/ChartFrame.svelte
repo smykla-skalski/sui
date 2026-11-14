@@ -236,7 +236,7 @@
       />
     </div>
   {:else}
-    <div bind:this={band} class={['plot-band', { stale: status === 'stale' }]}>
+    <div bind:this={band} class="plot-band">
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
@@ -376,12 +376,6 @@
      the plot and never the band. Chart text is set here, also for a placeholder, whose height
      is laid out in the same ems. Each character draws its own glyph, with no ligature or
      contextual form, so the face's table places every word as the browser draws it. */
-  /* Values a refresh could not replace draw a step quieter, as a table's stale rows do, so the
-     plot says what its note says; the axes and labels keep full ink. */
-  .plot-band.stale {
-    --sui-chart-series-opacity: 0.72;
-  }
-
   .plot-band {
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
     --sui-local-band-pad-block: var(--sui-local-band-pad);

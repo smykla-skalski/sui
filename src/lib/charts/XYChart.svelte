@@ -244,36 +244,34 @@
         >
       {/if}
       {#each validSeries as item (item.id)}
-        <g class="series">
-          {#if kind === 'line' && item.runs.length > 0}
+        {#if kind === 'line' && item.runs.length > 0}
+          <path
+            class="line"
+            d={item.runs.map(path).join(' ')}
+            fill="none"
+            stroke={item.color}
+            stroke-dasharray={item.dash}
+            stroke-width={LINE_WIDTH}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        {/if}
+        {#if item.marked || item.alone.length > 0}
+          {#each drawn(item.marked ? item.points : item.alone) as point, pointIndex (pointIndex)}
             <path
-              class="line"
-              d={item.runs.map(path).join(' ')}
-              fill="none"
-              stroke={item.color}
-              stroke-dasharray={item.dash}
-              stroke-width={LINE_WIDTH}
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          {/if}
-          {#if item.marked || item.alone.length > 0}
-            {#each drawn(item.marked ? item.points : item.alone) as point, pointIndex (pointIndex)}
-              <path
-                d={markerPath(item.marker, 0, 0, MARKER[kind])}
-                fill={item.color}
-                class="marker"
-                style:translate={at(x(point.x, box), y(point.y, box))}
+              d={markerPath(item.marker, 0, 0, MARKER[kind])}
+              fill={item.color}
+              class="marker"
+              style:translate={at(x(point.x, box), y(point.y, box))}
+            >
+              <title
+                >{item.label}{mark('colon')}{formatX(point.x)}{mark('comma')}{formatY(
+                  point.y
+                )}</title
               >
-                <title
-                  >{item.label}{mark('colon')}{formatX(point.x)}{mark('comma')}{formatY(
-                    point.y
-                  )}</title
-                >
-              </path>
-            {/each}
-          {/if}
-        </g>
+            </path>
+          {/each}
+        {/if}
       {/each}
       {#each ends as end, index (end.id)}
         <text
@@ -426,12 +424,6 @@
     align-items: center;
     gap: var(--sui-space-2);
   }
-  /* One group per series, so a stale plot quiets it whole and its markers never show the line
-     through them. */
-  .series {
-    opacity: var(--sui-chart-series-opacity, 1);
-  }
-
   .key {
     block-size: var(--sui-icon-sm);
     flex: none;
