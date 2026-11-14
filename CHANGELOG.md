@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The app shell demo lays its rows to the header band's gutter up to 80rem, where they stopped at 60rem and left a wide pane's end bare.
 - A refreshing `DataTable` says `refreshingLabel` under its caption, led by the refresh mark in the info hue, as a refreshing chart does, where only a screen reader heard it and the rows looked current.
 - A failed or empty chart draws its error or empty state in the plot's own box, inset by the band's room and as tall as the plot, as its loading veil does, where the panel ran the chart's full width at its own height.
 - A `SegmentedControl` that has turned into its select takes the width of its words and chevron, and in a `SettingRow` too narrow for that beside the reset, as with text at twice its size, the reset goes above it, where the select was squeezed past its row's end. A `Select`'s box never shrinks under its insets and chevron room, so the field never draws past it.

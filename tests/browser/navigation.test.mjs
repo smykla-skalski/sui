@@ -280,6 +280,24 @@ suite('navigation', together, () => {
     }
   });
 
+  test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      const [list, header] = await page.evaluate(() =>
+        ['main .sui-object-list', 'main .sui-page-header'].map(
+          (name) =>
+            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().right
+        )
+      );
+      assert.ok(
+        Math.abs(header - 24 - list) <= 0.5,
+        `the list ends at ${list}, the band at ${header}`
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('the side nav kicker and the page header eyebrow share one cap line', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
