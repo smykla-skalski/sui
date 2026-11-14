@@ -922,14 +922,14 @@ following a row closes the drawer.
     }
 
     /* Alone, the strip keeps its kicker, the place's short name, in the primary ink, since it
-       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 8px
-       under the strip's top, so naming the place costs the list 18px. Joined to a rail, the
-       rail's places name the place, and the head leaves (AppShell). */
+       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 12px
+       under the strip's top, as a rail's first place does, so naming the place costs the list
+       22px. Joined to a rail, the rail's places name the place, and the head leaves (AppShell). */
     .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
       display: var(--sui-local-strip-head, flex);
       flex: none;
       justify-content: center;
-      margin-block: calc(var(--sui-space-2) - var(--sui-local-strip-start, var(--sui-space-4)))
+      margin-block: calc(var(--sui-space-3) - var(--sui-local-strip-start, var(--sui-space-4)))
         calc(var(--sui-space-2) - var(--sui-space-4));
       padding-block-end: var(--sui-space-2);
     }
