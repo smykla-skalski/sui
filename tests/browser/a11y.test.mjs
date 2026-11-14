@@ -941,7 +941,16 @@ p { margin-block-end: 2em !important; }`;
               }
             return crossed;
           });
-          assert.deepEqual([...found, ...overlaps], []);
+          // A matrix or table without specimens must reflow or scroll inside its own box too.
+          const wide = await page.evaluate(() =>
+            [...document.querySelectorAll('main .example .stage')]
+              .filter((stage) => stage.scrollWidth > stage.clientWidth + 1)
+              .map(
+                (stage) =>
+                  `${stage.closest('section[id]')?.id}: ${stage.closest('.example')?.querySelector('.title')?.textContent} runs ${stage.scrollWidth - stage.clientWidth}px past its frame`
+              )
+          );
+          assert.deepEqual([...found, ...overlaps, ...wide], []);
         } finally {
           await page.close();
         }
