@@ -1354,6 +1354,27 @@ suite('lists', together, () => {
       }
     );
     test(
+      'a table on a phone runs its rules 8px past its words, its cells’ side pad',
+      long,
+      async () => {
+        const page = await opened();
+        const reach = await page
+          .locator('#data-table .sui-data-table')
+          .first()
+          .evaluate((table) => {
+            const cell = /** @type {Element} */ (table.querySelector('tbody tr > :first-child'));
+            const row = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+            return (
+              cell.getBoundingClientRect().left +
+              parseFloat(getComputedStyle(cell).paddingLeft) -
+              row.left
+            );
+          });
+        assert.equal(reach, 8);
+      }
+    );
+
+    test(
       'short facts in a box sized to them keep each value beside its label on a phone',
       long,
       async () => {
@@ -2268,6 +2289,27 @@ suite('lists', together, () => {
         ];
       });
       assert.deepEqual(found, [28, 16, 8, true, 16]);
+    });
+
+    test('tables side by side keep their rules apart', long, async () => {
+      const page = await opened();
+      const frames = await page
+        .locator('#data-table .example')
+        .filter({ hasText: 'Empty, loading, refreshing and failed' })
+        .locator('.sui-data-table > .viewport')
+        .evaluateAll((viewports) =>
+          viewports.map((viewport) => viewport.getBoundingClientRect().toJSON())
+        );
+      const gaps = frames.flatMap((left) =>
+        frames
+          .filter(
+            (right) =>
+              right.top < left.bottom && right.bottom > left.top && right.left > left.right - 1
+          )
+          .map((right) => right.left - left.right)
+      );
+      assert.ok(gaps.length > 0, 'no two tables share a row');
+      for (const gap of gaps) assert.ok(gap >= 24, `two tables' rules ${gap}px apart`);
     });
 
     test(

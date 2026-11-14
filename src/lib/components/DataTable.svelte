@@ -305,6 +305,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .sui-data-table {
+    --sui-local-table-bleed: var(--sui-space-3);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
@@ -528,18 +529,18 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
-     table's rules and stripes run 12px past its words, and its words keep the edge of the
-     copy around it. */
+     table's rules and stripes run 12px past its words, 8px on a phone, and its words keep the
+     edge of the copy around it. */
   .sui-data-table > .viewport {
-    margin-inline: calc(-1 * var(--sui-space-3));
+    margin-inline: calc(-1 * var(--sui-local-table-bleed));
   }
 
   :is(th, td):first-child {
-    padding-inline-start: var(--sui-space-3);
+    padding-inline-start: var(--sui-local-table-bleed);
   }
 
   :is(th, td):last-child {
-    padding-inline-end: var(--sui-space-3);
+    padding-inline-end: var(--sui-local-table-bleed);
   }
 
   /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
@@ -801,6 +802,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      does, so more of a wide table shows before the frame scrolls. A long value keeps the full
      measure, so its row stays a few lines tall. */
   @media (max-width: 47.9375rem) {
+    /* The reach past the words is a cell's side pad, so a frame in a phone card's 16px inset
+       ends 8px short of the card's edge and never doubles it. */
+    .sui-data-table {
+      --sui-local-table-bleed: var(--sui-space-2);
+    }
+
     table {
       --sui-local-held-measure: 6rem;
     }

@@ -208,8 +208,9 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      may set a closer `--specimen-row-gap` that still keeps that order. A grid of fixed columns
      narrower than its frame, kept wide to end on one line with its neighbours, sets
      `--specimen-justify` to `space-between`, so its outer columns stand one inset from each
-     edge. A grid of specimens whose hover reaches past their column, such as disclosures, sets
-     a wider `--specimen-column-gap`, so two lit rows never meet. */
+     edge. A grid of specimens whose hover or rules reach past their column, such as disclosures
+     or tables, sets a wider `--specimen-column-gap`, so two lit rows or two tables' rules never
+     meet. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     column-gap: var(--specimen-column-gap, var(--sui-space-6));

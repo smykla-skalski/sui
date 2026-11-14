@@ -211,6 +211,7 @@
   note="Empty, loading, refreshing and failed tables say so in words under their headings"
   layout="grid"
   --specimen-min="28rem"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   <Specimen label="Empty">
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} />
