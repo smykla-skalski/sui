@@ -43,13 +43,13 @@
 </Example>
 
 <style>
-  /* The bound the facts wrap in, drawn as the avatar page draws its own: a dashed line at the
-     end of the measure, so the wrap reads as the point of the example and the words start
-     under the specimen's name at every width. Its words keep the 18rem measure. */
+  /* The bound the facts wrap in, drawn as the avatar page draws its own, so the wrap reads as
+     the point of the example. Its words keep the 18rem measure inside the frame. */
   .narrow {
-    border-inline-end: var(--sui-stroke) dashed var(--sui-border-subtle);
     box-sizing: border-box;
-    inline-size: min(100%, calc(18rem + var(--sui-space-2) + var(--sui-stroke)));
-    padding-inline-end: var(--sui-space-2);
+    border: var(--sui-stroke) dashed var(--sui-border-subtle);
+    border-radius: var(--sui-radius-control);
+    inline-size: min(100%, calc(18rem + 2 * (var(--sui-space-2) + var(--sui-stroke))));
+    padding: var(--sui-space-2);
   }
 </style>
