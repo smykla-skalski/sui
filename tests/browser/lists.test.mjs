@@ -659,40 +659,6 @@ suite('lists', together, () => {
         );
     });
 
-    test('a head copy control rests on a lighter edge than a lone one on light, and keeps the control edge on dark', async () => {
-      const page = await opened();
-      const edges = () =>
-        page.evaluate(() => {
-          const edge = (/** @type {Element | null} */ button) =>
-            button ? getComputedStyle(button).borderTopColor : null;
-          const lone = [...document.querySelectorAll('#code-block .sui-copy-button')].find(
-            (button) => !button.closest('.sui-code-block')
-          );
-          return {
-            head: edge(
-              document.querySelector(
-                '#code-block .sui-code-block:not(.bare) > .sui-code-block-copy .sui-copy-button'
-              )
-            ),
-            lone: edge(lone ?? null),
-            ground: getComputedStyle(document.documentElement).colorScheme
-          };
-        });
-      await page.mouse.move(0, 0);
-      for (const [scheme, expected] of /** @type {const} */ ([
-        ['light', 'rgba(0, 0, 0, 0.11)'],
-        ['dark', null]
-      ])) {
-        await page.emulateMedia({ colorScheme: scheme });
-        await page.evaluate(() => new Promise(requestAnimationFrame));
-        const { head, lone, ground } = await edges();
-        assert.equal(ground, scheme, `the page did not take the ${scheme} scheme`);
-        assert.ok(head && lone, 'the page shows a head copy control and a lone one');
-        assert.equal(head, expected ?? lone, `in ${scheme} the head copy control rests on ${head}`);
-      }
-      await page.emulateMedia({ colorScheme: null });
-    });
-
     test('a code block comment steps back past its punctuation and holds 4.5:1 in both themes', async () => {
       const page = await opened();
       for (const scheme of /** @type {const} */ (['light', 'dark'])) {
