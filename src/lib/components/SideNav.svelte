@@ -435,7 +435,7 @@ following a row closes the drawer.
       bind:open={switching}
       side={mode === 'collapsed' ? 'inline-end' : 'block-end'}
       width={mode === 'collapsed' ? 'auto' : 'trigger'}
-      offset={mode === 'collapsed' ? 10 : 6}
+      offset={mode === 'collapsed' ? 10 : 4}
     >
       <div class="sui-side-nav-places">
         <ul class="sui-side-nav-place-list" aria-label={placesLabel}>
@@ -1316,8 +1316,16 @@ following a row closes the drawer.
         var(--sui-sans);
       gap: var(--sui-space-1);
       justify-content: center;
-      padding: var(--sui-space-1) calc(var(--sui-space-1) / 2);
+      /* The badge rides 4px over the plate with a 2px halo, so the tile's top clears both and
+         the halo never crosses its rounded edge. */
+      padding: calc(var(--sui-space-1) + var(--sui-stroke-bold)) calc(var(--sui-space-1) / 2)
+        var(--sui-space-1);
       text-align: center;
+    }
+
+    /* The place's glyph takes the pages' 18px strip tier. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-mark {
+      --sui-icon-base: var(--sui-icon-md);
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-heading {
