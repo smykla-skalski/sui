@@ -39,11 +39,13 @@ suite('the kitchen sink', together, () => {
   /**
    * @param {number} width
    * @param {string} theme
-   * @param {import('playwright-core').BrowserContextOptions} [options]
+   * @param {import('playwright-core').BrowserContextOptions & { clock?: boolean }} [options]
+   *   `clock` installs the page clock before the load, so a test can run the page's timers on
    * @param {string} [section] a section's own page, for a test that reads only that section
    */
-  async function open(width, theme, options = {}, section) {
+  async function open(width, theme, { clock, ...options } = {}, section) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
+    if (clock) await page.clock.install();
     await visit(page, section ? new URL(`${section}/`, url).href : allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
@@ -715,7 +717,7 @@ suite('the kitchen sink', together, () => {
     long,
     async () => {
       // Reduced motion also stops the spinners, whose boxes would otherwise turn between two reads.
-      const page = await open(1440, 'light', { reducedMotion: 'reduce' });
+      const page = await open(1440, 'light', { reducedMotion: 'reduce', clock: true });
       try {
         const moving = await page.evaluate(() => {
           const found = [];
@@ -747,6 +749,9 @@ suite('the kitchen sink', together, () => {
                 return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 2) / 2).join(',');
               })
           );
+        // A live skeleton turns slow 10s after the load, which a slow runner reached between the
+        // two themes' reads, so its timer runs out before either.
+        await page.clock.runFor(10_000);
         // Also the widths whose dark audit was dropped on the strength of this check.
         for (const width of [1440, 768, 320]) {
           await page.setViewportSize({ width, height: 900 });
