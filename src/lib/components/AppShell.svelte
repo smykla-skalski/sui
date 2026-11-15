@@ -317,7 +317,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 
 - Semantics: a plain frame; the rail and the sidebar bring their own `nav` landmarks, the content is the page's `main` unless `landmark="none"`, and the phone drawer is a modal `dialog` named by `label`.
 - Content: a `rail` (usually a `Rail`), a `sidebar` (usually a `SideNav`), the content, a page `title` and optional `bar` controls; with `bottomNav` the rail should hold five places or fewer.
-- States: full, collapsed into one column with the rail (wide screens only), phone with the drawer closed or open, and phone with the bottom bar; the menu button draws hover, pressed and focus like any bar control.
+- States: full, collapsed into one column with the rail (wide screens only), phone with the drawer closed or open, and phone with the bottom bar; the menu button draws hover, pressed and focus like any bar control, and its glyph carries an accent dot while a place in the closed drawer has a count.
 - Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
 - Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
@@ -343,7 +343,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       popovertarget={sideId}
       aria-expanded={drawerOpen}
     >
-      <Icon name="sidebar-expand" size="md" />
+      <span class="sui-shell-menu-glyph"><Icon name="sidebar-expand" size="md" /></span>
       <span class="sui-shell-menu-label">{menuLabel}</span>
     </button>
     <span class="sui-shell-rule" aria-hidden="true"></span>
@@ -463,6 +463,28 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  .sui-shell-menu-glyph {
+    display: inline-flex;
+    position: relative;
+  }
+
+  /* A place the reader is not on waits with a count inside the closed drawer, so the menu's
+     glyph carries a dot of the count's accent at the corner a badge takes, ringed in the bar's
+     ground; the count and its words stay on the place, one press away. A bottom bar shows its
+     counts itself. */
+  .sui-shell:not(.bottom-nav):has(:global(.sui-rail-tile:not([aria-current]) .sui-rail-badge))
+    .sui-shell-menu-glyph::after {
+    background: var(--sui-brand-action);
+    block-size: var(--sui-space-2);
+    border-radius: var(--sui-radius-pill);
+    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
+    content: '';
+    inline-size: var(--sui-space-2);
+    inset-block-start: calc(-1 * var(--sui-stroke-bold));
+    inset-inline-end: calc(-1 * var(--sui-stroke-bold));
+    position: absolute;
   }
 
   .sui-shell-menu-label {
@@ -771,6 +793,11 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   @media (forced-colors: active) {
     .sui-shell-side:popover-open {
       border-inline-end: var(--sui-stroke-bold) solid CanvasText;
+    }
+
+    .sui-shell-menu-glyph::after {
+      background: CanvasText;
+      forced-color-adjust: none;
     }
   }
 

@@ -229,6 +229,30 @@ suite('navigation', together, () => {
     });
 
     test(
+      'a phone menu marks a waiting place behind it, except over a bottom bar',
+      long,
+      async () => {
+        /** @type {[string, boolean][]} */
+        const pages = [
+          ['layouts/app-shell/', true],
+          ['layouts/app-shell/bottom-nav/', false],
+          ['layouts/detail-pane/', false]
+        ];
+        for (const [path, marked] of pages) {
+          const page = await openLayout(path, 390);
+          try {
+            const dot = await page
+              .locator('.sui-shell-menu-glyph')
+              .evaluate((glyph) => getComputedStyle(glyph, '::after').content);
+            assert.equal(dot !== 'none', marked, `${path} menu dot`);
+          } finally {
+            await page.close();
+          }
+        }
+      }
+    );
+
+    test(
       'a row followed in the phone drawer closes it and hands focus to the menu button',
       long,
       async () => {
