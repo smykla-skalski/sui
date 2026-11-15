@@ -775,7 +775,7 @@ following a row closes the drawer.
   .sui-side-nav-badge {
     align-items: center;
     background: var(--sui-brand-action);
-    block-size: var(--sui-icon-base);
+    block-size: var(--sui-space-4);
     border-radius: var(--sui-radius-pill);
     box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-local-switch-ground);
     box-sizing: border-box;
@@ -787,7 +787,7 @@ following a row closes the drawer.
     inset-block-start: calc(-1 * var(--sui-space-1));
     inset-inline-end: calc(-1 * var(--sui-space-1));
     justify-content: center;
-    min-inline-size: var(--sui-icon-base);
+    min-inline-size: var(--sui-space-4);
     padding-inline: var(--sui-space-1);
     position: absolute;
   }
