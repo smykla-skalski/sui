@@ -2468,6 +2468,8 @@ function selectOpen(field: Element): boolean {
 
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
+  // Off the CSS pixel grid the border shrinks to whole device pixels and the shadow does not.
+  const shrink = (pixelStep(root) % 1) + 0.01;
   const frames =
     '.sui-text-input:not(.bare), .sui-textarea, .sui-select:not(.bare) .sui-select-control, .sui-joined';
   for (const field of audited(root, frames)) {
@@ -2481,7 +2483,10 @@ function fieldRecesses(root: Document): Finding[] {
         ].map(([length]) => parseFloat(length));
         return { color: shadow.match(/[a-z-]+\([^)]*\)/)?.[0], x, y, blur, spread };
       })
-      .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
+      .find(
+        ({ x, y, blur, spread }) =>
+          x === 0 && Math.abs(y - stroke) < shrink && blur === 0 && spread === 0
+      );
     const off = `.sui-joined.disabled, ${OFF_FIELD}`;
     const reads =
       '.sui-text-input[readonly]:not(:disabled, [data-open]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
@@ -3067,13 +3072,30 @@ function leadingIcons(root: Document): Finding[] {
 }
 
 /**
+ * The step a box's size and place may take: the pixel, where a CSS pixel is a whole number of
+ * device pixels. Under a browser zoom or a display scale that gives it a fraction, Chrome lays
+ * boxes out on CSS pixels but draws each border on whole device pixels, a 1px border 0.8px at
+ * 125% on a 2x screen, so a box keeps whole pixels only less what each hairline in it gives up,
+ * and that loss is the step.
+ */
+function pixelStep(root: Document): number {
+  const probe = root.createElement('div');
+  probe.style.borderBlockStart = '1px solid';
+  root.body.append(probe);
+  const hairline = probe.getBoundingClientRect().height;
+  probe.remove();
+  return hairline < 0.99 ? 1 - hairline : 1;
+}
+
+/**
  * Whole pixels (L-95): no box is born with a fractional height. A box counts when its own
  * height is fractional while every box it holds is whole, so a fraction is reported where it
  * starts and not again in everything it pushes down. Moving and inline boxes are left out.
  */
 function wholePixels(root: Document): Finding[] {
   const found: Finding[] = [];
-  const fractional = (value: number) => Math.abs(value - Math.round(value)) > 0.02;
+  const step = pixelStep(root);
+  const fractional = (value: number) => Math.abs(value - Math.round(value / step) * step) > 0.02;
   const counted = new Map<Element, boolean>();
   const counts = (element: Element) => {
     let answer = counted.get(element);
@@ -3423,6 +3445,7 @@ function rings(root: Document): Finding[] {
 // place, so there its box, not its ink, is what stands under the hairline.
 function loadMoreRows(root: Document): Finding[] {
   const found: Finding[] = [];
+  const step = pixelStep(root);
   for (const row of audited(root, '.sui-load-more')) {
     const list = row.previousElementSibling;
     const button = row.querySelector(':scope > button');
@@ -3451,7 +3474,16 @@ function loadMoreRows(root: Document): Finding[] {
     const line = list.getBoundingClientRect().bottom;
     const above = line - parseFloat(hairline.blockSize) - Math.max(...words);
     const below = Math.min(...tops) - line;
-    if (Math.abs(above - below) > 0.5)
+    // Off the CSS pixel grid each hairline in the list gives up part of a pixel, and the list's
+    // height, rounded up to the pixel (L-95), puts that loss under the last row's words.
+    const hairlines = [list, ...list.querySelectorAll('*')].reduce((sum, element) => {
+      const look = getComputedStyle(element);
+      return (
+        sum +
+        [look.borderTopWidth, look.borderBottomWidth].filter((w) => parseFloat(w) % 1 > 0.01).length
+      );
+    }, 0);
+    if (Math.abs(above - below) > 0.5 + hairlines * (step % 1))
       found.push(
         finding(
           'L-63',

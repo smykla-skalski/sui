@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, suite, test } from 'node:test';
+import { chromium } from 'playwright-core';
 import {
   allSections,
   atRest,
@@ -275,6 +276,41 @@ suite('the kitchen sink', together, () => {
       }
     } finally {
       await page.close();
+    }
+  });
+
+  // At 125% on a 2x screen Chrome draws a 1px border 0.8px, and the audit held every box with a
+  // hairline in it off the pixel grid, every field's 1px recess deeper than its frame, and a
+  // Load More row's words off its hairline by what the rows' borders gave up. The zoom is a
+  // profile's default, as a reader's browser keeps it; a device scale alone draws whole borders.
+  test('L-9, L-63 and L-95 hold a page under a browser zoom', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'sui-zoom-'));
+    mkdirSync(join(profile, 'Default'));
+    writeFileSync(
+      join(profile, 'Default', 'Preferences'),
+      JSON.stringify({ partition: { default_zoom_level: { x: Math.log(1.25) / Math.log(1.2) } } })
+    );
+    const zoomed = await chromium.launchPersistentContext(profile, {
+      channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome',
+      viewport: { width: 1800, height: 1125 },
+      deviceScaleFactor: 2,
+      colorScheme: 'dark',
+      serviceWorkers: 'block'
+    });
+    try {
+      const page = await zoomed.newPage();
+      assert.equal(await page.evaluate(() => devicePixelRatio), 2.5);
+      for (const section of ['buttons', 'field', 'load-more']) {
+        await visit(page, new URL(`${section}/`, url).href);
+        await page.waitForFunction(() => '__suiAudit' in window);
+        const findings = (await audit(page)).filter(({ law }) =>
+          ['L-9', 'L-63', 'L-95'].includes(law)
+        );
+        assert.equal(findings.length, 0, `${section}\n${report(findings)}`);
+      }
+    } finally {
+      await zoomed.close();
+      rmSync(profile, { recursive: true, force: true });
     }
   });
 
