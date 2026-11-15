@@ -3026,9 +3026,12 @@ function leadingIcons(root: Document): Finding[] {
   const found: Finding[] = [];
   // A message's symbol stands in a tile that L-56 places against the whole copy.
   const tiles = '.sui-callout-icon, .sui-toast-mark';
+  // A place switch's mark and chevron stand beside a kicker over a title, a name in two lines
+  // that never wraps, and centre on the pair as a team switcher's do.
+  const pairs = '.sui-side-nav-switch';
   for (const icon of audited(root, 'svg.tier')) {
     const glyph = icon.getBoundingClientRect();
-    if (glyph.width === 0 || icon.closest(tiles)) continue;
+    if (glyph.width === 0 || icon.closest(tiles) || icon.closest(pairs)) continue;
     // The icon's own box is a wrapper that holds nothing else; the words are outside it.
     const parent = icon.parentElement;
     const holder =

@@ -17,7 +17,7 @@
 
 <Example
   title="Layout"
-  note="The page in its own frame: the sidebar's head switches the workspace, under 48 rem a drawer holds the sidebar, and above 64 rem Collapse Navigation folds it"
+  note="The page in its own frame: the sidebar’s head switches the workspace. Under 48 rem a drawer holds the sidebar, and above 64 rem Collapse Navigation folds it"
   layout="stack"
   ground="canvas"
   code={false}
