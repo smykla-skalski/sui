@@ -2774,13 +2774,13 @@ function symbolTiles(root: Document): Finding[] {
     const box = tile.getBoundingClientRect();
     const bare = tile.closest('.sui-callout.compact');
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
-    // A compact callout's symbol stands bare at 16px, on no tile.
+    // A compact callout's symbol stands bare at 18px, a full callout's size, on no tile.
     if (bare) {
       if (rgba(getComputedStyle(tile).backgroundColor).a > 0)
         found.push(finding('L-56', tile, "a compact callout's symbol stands on a tile"));
-      if (glyph && Math.abs(glyph.width - 16) > 0.5)
+      if (glyph && Math.abs(glyph.width - 18) > 0.5)
         found.push(
-          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 16px`)
+          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 18px`)
         );
       if (Math.abs(box.width - 2 * rem) > 0.5)
         found.push(
