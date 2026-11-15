@@ -34,7 +34,12 @@
     {
       items: [
         { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
-        { href: `${resolve('/(sink)/all')}/`, label: 'All Components', icon: glyphSnippet('all') }
+        {
+          href: `${resolve('/(sink)/all')}/`,
+          label: 'All Components',
+          short: 'All',
+          icon: glyphSnippet('all')
+        }
       ]
     },
     ...families.map((members) => ({

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `ThemeSwitch` gives the browser's own chrome the shell chrome's ground (`--sui-sidebar-bg`), the header's and the phone bar's, where it gave it the page's canvas, so a phone's address bar runs on into the header now that the page stands on the surface ground. The kit's All Components row folds to "All" in the folded strip.
 - The page header and the sidebar stand on the canvas ground and the page between them on the surface ground, in both themes, where the chrome stood on the surface and the page on the canvas, so the content is the lightest plane on light and the raised one on dark.
 - The preview picker names each preview by its number and gives its title as the note, so the closed field holds "#79" whole and the open list still reads "#79 · title", where a long title was cut off in the field.
 - The kit index again opens with an All Components row under Overview, which shows every section on one page, so the law audit can run over every component at once.
