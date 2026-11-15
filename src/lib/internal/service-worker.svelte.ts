@@ -109,7 +109,10 @@ class ServiceWorkerState {
       await (await container.getRegistration(scope))?.unregister();
       return;
     }
-    const registration = await container.register(url, { type: 'module', scope: options.scope });
+    // A module worker's script is fetched without cookies, so behind a sign-in proxy every update
+    // check got the sign-in redirect and no new version ever installed. The build bundles the
+    // worker into one classic script, which is fetched with them.
+    const registration = await container.register(url, { scope: options.scope });
     this.#registration = registration;
     this.#script = url;
 

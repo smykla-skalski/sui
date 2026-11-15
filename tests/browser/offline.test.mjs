@@ -87,7 +87,8 @@ suite('offline', () => {
 
   /*
    * The preview server of each build also answers a few files that no build holds, one for each
-   * kind of answer a cache must keep or refuse.
+   * kind of answer a cache must keep or refuse. Like a sign-in proxy in front of a site, it
+   * refuses every request without the session cookie, the worker's script too.
    */
   const FIXTURE = `import sink from './vite.config.ts';
 
@@ -110,6 +111,10 @@ export default {
       name: 'offline-fixture',
       configurePreviewServer(server) {
         server.middlewares.use((request, response, next) => {
+          if (!/(?:^|; )session=1(?:;|$)/.test(request.headers.cookie ?? '')) {
+            response.writeHead(401);
+            return response.end();
+          }
           const answer = answers[new URL(request.url, 'http://fixture').pathname];
           if (!answer) return next();
           setTimeout(() => {
@@ -342,6 +347,7 @@ export default {
       });
       cleanup.push(() => browser.close());
       const context = await browser.newContext();
+      await context.addCookies([{ name: 'session', value: '1', url: origin }]);
       const page = await context.newPage();
       // The page's own bar, apart from the section's pictures of it.
       const bar = (/** @type {string} */ name) =>
