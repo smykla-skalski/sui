@@ -2475,8 +2475,8 @@ suite('navigation', together, () => {
             `the last row rests ${found.bottom}px up`
           );
           assert.ok(
-            Math.abs(found.underNext - found.gap - found.slack) <= 0.5,
-            `the part under the rows starts ${found.underNext}px under its hairline`
+            Math.abs(found.underNext - found.gap) <= 0.5,
+            `the part under the rows starts ${found.underNext}px under its hairline, whatever the fit leaves`
           );
         } finally {
           await page.evaluate(() => {

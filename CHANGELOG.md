@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `SideNav` keeps its foot controls 16px under the foot hairline at every height, and the room the row cut leaves falls under them at the sidebar's foot, where it opened a gap between the hairline and the controls.
 - A `Rail` standing as its own column draws its foot hairline at every width, where it drew it only beside a pages foot from 64rem, so at 900px and in the phone drawer Settings still stands apart from the places.
 - A block `Disclosure` stands its hint under its words at every width, where it set the hint beside them while both fit, so one disclosure keeps one shape in a wide column, an aside and a phone alike; inline help still keeps its hint beside its words while both fit.
 - A `Rail` drawn as a phone's bottom bar sets its glyphs at 20px, a step over the rail's 18px, as a phone's own tab bar draws them, since a bar is read at a thumb's distance; the labels and the 44px tiles stay.

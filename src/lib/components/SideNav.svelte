@@ -312,7 +312,7 @@ following a row closes the drawer.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below and, at rest, standing in the gap above the first row or heading that would not fit, never through its words, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below and, at rest, standing in the gap above the first row or heading that would not fit, never through its words, with the foot's controls 16px under it and the room the cut leaves under them, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform, and one fits the foot to the rows, only when their sizes change; it suits a sidebar of tens of rows, not thousands.
@@ -856,11 +856,13 @@ following a row closes the drawer.
     }
   }
 
+  /* The fit slack stands under the controls, so they always stand 16px under the hairline
+     and the room the cut leaves falls at the sidebar's foot, never between them. */
   .sui-side-nav-foot {
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
-    padding-block-start: calc(var(--sui-space-4) + var(--sui-local-slack, 0px));
+    padding-block: var(--sui-space-4) var(--sui-local-slack, 0px);
     position: relative;
   }
 
