@@ -115,20 +115,6 @@ suite('navigation', together, () => {
   suite('one app shell page at each width', { concurrency: 1 }, () => {
     const shell = shared(() => openLayout('layouts/app-shell/', 1440));
 
-    test('under forced colors the current place is marked in Highlight', long, async () => {
-      const page = await shell();
-      await page.emulateMedia({ forcedColors: 'active' });
-      try {
-        const place = await page.evaluate(() => {
-          const tile = document.querySelector('.sui-rail-tile[aria-current]');
-          return tile ? getComputedStyle(tile).backgroundColor : null;
-        });
-        assert.equal(place, await highlight(page));
-      } finally {
-        await page.emulateMedia({ forcedColors: null });
-      }
-    });
-
     test(
       'the fold control shows only where the shell is wide enough to fold, and names its action',
       long,
@@ -167,7 +153,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'L-88 folded, the rail and the pages are one column of one-line rows that Tab walks top to bottom',
+      'L-88 folded, the place switch and the pages are one 80px column of one-line rows that Tab walks top to bottom',
       long,
       async () => {
         const page = await shell();
@@ -177,13 +163,13 @@ suite('navigation', together, () => {
         try {
           const column = await page.evaluate(() => {
             const side = /** @type {HTMLElement} */ (document.querySelector('.sui-shell-side'));
-            const rail = /** @type {HTMLElement} */ (document.querySelector('.sui-rail'));
             const stops = [...side.querySelectorAll('a[href], button')].filter(
               (stop) => stop.getClientRects().length > 0
             );
             return {
               side: side.getBoundingClientRect().width,
-              rail: rail.getBoundingClientRect().width,
+              column: parseFloat(getComputedStyle(document.documentElement).fontSize) * 5,
+              switched: side.querySelector('.sui-side-nav-switch')?.checkVisibility(),
               tops: stops.map((stop) => Math.round(stop.getBoundingClientRect().top)),
               rows: [
                 ...new Set(
@@ -197,8 +183,9 @@ suite('navigation', together, () => {
               ]
             };
           });
-          // One column: the side is the rail's width and its edge, and no stop stands beside another.
-          assert.ok(column.side - column.rail <= 1, `side ${column.side}px, rail ${column.rail}px`);
+          // One column: the strip's 80px, and no stop stands beside another.
+          assert.ok(column.switched, 'the folded strip lost the place switch');
+          assert.equal(column.side, column.column, `the strip is ${column.side}px wide`);
           assert.equal(column.lefts.length, 1, `stops start at ${column.lefts.join(', ')}px`);
           // A strip label takes one line, so every page keeps one pitch.
           assert.equal(column.rows.length, 1, `strip rows are ${column.rows.join(', ')}px tall`);
@@ -256,9 +243,6 @@ suite('navigation', together, () => {
           side.querySelector('a[href], button')?.textContent?.trim()
         );
         assert.equal(landed, first, 'Tab from the last stop left the drawer');
-        // The first stop is a rail tile, whose tip shows on focus and takes the first Escape.
-        await page.keyboard.press('Escape');
-        assert.ok(await drawer.isVisible(), 'the Escape that closed the tip closed the drawer');
         await page.keyboard.press('Escape');
         await drawer.waitFor({ state: 'detached' });
       }
@@ -266,17 +250,41 @@ suite('navigation', together, () => {
 
     // It reloads the page, and the test after it sets up the page it needs itself.
     test(
-      'the rail places are links, and the place one opens stays current through a reload',
+      'the switch lists the places as links, and the place one opens stays current through a reload',
       long,
       async () => {
         const page = await shell();
         await resize(page, 1440);
-        const personal = page.locator('.sui-rail').getByRole('link', { name: 'Personal' });
+        const switcher = page.locator('.sui-side-nav-switch');
+        const personal = page
+          .locator('.sui-side-nav-places')
+          .getByRole('link', { name: 'Personal' });
+        const expanded = (/** @type {string} */ state) =>
+          page.waitForFunction(
+            (state) =>
+              document.querySelector('.sui-side-nav-switch')?.getAttribute('aria-expanded') ===
+              state,
+            state,
+            brief
+          );
+        await switcher.click();
+        await expanded('true');
+        assert.equal(
+          await page.locator('.sui-side-nav-places [aria-current="page"]').getAttribute('href'),
+          '?place=smykla-skalski'
+        );
         await personal.click();
         await page.waitForURL((address) => address.searchParams.get('place') === 'personal', brief);
-        assert.equal(await personal.getAttribute('aria-current'), 'page');
+        await expanded('false');
+        assert.match(String(await switcher.textContent()), /Personal/);
         await visit(page, page.url());
+        await switcher.click();
         assert.equal(await personal.getAttribute('aria-current'), 'page');
+        await page.keyboard.press('Escape');
+        assert.ok(
+          await switcher.evaluate((button) => document.activeElement === button),
+          'Escape left focus outside the switch'
+        );
       }
     );
 
@@ -372,15 +380,19 @@ suite('navigation', together, () => {
   test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
-      const [list, header] = await page.evaluate(() =>
-        ['main .sui-object-list', 'main .sui-page-header'].map(
-          (name) =>
-            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().right
-        )
-      );
+      // A pane past 72rem centres the column, so the band's words end at its end padding.
+      const [list, words] = await page.evaluate(() => {
+        const band = /** @type {Element} */ (document.querySelector('main .sui-page-header'));
+        return [
+          /** @type {Element} */ (
+            document.querySelector('main .sui-object-list')
+          ).getBoundingClientRect().right,
+          band.getBoundingClientRect().right - parseFloat(getComputedStyle(band).paddingInlineEnd)
+        ];
+      });
       assert.ok(
-        Math.abs(header - 24 - list) <= 0.5,
-        `the list ends at ${list}, the band at ${header}`
+        Math.abs(words - list) <= 0.5,
+        `the list ends at ${list}, the band's words at ${words}`
       );
     } finally {
       await page.close();
@@ -409,7 +421,7 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a focused rail tile draws its ring inside it, as a side nav row does', async () => {
+  test('a focused place switch draws its ring inside it, as a side nav row does', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       await page.keyboard.press('Tab');
@@ -424,43 +436,31 @@ suite('navigation', together, () => {
           });
       };
       const row = await ring('.sui-side-nav-row:not([aria-current])');
-      assert.deepEqual(await ring('.sui-rail-tile:not([aria-current])'), row);
-      assert.deepEqual(await ring('.sui-rail-tile[aria-current]'), row);
+      assert.deepEqual(await ring('.sui-side-nav-switch'), row);
     } finally {
       await page.close();
     }
   });
 
-  test("a rail tile beside the shell's pages stands 4px in from each side of its 80px column, its words given 72px and its glyph a whole pixel", async () => {
-    // Beside the pages the places share one column with the folded pages, whose two-word labels
-    // need 72px, so the column keeps one plate width.
+  test("the place switch's mark centres on the rows' glyph column on whole pixels", async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
-      const found = await page.evaluate(() => {
-        const rail = /** @type {Element} */ (
-          document.querySelector('.sui-rail')
-        ).getBoundingClientRect();
-        const column = parseFloat(getComputedStyle(document.documentElement).fontSize) * 5;
-        const tile = /** @type {Element} */ (
-          document.querySelector('.sui-rail-list .sui-rail-tile')
-        );
-        const box = tile.getBoundingClientRect();
-        const look = getComputedStyle(tile);
-        const glyph = /** @type {Element} */ (
-          tile.querySelector('.sui-rail-glyph svg')
+      const [mark, glyph, whole] = await page.evaluate(() => {
+        const centre = (/** @type {string} */ name) => {
+          const box = /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect();
+          return box.left + box.width / 2;
+        };
+        const svg = /** @type {Element} */ (
+          document.querySelector('.sui-side-nav-mark svg')
         ).getBoundingClientRect();
         return [
-          box.left - rail.left,
-          rail.left + column - box.right,
-          box.width - parseFloat(look.paddingInlineStart) - parseFloat(look.paddingInlineEnd),
-          Number.isInteger(glyph.left) && Number.isInteger(glyph.top)
+          centre('.sui-side-nav-mark'),
+          centre('.sui-side-nav-row .sui-side-nav-glyph svg'),
+          Number.isInteger(svg.left) && Number.isInteger(svg.top)
         ];
       });
-      assert.deepEqual(
-        found,
-        [4, 4, 72, true],
-        "the tile, its words' room and its glyph's whole pixel"
-      );
+      assert.equal(mark, glyph, `the mark centres at ${mark}px, the glyphs at ${glyph}px`);
+      assert.ok(whole, "the mark's glyph stands off the pixel grid");
     } finally {
       await page.close();
     }
@@ -572,7 +572,7 @@ suite('navigation', together, () => {
         for (const theme of ['light', 'dark']) {
           const ground = await page.evaluate((theme) => {
             document.documentElement.dataset.theme = theme;
-            const rail = /** @type {Element} */ (document.querySelector('.sui-rail'));
+            const nav = /** @type {Element} */ (document.querySelector('.sui-side-nav'));
             const canvas = document.createElement('canvas');
             const context = /** @type {CanvasRenderingContext2D} */ (
               canvas.getContext('2d', { willReadFrequently: true })
@@ -581,7 +581,7 @@ suite('navigation', together, () => {
             const paint = (/** @type {string} */ token) => {
               const probe = document.createElement('i');
               probe.style.color = `var(${token})`;
-              rail.append(probe);
+              nav.append(probe);
               const color = getComputedStyle(probe).color;
               probe.style.color = 'var(--sui-sidebar-bg)';
               const base = getComputedStyle(probe).color;
@@ -630,147 +630,30 @@ suite('navigation', together, () => {
             );
         }
         await page.evaluate(() => delete document.documentElement.dataset.theme);
-        const tile = page.locator('.sui-rail-tile:has(.sui-rail-badge)').first();
+        const tile = page.locator('.sui-side-nav-switch');
         await tile.hover();
         const badge = await tile.evaluate((tile) => {
-          const badge = /** @type {HTMLElement} */ (tile.querySelector('.sui-rail-badge'));
+          const badge = /** @type {HTMLElement} */ (tile.querySelector('.sui-side-nav-badge'));
           return {
             halo: getComputedStyle(badge).boxShadow.split(/\)\s/)[0] + ')',
             ground: getComputedStyle(tile).backgroundColor,
             top: badge.getBoundingClientRect().top - 2 - tile.getBoundingClientRect().top,
-            end: tile.getBoundingClientRect().right - badge.getBoundingClientRect().right - 2,
             // How far the count reaches over the glyph's own box from its end.
             over:
               /** @type {Element} */ (
-                tile.querySelector('.sui-rail-glyph svg')
+                tile.querySelector('.sui-side-nav-mark svg')
               ).getBoundingClientRect().right - badge.getBoundingClientRect().left
           };
         });
         assert.equal(
           badge.halo,
           badge.ground,
-          'the badge’s halo shows the sidebar through a hovered tile'
+          'the badge’s halo shows the sidebar through a hovered switch'
         );
-        assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the tile’s top`);
-        assert.ok(badge.end >= 0, `the badge’s halo reaches ${-badge.end}px past the tile’s end`);
+        assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the switch’s top`);
         assert.ok(
           badge.over <= 4,
           `the count covers ${badge.over}px of its glyph, more than a corner`
-        );
-      } finally {
-        await page.close();
-      }
-    }
-  );
-
-  test('a bottom bar’s count stands 4px clear of its glyph’s corner, as the rail’s does, its halo inside the tile', async () => {
-    for (const width of [390, 320]) {
-      const page = await openLayout('layouts/app-shell/bottom-nav/', width);
-      try {
-        const badge = await page.evaluate(() => {
-          const tile = /** @type {Element} */ (
-            document.querySelector('.sui-shell-places .sui-rail-tile:has(.sui-rail-badge)')
-          );
-          const box = tile.getBoundingClientRect();
-          const count = /** @type {Element} */ (
-            tile.querySelector('.sui-rail-badge')
-          ).getBoundingClientRect();
-          const glyph = /** @type {Element} */ (
-            tile.querySelector('.sui-rail-glyph svg')
-          ).getBoundingClientRect();
-          return [
-            Math.round(count.left - glyph.right) === 4,
-            count.top < glyph.top,
-            count.left - 2 >= box.left && count.right + 2 <= box.right
-          ];
-        });
-        assert.deepEqual(
-          badge,
-          [true, true, true],
-          `at ${width}px: clear of the corner, above the glyph, inside the tile`
-        );
-      } finally {
-        await page.close();
-      }
-    }
-  });
-
-  test(
-    'with bottomNav a phone keeps the places in a bottom bar, its tiles 8px in as the rail’s, and the drawer holds only the pages',
-    long,
-    async () => {
-      const page = await openLayout('layouts/app-shell/bottom-nav/', 375);
-      try {
-        const bar = await page.evaluate(() => {
-          const rail = document.querySelector('.sui-shell-places .sui-rail');
-          const box = rail?.getBoundingClientRect();
-          return rail && box
-            ? {
-                row: getComputedStyle(rail).flexDirection,
-                gap: innerHeight - box.bottom,
-                tiles: [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
-                  Math.round(tile.getBoundingClientRect().height)
-                ),
-                room: (() => {
-                  const tiles = [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
-                    tile.getBoundingClientRect()
-                  );
-                  const rule = parseFloat(getComputedStyle(rail).borderBlockStartWidth);
-                  return [
-                    tiles[0].left - box.left,
-                    tiles[0].top - box.top - rule,
-                    box.right - tiles[tiles.length - 1].right,
-                    box.bottom - tiles[0].bottom
-                  ].map(Math.round);
-                })()
-              }
-            : null;
-        });
-        assert.ok(bar, 'no rail in the bottom bar');
-        assert.equal(bar.row, 'row');
-        assert.ok(bar.gap <= 1, `the bar stands ${bar.gap}px above the window's foot`);
-        assert.ok(
-          bar.tiles.every((height) => height >= 44),
-          `tiles are ${bar.tiles.join(', ')}px`
-        );
-        assert.deepEqual(bar.room, [8, 8, 8, 8], 'the tiles stand 8px in, as the rail’s do');
-        const foot = await page.evaluate(() => {
-          const gap = document.createElement('div');
-          gap.style.blockSize = '300vh';
-          document.querySelector('main')?.append(gap);
-          const places = /** @type {Element} */ (document.querySelector('.sui-shell-places'));
-          const gaps = innerHeight - places.getBoundingClientRect().bottom;
-          gap.remove();
-          return gaps;
-        });
-        assert.ok(Math.abs(foot) <= 1, `over a long page the bar stands ${foot}px off the foot`);
-        // One render site for the pages, so crossing the phone's width keeps the sidebar mounted.
-        await page.evaluate(() => {
-          /** @type {any} */ (window).suiPages = document.querySelector('.sui-side-nav');
-        });
-        await page.setViewportSize({ width: 1100, height: 900 });
-        await page.setViewportSize({ width: 375, height: 900 });
-        assert.ok(
-          await page.evaluate(
-            () => /** @type {any} */ (window).suiPages === document.querySelector('.sui-side-nav')
-          ),
-          'the sidebar mounted afresh as the shell crossed the phone width'
-        );
-        const drawer = await openDrawer(page);
-        assert.deepEqual(
-          [
-            await drawer.locator('.sui-rail-tile:visible').count(),
-            await drawer.locator('nav.sui-rail[aria-label]').count()
-          ],
-          [0, 0],
-          'the drawer carries the rail too'
-        );
-        assert.equal(await drawer.locator('.sui-side-nav').count(), 1);
-        assert.ok(
-          await page
-            .locator('.sui-shell-places')
-            .evaluate((places) => /** @type {HTMLElement} */ (places).inert),
-          'the bottom bar stays live behind the modal drawer'
         );
       } finally {
         await page.close();
@@ -1688,7 +1571,7 @@ suite('navigation', together, () => {
     });
 
     test(
-      'a rail badge past 99 stays in its column and its tile still names the whole count',
+      'a count waiting past 99 draws 99+ on the switch, which still names the whole count',
       long,
       async () => {
         const page = await openMount(browser, url);
@@ -1696,22 +1579,36 @@ suite('navigation', together, () => {
           const badge = await page.evaluate(() => {
             const { lib, mount, flushSync } = /** @type {any} */ (window);
             const target = document.body.appendChild(document.createElement('div'));
-            mount(lib.Rail, {
+            target.style.inlineSize = '228px';
+            mount(lib.SideNav, {
               target,
-              props: { items: [{ href: '#a', label: 'Console', icon: 'server', badge: 1284 }] }
+              props: {
+                title: 'Acme',
+                sections: [],
+                place: 'Acme',
+                places: [
+                  { label: 'Acme', icon: 'organization', badge: 7 },
+                  { href: '#a', label: 'Console', icon: 'server', badge: 1284 }
+                ]
+              }
             });
             flushSync();
-            const rail = /** @type {Element} */ (target.querySelector('.sui-rail'));
+            const nav = /** @type {Element} */ (target.querySelector('.sui-side-nav'));
             const count = /** @type {HTMLElement} */ (target.querySelector('[data-count]'));
             return {
               drawn: count.dataset.count,
-              past: count.getBoundingClientRect().right - rail.getBoundingClientRect().right,
-              name: target.querySelector('.sui-rail-tile')?.getAttribute('aria-label')
+              past: count.getBoundingClientRect().right - nav.getBoundingClientRect().right,
+              name: document.getElementById(
+                String(
+                  target.querySelector('.sui-side-nav-switch')?.getAttribute('aria-describedby')
+                )
+              )?.textContent
             };
           });
+          // The current place's own count is not waiting elsewhere, so only the other one counts.
           assert.equal(badge.drawn, '99+');
-          assert.ok(badge.past <= 0, `the badge runs ${badge.past}px past the rail`);
-          assert.match(String(badge.name), /1,284/);
+          assert.ok(badge.past <= 0, `the badge runs ${badge.past}px past the sidebar`);
+          assert.match(String(badge.name), /1,284 waiting/);
         } finally {
           await page.close();
         }
@@ -1779,37 +1676,6 @@ suite('navigation', together, () => {
           return label.scrollWidth - target.getBoundingClientRect().width;
         });
         assert.ok(past <= 0, `the label runs ${past}px past its list`);
-      } finally {
-        await page.close();
-      }
-    });
-
-    test('a rail of the caller’s own markup keeps the shell’s pages beside it', long, async () => {
-      const page = await openMount(browser, url);
-      try {
-        const pages = await page.evaluate(() => {
-          const { lib, mount, flushSync, createRawSnippet } = /** @type {any} */ (window);
-          const target = document.body.appendChild(document.createElement('div'));
-          const markup = (/** @type {string} */ html) =>
-            createRawSnippet(() => ({ render: () => html }));
-          mount(lib.AppShell, {
-            target,
-            props: {
-              title: 'Overview',
-              contained: true,
-              rail: markup('<nav aria-label="Places"><a href="#a">Acme</a></nav>'),
-              sidebar: markup(
-                '<nav class="custom-pages" aria-label="Pages"><a href="#p">Overview</a></nav>'
-              ),
-              children: markup('<p>Content</p>')
-            }
-          });
-          flushSync();
-          return [...document.querySelectorAll('.custom-pages')].map((nav) =>
-            nav.checkVisibility()
-          );
-        });
-        assert.deepEqual(pages, [true], 'the pages are not drawn once beside a custom rail');
       } finally {
         await page.close();
       }
