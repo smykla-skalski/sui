@@ -112,7 +112,7 @@
   --sui-primitive-diff-dark-chg: #0f2336;
   --sui-primitive-diff-dark-chg-word: #1b3c5d;
 
-  --sui-canvas: var(--sui-primitive-light-canvas);
+  --sui-canvas: var(--sui-surface-base);
   --sui-surface-base: var(--sui-primitive-light-surface);
   --sui-surface-raised: var(--sui-primitive-light-surface);
   --sui-surface-inset: var(--sui-primitive-light-inset);
@@ -272,7 +272,7 @@
   --sui-scrim: rgb(0 0 0 / 28%);
   --sui-scrim-blur: 2px;
 
-  --sui-sidebar-bg: var(--sui-surface-base);
+  --sui-sidebar-bg: var(--sui-primitive-light-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
@@ -720,7 +720,7 @@
 [data-sui-theme='dark'] {
   color-scheme: dark;
 
-  --sui-canvas: var(--sui-primitive-dark-canvas);
+  --sui-canvas: var(--sui-surface-base);
   --sui-surface-base: var(--sui-primitive-dark-surface);
   --sui-surface-raised: var(--sui-primitive-dark-raised);
   --sui-surface-inset: var(--sui-primitive-dark-inset);
@@ -841,7 +841,7 @@
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
   --sui-scrim: rgb(0 0 0 / 48%);
 
-  --sui-sidebar-bg: var(--sui-surface-base);
+  --sui-sidebar-bg: var(--sui-primitive-dark-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
@@ -982,7 +982,7 @@
   :root:not([data-theme], [data-sui-theme]) {
     color-scheme: dark;
 
-    --sui-canvas: var(--sui-primitive-dark-canvas);
+    --sui-canvas: var(--sui-surface-base);
     --sui-surface-base: var(--sui-primitive-dark-surface);
     --sui-surface-raised: var(--sui-primitive-dark-raised);
     --sui-surface-inset: var(--sui-primitive-dark-inset);
@@ -1103,7 +1103,7 @@
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
     --sui-scrim: rgb(0 0 0 / 48%);
 
-    --sui-sidebar-bg: var(--sui-surface-base);
+    --sui-sidebar-bg: var(--sui-primitive-dark-canvas);
     --sui-sidebar-border: var(--sui-border-subtle);
     --sui-sidebar-text: var(--sui-text-primary);
     --sui-sidebar-text-secondary: var(--sui-text-secondary);

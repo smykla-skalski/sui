@@ -27,11 +27,16 @@
   // register none, so a frame never shows a notice of its own.
   const worker = registerServiceWorker(`${resolve('/(sink)')}service-worker.js`, { dev });
 
-  // Each row opens its component's page. On the page of every section, which the tests read and
-  // no row opens, the rows follow the sections in place instead, and mark the one in view.
+  // Each row opens its component's page. On the page of every section the rows follow the
+  // sections in place instead, and mark the one the reader has scrolled to.
   const everything = $derived(page.route.id === '/(sink)/all');
   const index: NavSection[] = $derived([
-    { items: [{ href: resolve('/(sink)'), label: 'Overview', icon: 'book' }] },
+    {
+      items: [
+        { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
+        { href: `${resolve('/(sink)/all')}/`, label: 'All Components', icon: glyphSnippet('all') }
+      ]
+    },
     ...families.map((members) => ({
       label: members[0].family,
       items: members.map(({ id, meta }) => ({

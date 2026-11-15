@@ -2455,6 +2455,17 @@ function unsavedVeils(root: Document): Finding[] {
  * ground in every state. A disabled field sits in the field well and a read-only one in its
  * lighter tint (L-10), no place to type, and draws none.
  */
+function selectOpen(field: Element): boolean {
+  if (!field.matches('.sui-select-control:not([aria-invalid="true"], :user-invalid)')) return false;
+  if (field.matches(':focus-visible')) return true;
+  // :open is a syntax error where the customizable select is not shipped.
+  try {
+    return field.matches(':open');
+  } catch {
+    return false;
+  }
+}
+
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
   const frames =
@@ -2489,10 +2500,13 @@ function fieldRecesses(root: Document): Finding[] {
       continue;
     }
     const ground = paintedGround(field);
-    // A select copy is drawn open, so it is held to the open frame it draws.
+    // An open or focused select, and a select copy drawn open, wear the open frame, so the
+    // recess is held to that frame.
     const frame = rgba(
       look.getPropertyValue(
-        field.closest('.sui-select-preview') ? '--sui-field-frame-focus' : '--sui-field-frame'
+        field.closest('.sui-select-preview') || selectOpen(field)
+          ? '--sui-field-frame-focus'
+          : '--sui-field-frame'
       )
     );
     if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))

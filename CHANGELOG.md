@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The page header and the sidebar stand on the canvas ground and the page between them on the surface ground, in both themes, where the chrome stood on the surface and the page on the canvas, so the content is the lightest plane on light and the raised one on dark.
+- The preview picker names each preview by its number and gives its title as the note, so the closed field holds "#79" whole and the open list still reads "#79 · title", where a long title was cut off in the field.
+- The kit index again opens with an All Components row under Overview, which shows every section on one page, so the law audit can run over every component at once.
+- The law audit holds the recess of an open or focused select to the open frame that select draws, as it holds a select copy drawn open, where it held it to the rest frame and flagged a recess that is darker than the frame it stands under.
 - A kit page whose examples all keep a measure, such as Field's 54rem, centres one column at its widest frame, so its header words, examples and foot hairline end on one edge and no empty stretch stands at the column's end.
 - A `SideNav` keeps its foot controls 16px under the foot hairline at every height, and the room the row cut leaves falls under them at the sidebar's foot, where it opened a gap between the hairline and the controls.
 - A `Rail` standing as its own column draws its foot hairline at every width, where it drew it only beside a pages foot from 64rem, so at 900px and in the phone drawer Settings still stands apart from the places.

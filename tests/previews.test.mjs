@@ -63,11 +63,11 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
   assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
 });
 
-test('the picker offers main and the previews, newest first, while any pull request has one', () => {
+test('the picker offers main and the previews, newest first, each titled in its note, while any pull request has one', () => {
   assert.deepEqual(previewOptions([]), []);
   assert.deepEqual(previewOptions([{ number: 4, title: 'four' }]), [
     { value: '', label: 'main' },
-    { value: '/pr-4', label: '#4 four' }
+    { value: '/pr-4', label: '#4', description: 'four' }
   ]);
   assert.deepEqual(
     previewOptions([
@@ -76,8 +76,8 @@ test('the picker offers main and the previews, newest first, while any pull requ
     ]),
     [
       { value: '', label: 'main' },
-      { value: '/pr-12', label: '#12 twelve' },
-      { value: '/pr-4', label: '#4 four' }
+      { value: '/pr-12', label: '#12', description: 'twelve' },
+      { value: '/pr-4', label: '#4', description: 'four' }
     ]
   );
 });

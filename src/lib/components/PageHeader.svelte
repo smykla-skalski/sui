@@ -153,7 +153,7 @@ and the header owes only the difference. A holder that hides the kicker at some 
 
 <style>
   .sui-page-header {
-    background: var(--sui-surface-base);
+    background: var(--sui-sidebar-bg);
     container: sui-page-header / inline-size;
     margin: 0 0 calc(var(--sui-rhythm-head-surface) - var(--sui-head-exit-gap, 0px));
     min-inline-size: 0;
@@ -171,7 +171,7 @@ and the header owes only the difference. A holder that hides the kicker at some 
           var(--sui-border-band-ground, transparent)
         )
         bottom / 100% var(--sui-stroke) no-repeat border-box,
-      var(--sui-surface-base);
+      var(--sui-sidebar-bg);
     border-block-end: var(--sui-stroke) solid var(--sui-border-band);
   }
 
