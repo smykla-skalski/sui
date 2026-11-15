@@ -380,15 +380,19 @@ suite('navigation', together, () => {
   test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
-      const [list, header] = await page.evaluate(() =>
-        ['main .sui-object-list', 'main .sui-page-header'].map(
-          (name) =>
-            /** @type {Element} */ (document.querySelector(name)).getBoundingClientRect().right
-        )
-      );
+      // A pane past 72rem centres the column, so the band's words end at its end padding.
+      const [list, words] = await page.evaluate(() => {
+        const band = /** @type {Element} */ (document.querySelector('main .sui-page-header'));
+        return [
+          /** @type {Element} */ (
+            document.querySelector('main .sui-object-list')
+          ).getBoundingClientRect().right,
+          band.getBoundingClientRect().right - parseFloat(getComputedStyle(band).paddingInlineEnd)
+        ];
+      });
       assert.ok(
-        Math.abs(header - 24 - list) <= 0.5,
-        `the list ends at ${list}, the band at ${header}`
+        Math.abs(words - list) <= 0.5,
+        `the list ends at ${list}, the band's words at ${words}`
       );
     } finally {
       await page.close();
