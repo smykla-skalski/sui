@@ -60,7 +60,7 @@
 
 <Example
   title="Long Text"
-  note="When the words and the hint do not fit one line, the hint drops under the words and the chevron stays on the first line"
+  note="Words longer than the row wrap with the chevron on the first line, and the hint stands under them"
   layout="grid"
   --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >

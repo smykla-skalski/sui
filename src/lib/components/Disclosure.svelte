@@ -46,11 +46,10 @@ reveals read as one unit. Disclosures that share a `name` open one at a time. Wh
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
-The hint follows the words 12px after them while the two fit on one line, so it reads as
-their note however wide the row, and drops under the words when they do not, so it never
-squeezes them onto more lines, as Apple's value cells stack their secondary text. A block
-summary keeps the hint beside its words only with 32px to spare after it, so a narrow column,
-as an aside or a phone has, never runs the words and their note edge to edge as one line.
+A block summary stands its hint under its words at their start edge, as a description stands
+under its title and Apple's value cells stack their secondary text, so one disclosure keeps one
+shape in a wide column, an aside and a phone alike. Inline help keeps its hint 12px after its
+words while the two fit on one line, and drops it under them when they do not.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
@@ -58,7 +57,7 @@ as an aside or a phone has, never runs the words and their note edge to edge as 
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
-- Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line, in a block summary with 32px to spare; words longer than the row wrap and the row grows, with the chevron on the first line.
+- Responsive: a block summary's hint stands under its words at every width, and inline help's hint drops under its words, at their start edge, when the row cannot hold both on one line; words longer than the row wrap and the row grows, with the chevron on the first line.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn and the guide.
 - Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, the indent and the guide are logical, and the hint reads in its own direction.
 - Performance: the content renders closed too, so keep it light; opening fades the content in with a short slide, and only the chevron's turn and the press move otherwise, all removed under reduced motion.
@@ -106,11 +105,10 @@ as an aside or a phone has, never runs the words and their note edge to edge as 
     position: relative;
   }
 
-  /* The padding centres one line in the control height. The words and the hint share that
-     line, the hint 12px after the words and never at a wide row's far end, only when both fit,
-     and the hint otherwise wraps to a line of its own under the
-     words, a copy gap below them as a description stands under its title (L-24), so the
-     words never wrap to make room for it. The row bleeds by its padding, so the chevron
+  /* The padding centres one line in the control height. The hint stands on a line of its own
+     under the words, a copy gap below them as a description stands under its title (L-24), so
+     the words never wrap to make room for it; inline help keeps it 12px after the words while
+     both fit. The row bleeds by its padding, so the chevron
      stands at the start edge of the text above and the veil reaches past it. */
   .sui-disclosure-summary {
     align-items: start;
@@ -226,10 +224,10 @@ as an aside or a phone has, never runs the words and their note edge to edge as 
     text-box: trim-both cap alphabetic;
   }
 
-  /* The room counts toward the line the hint wraps on, so it stays beside the words only with
-     that room left after it. Inline help is as wide as its words and keeps none. */
+  /* A block summary's hint takes a line of its own at every width, so the row's width never
+     changes its shape. Inline help is as wide as its words and keeps its hint beside them. */
   :not(.inline) > .sui-disclosure-summary > .sui-disclosure-hint {
-    margin-inline-end: var(--sui-space-8);
+    flex-basis: 100%;
   }
 
   /* The content starts at the summary's words, and its first ink stands a copy gap under the

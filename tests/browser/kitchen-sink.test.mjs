@@ -922,8 +922,8 @@ suite('the kitchen sink', together, () => {
     assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
   });
 
-  test("L-57 a disclosure's hint follows the words on their line only when both fit", async () => {
-    const page = await open(375, 'light', {}, 'disclosure');
+  test("L-57 a block disclosure's hint stands under its words even where both fit one line", async () => {
+    const page = await open(1440, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
         ['Skipped Repositories', 'More About This Sync'].map((name) => {
@@ -945,7 +945,7 @@ suite('the kitchen sink', together, () => {
         })
       );
       assert.deepEqual(placed, [
-        { lines: 1, beside: true, under: false },
+        { lines: 1, beside: false, under: true },
         { lines: 1, beside: false, under: true }
       ]);
     } finally {
