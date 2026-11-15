@@ -277,6 +277,7 @@
   const placesId = `${uid}-places`;
   const waitingId = `${uid}-waiting`;
   let switcher = $state<HTMLButtonElement | null>(null);
+  let names = $state<HTMLElement | null>(null);
   let switching = $state(false);
 
   // A link followed in place closes the switch, and the drawer with it; a place without a link
@@ -379,7 +380,7 @@ following a row closes the drawer.
   data-collapsed={shell?.collapsed || undefined}
 >
   <div class="sui-side-nav-head">
-    <div class="sui-side-nav-names">
+    <div bind:this={names} class="sui-side-nav-names">
       {#if places.length > 0}
         <svelte:element this={`h${level}`} class="sui-side-nav-heading">
           <button
@@ -387,6 +388,7 @@ following a row closes the drawer.
             type="button"
             class="sui-side-nav-switch"
             popovertarget={placesId}
+            aria-expanded={switching}
             aria-describedby={waiting ? waitingId : undefined}
           >
             {#if chosen}
@@ -429,10 +431,11 @@ following a row closes the drawer.
   {#if places.length > 0}
     <Popover
       id={placesId}
-      anchor={switcher}
+      anchor={mode === 'collapsed' ? switcher : names}
       bind:open={switching}
       side={mode === 'collapsed' ? 'inline-end' : 'block-end'}
       width={mode === 'collapsed' ? 'auto' : 'trigger'}
+      offset={mode === 'collapsed' ? 10 : 6}
     >
       <div class="sui-side-nav-places">
         <ul class="sui-side-nav-place-list" aria-label={placesLabel}>
@@ -668,8 +671,10 @@ following a row closes the drawer.
   }
 
   /* With places the names are one switch: the place's mark, its kicker over its title, and a
-     chevron that says the switch opens. It is a row's width, and its 32px mark stands 4px in,
-     so the mark centres on the rows' glyph column. */
+     chevron that says the switch opens. It is a row's width, its 32px mark stands 4px in, so
+     the mark centres on the rows' glyph column, and its chevron 12px from its end, on the
+     column the rows' counts stand on. The names stand 12px past the mark, so the badge on its
+     corner keeps 8px clear of the kicker. */
   /* The switch's names stand 8px under its top, so it rises 8px and its kicker keeps the cap
      line a page header's first words stand on, as a plain kicker does. */
   .sui-side-nav-heading {
@@ -682,6 +687,18 @@ following a row closes the drawer.
 
   .sui-side-nav-names:has(> .sui-side-nav-heading) {
     padding-inline-start: 0;
+  }
+
+  /* The switch's own ground already parts it from the rows, so the head keeps 4px under it. */
+  .sui-side-nav-head:has(.sui-side-nav-switch) {
+    padding-block-end: var(--sui-space-1);
+  }
+
+  /* In the drawer the close centres on the place's title, the switch's lower line, as a
+     dialog's close does on its title (L-94): half the kicker's 10px line and gap under the
+     switch's middle. */
+  .sui-side-nav-names:has(> .sui-side-nav-heading) > .sui-side-nav-close {
+    translate: 0 5px;
   }
 
   /* The badge's halo takes the switch's ground in every state, so it never shows the sidebar
@@ -697,12 +714,12 @@ following a row closes the drawer.
     cursor: pointer;
     display: flex;
     font: inherit;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-3);
     inline-size: 100%;
     margin: 0;
     min-block-size: var(--sui-touch-target);
-    padding: var(--sui-space-1) var(--sui-space-2);
-    padding-inline-start: var(--sui-space-1);
+    padding-block: var(--sui-space-1);
+    padding-inline: var(--sui-space-1) var(--sui-space-3);
     text-align: start;
     touch-action: manipulation;
     transition:
@@ -739,9 +756,11 @@ following a row closes the drawer.
   }
 
   /* The place's mark is a 32px neutral plate, a step past a pressed row, so the current page's
-     accent plate stays the column's one accent (L-85). */
+     accent plate stays the column's one accent (L-85), with a hairline edge so it still reads
+     on the switch's hover ground. */
   .sui-side-nav-mark {
     background: var(--sui-sidebar-place-bg);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-sidebar-border);
     block-size: var(--sui-space-8);
     border-radius: var(--sui-radius-control);
     color: var(--sui-sidebar-text);
@@ -806,12 +825,17 @@ following a row closes the drawer.
 
   /* The switch's list floats over the page, so it takes a menu's grounds and inks, a row one
      control tall, with the place's glyph, its name, a count and a check on the current one. */
+  /* Whole, the list is as wide as the sidebar's rows; beside the strip it takes a menu's
+     floor, since the strip gives it no width of its own. */
   .sui-side-nav-places {
     box-sizing: border-box;
     display: grid;
     max-inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-3)));
-    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
     padding: var(--sui-space-1);
+  }
+
+  .sui-side-nav[data-mode='collapsed'] .sui-side-nav-places {
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
   }
 
   .sui-side-nav-place-list {
@@ -846,7 +870,9 @@ following a row closes the drawer.
     margin: 0;
     min-block-size: var(--sui-control-height-compact);
     padding-block: calc((var(--sui-control-height-compact) - var(--sui-local-line)) / 2);
-    padding-inline: var(--sui-space-3) var(--sui-space-2);
+    /* 8px past the list's 4px and its 1px edge, so a place's glyph stands on the rows' glyph
+       column. */
+    padding-inline: calc(var(--sui-space-2) - var(--sui-stroke));
     text-align: start;
     text-decoration: none;
     text-wrap: balance;
@@ -1482,11 +1508,15 @@ following a row closes the drawer.
 
   @media (prefers-reduced-motion: reduce) {
     .gliding .sui-side-nav-thumb,
-    .sui-side-nav-row {
+    .sui-side-nav-row,
+    .sui-side-nav-switch,
+    .sui-side-nav-place {
       transition: none;
     }
 
     .sui-side-nav-row:active,
+    .sui-side-nav-switch:active,
+    .sui-side-nav-place:active,
     .sui-side-nav-list:has(.sui-side-nav-row[aria-current='page']:active) .sui-side-nav-thumb {
       translate: none;
     }
