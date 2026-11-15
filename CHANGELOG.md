@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `SideNav` folded into a strip that stands alone sets its kicker at the 13px caption size, a step over its 12px labels, so the strip's one name heads them.
 - A phone `AppShell` marks its Menu button with an accent dot while a place in the closed drawer carries a count, so the count is not hidden behind the menu; a bottom bar shows its counts itself and draws no dot.
 - The rail, the `SideNav` and the phone bars stand on `--sui-surface-base`, the page header band's surface, where they stood on the canvas, so the chrome reads as one frame around the canvas the work stands on (`--sui-sidebar-bg`).
 - A `SideNav`'s title, the place it names, is set at the body size, 15px or 16px on a phone, where it stood at the 14px of the rows under it, so the place reads as the head of its pages and not only by its weight.
