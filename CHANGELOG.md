@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Timeline` sets a clock time half a pixel under the words beside it, 13.5px against 14px (`--sui-font-size-meta-mono`), as a typed mono value stands, so the mono face's taller x-height no longer reads a size over the words.
 - On dark, a pressed side nav row mixes 9% white into the sidebar ground, where it mixed 9.5%, so on the lighter surface-base ground a press still stands a clear step short of the current plate.
 - A `SideNav` folded into a strip that stands alone sets its kicker at the 13px caption size, a step over its 12px labels, so the strip's one name heads them.
 - A phone `AppShell` marks its Menu button with an accent dot while a place in the closed drawer carries a count, so the count is not hidden behind the menu; a bottom bar shows its counts itself and draws no dot.

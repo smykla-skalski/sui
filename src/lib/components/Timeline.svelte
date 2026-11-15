@@ -317,9 +317,11 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* Mono's strokes at 400 are thinner than the sans beside it, so a muted clock time takes the
-     face's 500 to read as firmly as the words, not as the page's faintest text. */
+     face's 500 to read as firmly as the words, not as the page's faintest text. Its x-height
+     is taller, so it stands half a pixel under the words' size, as a typed mono value does. */
   .sui-timeline-time.clock > time {
     font-family: var(--sui-mono);
+    font-size: var(--sui-font-size-meta-mono);
     font-weight: var(--sui-weight-medium);
     font-variant-numeric: tabular-nums;
   }
@@ -450,6 +452,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
   .clock .bar {
     font-family: var(--sui-mono);
+    font-size: var(--sui-font-size-meta-mono);
     inline-size: var(--sui-local-clock-width);
   }
 
