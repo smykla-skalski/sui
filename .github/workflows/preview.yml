@@ -5,18 +5,19 @@ name: Preview
 on:
   # Only a change to the look deploys. A dependency update alone is checked by the visual test
   # group, so it deploys only when it changes the look and its Linux pictures are recorded again.
+  # The look job checks main, so keep its list of paths the same as this one.
   push:
     branches: [main]
-    paths: &look
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
       - 'src/**'
       - 'vite.config.ts'
       - 'tests/browser/visual/linux/**'
       - '.github/workflows/preview.yml'
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    paths: *look
 
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
@@ -38,9 +39,34 @@ env:
   FLYCTL_SHA256: 2c64e1c7f320fafed0452fbce9adff57fcaf733619f0faa315ae883ec03d7ef6
 
 jobs:
+  # A push filter on paths sees only the files changed since the push before it, and GitHub can
+  # drop a push: the first merge of PR 80 reached main with no event, and the second merge's empty
+  # commit then changed no file. So main compares with the last commit this workflow deployed.
+  look:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        run: |
+          last=$(gh run list --workflow preview.yml --branch main --event push --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // empty')
+          changed=true
+          if [ -n "$last" ] && git cat-file -e "$last^{commit}" 2>/dev/null &&
+            git diff --quiet "$last" HEAD -- src vite.config.ts tests/browser/visual/linux .github/workflows/preview.yml; then
+            changed=false
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
   deploy:
+    needs: look
     # Pull requests from forks get no secrets.
-    if: github.event_name == 'push' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)
+    if: ${{ !cancelled() && (needs.look.outputs.changed == 'true' || (github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)) }}
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.event_name == 'push' && 'main' || 'preview' }}
