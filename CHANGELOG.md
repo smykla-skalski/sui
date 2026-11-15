@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `bare` `CodeBlock` starts at its copy control's edge and ends on its last line's baseline, as trimmed words do, so a kit example's open Code stands its first ink 8px under the summary and its last as far above the foot as the summary's words stand under the top; on a phone its copy row's room stands in the host's, and the control's status pixel no longer stands past the row's end.
 - `ThemeSwitch` gives the browser's own chrome the shell chrome's ground (`--sui-sidebar-bg`), the header's and the phone bar's, where it gave it the page's canvas, so a phone's address bar runs on into the header now that the page stands on the surface ground. The kit's All Components row folds to "All" in the folded strip.
 - The page header and the sidebar stand on the canvas ground and the page between them on the surface ground, in both themes, where the chrome stood on the surface and the page on the canvas, so the content is the lightest plane on light and the raised one on dark.
 - The preview picker names each preview by its number and gives its title as the note, so the closed field holds "#79" whole and the open list still reads "#79 · title", where a long title was cut off in the field.

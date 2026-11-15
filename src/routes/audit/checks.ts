@@ -3237,12 +3237,16 @@ function codeLines(root: Document): Finding[] {
       edge.bottom - spans.at(-1)!.bottom - parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
     const air = (row - first.height) / 2;
-    if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
+    // A bare block's host gives the room at its ends, as it does for words, except under a
+    // phone's copy row, whose edge the first line keeps its air from.
+    const bare = block.matches('.bare:not(.labelled)');
+    const wants = bare ? [scroller.clientTop > 0 ? air : 0, 0] : [air, air];
+    if (gaps.some((gap, end) => Math.abs(gap - wants[end]) > 0.5))
       found.push(
         finding(
           'L-65',
           block,
-          `${gaps.map((gap) => round(gap)).join(' and ')}px of ground around its lines, not ${round(air)}px`
+          `${gaps.map((gap) => round(gap)).join(' and ')}px of ground around its lines, not ${wants.map((want) => round(want)).join(' and ')}px`
         )
       );
     const copy = block.querySelector(':scope > .sui-code-block-copy .sui-copy-button');

@@ -256,6 +256,28 @@ suite('the kitchen sink', together, () => {
       );
   });
 
+  // The audits above read every example's Code closed; open, its bare code block stood in the
+  // disclosure's rooms with its full line boxes and a copy control above its first line, and on
+  // a phone with the control's status pixel past the copy row's end.
+  test('L-57, L-65 and L-119 hold an example with its Code open, beside the code and above it', async () => {
+    const page = await open(1440, 'light', {}, 'field');
+    try {
+      for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        const code = page.locator('.tools details').first();
+        if (!(await code.evaluate((details) => /** @type {HTMLDetailsElement} */ (details).open)))
+          await code.locator('summary').click();
+        await code.locator('.sui-code-block').waitFor();
+        const findings = (await audit(page)).filter(({ law }) =>
+          ['L-57', 'L-65', 'L-119'].includes(law)
+        );
+        assert.equal(findings.length, 0, `${width}px\n${report(findings)}`);
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   // A decision callout or an unsaved row restates the default paint for the controls it holds,
   // so a disabled toned button there is right to wear that local paint. One audit of a small
   // page reads both laws.
