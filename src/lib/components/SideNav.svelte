@@ -694,11 +694,10 @@ following a row closes the drawer.
     padding-block-end: var(--sui-space-1);
   }
 
-  /* In the drawer the close centres on the place's title, the switch's lower line, as a
-     dialog's close does on its title (L-94): half the kicker's 10px line and gap under the
-     switch's middle. */
+  /* In the drawer the switch is the title, so the close centres on it, on one line with its
+     chevron: the heading's 8px lift leaves the row's middle 4px under the switch's. */
   .sui-side-nav-names:has(> .sui-side-nav-heading) > .sui-side-nav-close {
-    translate: 0 5px;
+    translate: 0 calc(-1 * var(--sui-space-1));
   }
 
   /* The badge's halo takes the switch's ground in every state, so it never shows the sidebar
@@ -848,7 +847,7 @@ following a row closes the drawer.
 
   /* Links under the places part from them by a hairline, as a menu parts its groups. */
   .sui-side-nav-place-links {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     margin-block-start: var(--sui-space-1);
     padding-block-start: var(--sui-space-1);
   }
@@ -890,7 +889,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-place:active {
-    background: var(--sui-row-pressed);
+    background: var(--sui-list-pressed);
     translate: 0 1px;
   }
 
@@ -914,6 +913,12 @@ following a row closes the drawer.
   .sui-side-nav-place-check {
     color: var(--sui-brand-action-text);
     inline-size: var(--sui-icon-base);
+  }
+
+  /* Only the current place holds its check, so another place's count ends on the rows' count
+     column instead of an empty slot's width inside it. */
+  .sui-side-nav-place-check:empty {
+    display: none;
   }
 
   /* The name trims to its cap band, as a menu item's does, so the row's padding centres it and
@@ -1317,6 +1322,15 @@ following a row closes the drawer.
 
     .sui-side-nav[data-collapsed] .sui-side-nav-heading {
       margin: 0;
+    }
+
+    /* The group hairline parts the place's tile from the pages, so it never reads as the
+       first page. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-switch)::after {
+      animation: none;
+      inline-size: var(--sui-space-6);
+      margin-inline: auto;
+      opacity: 1;
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-switch-glyph {
