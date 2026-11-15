@@ -2,7 +2,8 @@
   export const section = {
     title: 'Combobox',
     lead: 'A text field that suggests values as the reader types and commits one. A list short enough to read whole is a Select.',
-    components: ['Combobox']
+    components: ['Combobox'],
+    measure: '54rem'
   };
 </script>
 

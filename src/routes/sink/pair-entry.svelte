@@ -2,7 +2,8 @@
   export const section = {
     title: 'Pair Entry',
     lead: 'Keys and the values they map to as chips that edit in place, such as aliases and their commands. A list of single values is PatternEntries.',
-    components: ['PairEntry']
+    components: ['PairEntry'],
+    measure: '54rem'
   };
 </script>
 

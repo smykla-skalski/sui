@@ -3,7 +3,8 @@
     title: 'Theme Switch',
     short: 'Theme',
     lead: 'Light, dark or the system’s theme for the whole page, remembered for the next visit. Any other choice of a few options is a SegmentedControl.',
-    components: ['ThemeSwitch']
+    components: ['ThemeSwitch'],
+    measure: '36rem'
   };
 </script>
 

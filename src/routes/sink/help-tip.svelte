@@ -2,7 +2,8 @@
   export const section = {
     title: 'Help Tip',
     lead: 'A small mark beside a label that holds one short explanation. Anything longer, or anything the reader must act on, belongs on the page.',
-    components: ['HelpTip']
+    components: ['HelpTip'],
+    measure: '26rem'
   };
 </script>
 

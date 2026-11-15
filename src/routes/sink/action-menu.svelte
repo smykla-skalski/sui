@@ -3,7 +3,8 @@
     title: 'Action Menu',
     short: 'Menu',
     lead: 'A menu of acts behind one trigger, with a destructive act last. A place to go is a link on the page, never a menu item.',
-    components: ['ActionMenu']
+    components: ['ActionMenu'],
+    measure: '54rem'
   };
 </script>
 

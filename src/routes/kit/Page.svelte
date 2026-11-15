@@ -9,6 +9,7 @@
     description,
     eyebrow,
     sourced = false,
+    measure,
     children
   }: {
     title: string;
@@ -17,6 +18,9 @@
     /** A component's own page: the audit stands under its examples with its result, and not
      * over them, so nothing competes with the first specimen. */
     sourced?: boolean;
+    /** The widest frame's content measure, when every example keeps one: the column narrows
+     * to that frame and centres, so no stretch of the column stands empty at its end. */
+    measure?: string;
     children: Snippet;
   } = $props();
 
@@ -50,7 +54,10 @@
      says its result beside its action and adds a list only when a law breaks, so a page that
      holds draws nothing more: in the header on an overview, under the examples on a component's
      own page. -->
-<div class={['sink', { sourced }]}>
+<div
+  class={['sink', { sourced }]}
+  style:--sink-max={measure && `calc(${measure} + 2 * var(--sui-stroke) + 2 * var(--sink-gutter))`}
+>
   <PageHeader
     class="head"
     {eyebrow}
@@ -88,7 +95,7 @@
   .sink > :global(.head) {
     --sui-local-head-inset: max(
       var(--sink-gutter),
-      calc((100cqi - var(--sui-content-max)) / 2 + var(--sink-gutter))
+      calc((100cqi - var(--sink-max, var(--sui-content-max))) / 2 + var(--sink-gutter))
     );
 
     /* A phone's header stands its side inset from the top and foot as well, on whole pixels so
@@ -107,7 +114,7 @@
   main {
     box-sizing: border-box;
     margin-inline: auto;
-    max-inline-size: var(--sui-content-max);
+    max-inline-size: var(--sink-max, var(--sui-content-max));
     min-inline-size: 0;
     padding: 0 var(--sink-gutter) var(--sui-space-8);
   }

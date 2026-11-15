@@ -953,6 +953,33 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test('a page whose examples keep a measure centres one column that ends where its widest frame ends', async () => {
+    // Field's widest frames keep 54rem, under the 70rem content column, so a column left at
+    // 70rem leaves its foot hairline running 16rem past every example.
+    const page = await open(1440, 'light', {}, 'field');
+    try {
+      const found = await page.evaluate(() => {
+        const main = /** @type {Element} */ (document.querySelector('main'));
+        const pane = /** @type {Element} */ (main.parentElement);
+        const frames = [...main.querySelectorAll('.frame')].map((frame) =>
+          frame.getBoundingClientRect()
+        );
+        const foot = /** @type {Element} */ (main.querySelector('.audit')).getBoundingClientRect();
+        const box = pane.getBoundingClientRect();
+        return {
+          start: Math.min(...frames.map((frame) => frame.left)) - foot.left,
+          end: Math.max(...frames.map((frame) => frame.right)) - foot.right,
+          centre: foot.left - box.left - (box.right - foot.right)
+        };
+      });
+      assert.ok(Math.abs(found.start) <= 0.5, `the frames start ${found.start}px off the foot`);
+      assert.ok(Math.abs(found.end) <= 0.5, `the widest frame ends ${found.end}px off the foot`);
+      assert.ok(Math.abs(found.centre) <= 1, `the column stands ${found.centre}px off centre`);
+    } finally {
+      await page.close();
+    }
+  });
+
   test("L-56 a callout's actions on a line of their own start where its words start", async () => {
     const page = await open(375, 'light', {}, 'callout');
     try {

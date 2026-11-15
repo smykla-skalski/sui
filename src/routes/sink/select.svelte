@@ -2,7 +2,8 @@
   export const section = {
     title: 'Select',
     lead: 'One value from 6 or more options. A SegmentedControl holds 2 to 5 that fit, and a list the reader searches is a Combobox.',
-    components: ['Select']
+    components: ['Select'],
+    measure: '54rem'
   };
 </script>
 

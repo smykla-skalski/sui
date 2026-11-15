@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A kit page whose examples all keep a measure, such as Field's 54rem, centres one column at its widest frame, so its header words, examples and foot hairline end on one edge and no empty stretch stands at the column's end.
 - A `SideNav` keeps its foot controls 16px under the foot hairline at every height, and the room the row cut leaves falls under them at the sidebar's foot, where it opened a gap between the hairline and the controls.
 - A `Rail` standing as its own column draws its foot hairline at every width, where it drew it only beside a pages foot from 64rem, so at 900px and in the phone drawer Settings still stands apart from the places.
 - A block `Disclosure` stands its hint under its words at every width, where it set the hint beside them while both fit, so one disclosure keeps one shape in a wide column, an aside and a phone alike; inline help still keeps its hint beside its words while both fit.

@@ -3,7 +3,8 @@
     title: 'Pattern Entries',
     short: 'Pattern',
     lead: 'An editable list of patterns, such as branches or paths to leave alone. A key that maps to a value is a PairEntry.',
-    components: ['PatternEntries']
+    components: ['PatternEntries'],
+    measure: '54rem'
   };
 </script>
 

@@ -2,7 +2,8 @@
   export const section = {
     title: 'Modal',
     lead: 'A task the reader must finish or abandon before using the page again. Reading belongs on a page or in a panel.',
-    components: ['Modal']
+    components: ['Modal'],
+    measure: '49rem'
   };
 </script>
 

@@ -2,7 +2,8 @@
   export const section = {
     title: 'Toaster',
     lead: 'A toast says what just happened, with at most one way back such as Undo. Unsaved work belongs in a SaveBar.',
-    components: ['Toaster']
+    components: ['Toaster'],
+    measure: 'calc(52.5rem + 2 * var(--sui-stroke))'
   };
 </script>
 

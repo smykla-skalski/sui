@@ -2,7 +2,8 @@
   export const section = {
     title: 'Field',
     lead: 'A label, its control and the help and error under it, for one value in a form. A group of choices names itself with a legend and needs no Field.',
-    components: ['Field']
+    components: ['Field'],
+    measure: '54rem'
   };
 </script>
 
