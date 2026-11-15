@@ -118,7 +118,7 @@ export function placedAt(floating: HTMLElement): { left: number; top: number } |
   return { left: left - scrollX, top: top - scrollY };
 }
 
-/** The inline sides, for a box beside a vertical column such as a rail. Same flip and clamp. */
+/** The inline sides, for a box beside a vertical column such as a folded sidebar. Same flip and clamp. */
 function beside(
   floating: HTMLElement,
   a: DOMRect,

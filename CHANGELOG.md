@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Breaking: `Rail` is gone, and with it `AppShell`'s `rail` and `bottomNav` props and the `--sui-rail-width` token. The column of tiles beside the sidebar drew a second navigation column for a choice the reader makes rarely. `SideNav` takes `places`, `place` and `placeLinks` instead: its kicker and title become a switch, the place's glyph on a neutral plate with an up-and-down chevron, that opens a list of the places, each with its count and a check on the current one, and links such as settings under a hairline. A count waiting in another place rides the plate's corner. Folded, the switch is the strip's top tile, and in the phone drawer it heads the drawer.
 - A `FactLine` dot draws alike in both themes, near 5:1 on its ground: on a 1x screen it is square, where a 2px circle blurred the light dot to 3.3:1, and on dark it takes 70% of the muted ink, where it drew 6.8:1 and was the loudest mark on the line.
 - A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
 - The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.

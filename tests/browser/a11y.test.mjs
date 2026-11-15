@@ -122,7 +122,6 @@ suite('accessibility', together, () => {
   // its bars are measured at the window's width, as an app draws them.
   const layouts = [
     'layouts/app-shell/',
-    'layouts/app-shell/bottom-nav/',
     'layouts/list-detail/',
     'layouts/list-detail/4182/',
     'layouts/detail-pane/',

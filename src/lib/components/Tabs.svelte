@@ -76,7 +76,7 @@ address, reach for `SegmentedControl` instead.
 
 The current tab stands on a 2px accent bar under its label and count, which covers the
 track's line and holds 3:1 on the page, with primary ink at semibold and `aria-current="page"`.
-The other tabs are muted at the regular weight, as in `SideNav`, `Rail` and `PageToc`, so the
+The other tabs are muted at the regular weight, as in `SideNav` and `PageToc`, so the
 words tell the current tab apart as well as the bar, never colour alone, and the bar is
 `Highlight` under forced colors. Each label keeps the room its semibold form needs, so the row
 never shifts when the current tab changes. A count rides its label in tabular figures.

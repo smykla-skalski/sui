@@ -17,9 +17,7 @@ export { default as VisuallyHidden } from './components/VisuallyHidden.svelte';
 
 export { default as AppShell } from './components/AppShell.svelte';
 export { default as SideNav } from './components/SideNav.svelte';
-export type { NavItem, NavSection } from './components/SideNav.svelte';
-export { default as Rail } from './components/Rail.svelte';
-export type { RailItem } from './components/Rail.svelte';
+export type { NavItem, NavPlace, NavSection } from './components/SideNav.svelte';
 export type { ShellMode } from './internal/shell.svelte.js';
 
 export { default as Field } from './components/Field.svelte';

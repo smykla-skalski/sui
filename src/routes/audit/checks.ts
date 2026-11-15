@@ -541,11 +541,11 @@ function palette(): Finding[] {
       3
     )
   );
-  const rail = t('sidebar-bg');
-  if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
+  const sidebar = t('sidebar-bg');
+  if (deltaE(t('sidebar-active-bg'), sidebar) < deltaE(t('sidebar-item-pressed'), sidebar))
     found.push(finding('L-85', null, 'the current row is quieter than a pressed row'));
-  if (deltaE(t('sidebar-place-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
-    found.push(finding('L-85', null, "a rail's place is quieter than a pressed row"));
+  if (deltaE(t('sidebar-place-bg'), sidebar) < deltaE(t('sidebar-item-pressed'), sidebar))
+    found.push(finding('L-85', null, "a side nav's place mark is quieter than a pressed row"));
 
   for (let index = 1; index <= 5; index++)
     found.push(
@@ -2528,7 +2528,7 @@ function ringsOnPlates(root: Document): Finding[] {
  */
 function currentMarks(root: Document): Finding[] {
   const found: Finding[] = [];
-  const rows = '.sui-side-nav-row, .sui-rail-tile, .sui-page-toc-link, .sui-tabs-tab';
+  const rows = '.sui-side-nav-row, .sui-page-toc-link, .sui-tabs-tab';
   // What a row says: the box of its first words a sighted reader sees, past any hidden badge.
   const words = (row: Element): Element => {
     const walker = root.createTreeWalker(row, NodeFilter.SHOW_TEXT);

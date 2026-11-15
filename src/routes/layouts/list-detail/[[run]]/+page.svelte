@@ -14,14 +14,13 @@
     ObjectRow,
     PageHeader,
     Pill,
-    Rail,
     Section,
     SideNav,
     SkipLink,
     type Fact,
     type NavSection,
     type PillTone,
-    type RailItem
+    type NavPlace
   } from '#lib';
 
   type Run = {
@@ -118,12 +117,12 @@
     }
   ];
 
-  const places: RailItem[] = [
+  const places: NavPlace[] = [
     { label: 'Acme', icon: 'organization' },
     { label: 'Personal', icon: 'user' }
   ];
 
-  const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
+  const placeLinks: NavPlace[] = [{ label: 'Settings', icon: 'settings' }];
 
   const headline = (run: Run): Fact[] => [
     { label: 'Branch', value: run.branch, mono: true },
@@ -195,11 +194,19 @@
   landmark="none"
   label="Workspace navigation"
 >
-  {#snippet rail()}
-    <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-  {/snippet}
   {#snippet sidebar()}
-    <SideNav kicker="Workspace" title="Acme" sections={nav} current={runsHref} />
+    <SideNav
+      kicker="Workspace"
+      title={place}
+      {places}
+      {place}
+      {placeLinks}
+      onplace={(_, item) => {
+        if (places.includes(item)) place = item.label;
+      }}
+      sections={nav}
+      current={runsHref}
+    />
   {/snippet}
 
   <!-- ListDetail moves focus to the run it opens and back to its row, and keeps each pane's
