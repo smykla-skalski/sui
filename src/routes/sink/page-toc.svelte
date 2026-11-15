@@ -76,7 +76,7 @@
         </div>
       </section>
       <Disclosure summary="Older Changes">
-        <section id="toc-history" class="part">
+        <section id="toc-history" class="part closing">
           <h4>History</h4>
           <div class="text">
             <p class="copy">The rules were last changed 12&nbsp;days ago</p>
@@ -146,6 +146,15 @@
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* A section that closes the disclosure ends on its last baseline, as words the disclosure
+     holds directly do (L-57). */
+  .closing > .text > .copy:last-child {
+    align-content: end;
+    block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   /* The article reads in the primary ink, under a section's quieter one-line description. */

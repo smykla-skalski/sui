@@ -332,8 +332,10 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     padding-inline-end: 0;
   }
 
+  /* Beside the lines the control adds no room under itself, and the lines keep their own
+     height, so a one-line block still ends on its baseline. */
   .bare:not(.labelled) .sui-code-block-copy {
-    padding-block-start: 0;
+    padding-block: 0;
   }
 
   .sui-code-block-scroll {
@@ -359,6 +361,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     --sui-local-code-room-start: 0px;
     --sui-local-code-room-end: 0px;
     --sui-local-code-under-baseline: round(calc(0.5lh - 0.36em), 1px);
+    align-self: start;
     margin-block-end: calc(-1 * var(--sui-local-code-under-baseline));
   }
 
@@ -471,7 +474,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
       flex-basis: 100%;
       flex-wrap: wrap;
       order: -1;
-      padding-block-start: var(--sui-space-2);
+      padding-block: var(--sui-space-2);
     }
 
     .bare .sui-code-block-lang {
