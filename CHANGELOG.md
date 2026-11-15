@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Rail` drawn as a phone's bottom bar sets its glyphs at 20px, a step over the rail's 18px, as a phone's own tab bar draws them, since a bar is read at a thumb's distance; the labels and the 44px tiles stay.
 - A `Timeline` sets a clock time half a pixel under the words beside it, 13.5px against 14px (`--sui-font-size-meta-mono`), as a typed mono value stands, so the mono face's taller x-height no longer reads a size over the words.
 - On dark, a pressed side nav row mixes 9% white into the sidebar ground, where it mixed 9.5%, so on the lighter surface-base ground a press still stands a clear step short of the current plate.
 - A `SideNav` folded into a strip that stands alone sets its kicker at the 13px caption size, a step over its 12px labels, so the strip's one name heads them.

@@ -98,7 +98,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 - Keyboard: Tab moves through the tiles in order, and Enter follows a link or presses a button.
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
-- Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row, 8px under the bar's top and over its foot.
+- Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row, 8px under the bar's top and over its foot, their glyphs at 20px, a step over the rail's 18px.
 - Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
@@ -539,6 +539,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     /* Tiles in a row meet, so a narrow phone gives each label the whole tile. */
     .sui-rail[data-bar] .sui-rail-tile {
       padding-inline: 0;
+    }
+
+    /* A bar is read at a thumb's distance, so its glyphs stand a step over the rail's 18px,
+       as a phone's own tab bar draws them, while the labels keep the rail's size. */
+    .sui-rail[data-bar] .sui-rail-glyph {
+      --sui-icon-md: round(1.25rem, 1px);
     }
   }
 
