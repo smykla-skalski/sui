@@ -323,6 +323,7 @@ a saving pane around it holds it the same way.
                 >
                 <input
                   class="sui-pattern-input"
+                  id="{uid}-entry-{index}"
                   dir="ltr"
                   value={pattern}
                   aria-label={entryLabel(index + 1)}

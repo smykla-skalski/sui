@@ -36,6 +36,9 @@
     /** Layout for the call site only, on the whole field. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & Omit<HTMLTextareaAttributes, 'value' | 'readonly' | 'class' | 'children'> = $props();
+  // Chrome asks every form field for an id or a name, so a field the caller names only by
+  // `aria-label` still has one.
+  const uid = $props.id();
 
   let input = $state<HTMLTextAreaElement | null>(null);
   // A press places the caret or selects a word itself; a select-all on its focus would be
@@ -91,7 +94,7 @@ names the text field.
         <textarea
           bind:this={input}
           {...rest}
-          id={control?.id ?? rest.id}
+          id={control?.id ?? rest.id ?? uid}
           aria-describedby={control?.describedby ?? rest['aria-describedby']}
           class="sui-copyable-link-value"
           {value}

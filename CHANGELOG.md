@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A `Select` draws its options outside a group first and its groups after them, and leaves no empty text node beside an option, which Chrome reported as content a customizable select must not hold.
+- `Select`, `TextInput`, `Textarea` and `CopyableLinkField` give their field a generated `id` when the caller passes none, and each `PatternEntries` input has its own, so Chrome no longer reports a form field with no `id` or `name`.
+- An `Avatar` picture loads at low priority, not lazily, because Chrome reports a lazy image that has no size before it loads, and a picture that fails must still take no room.
+
 - A `bare` `CodeBlock` starts at its copy control's edge and ends on its last line's baseline, as trimmed words do, so a kit example's open Code stands its first ink 8px under the summary and its last as far above the foot as the summary's words stand under the top; on a phone its copy row's room stands in the host's, and the control's status pixel no longer stands past the row's end.
 - The law audit holds a page under a browser zoom or display scale where a CSS pixel is not a whole number of device pixels, as at 125% on a 2x screen. Chrome draws a 1px border 0.8px there, so L-95 takes what each hairline gives up as its step, L-9 lets a field's 1px recess stand under its narrower frame, and L-63 lets a Load More row's words move by what its list's hairlines gave up, where the audit reported every such box, field and row.
 - A one-line `bare` `CodeBlock` keeps its own height beside the copy control, which adds no room under itself there, so the line still ends the block on its baseline, where the scroller stretched 17px past it. The Page Index specimen ends its folded History on its last baseline too, so the open disclosure keeps its foot as far under the words as its top stands over the summary (L-57, L-65).

@@ -1443,13 +1443,10 @@ suite('the kitchen sink', together, () => {
       // so a shot is only a fair witness of an avatar standing on whole pixels.
       const x = (await avatar.boundingBox())?.x ?? 0;
       if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
-      // A lazy picture may not have started when decode() settles on a busy page, so it
-      // loads now and the shot waits for it to fail or draw, and for the faces.
+      // The shot waits for each picture to fail or draw, and for the faces.
       for (const img of await avatar.locator('img').all())
         await img.evaluate(async (node) => {
-          const picture = /** @type {HTMLImageElement} */ (node);
-          picture.loading = 'eager';
-          await picture.decode().catch(() => {});
+          await /** @type {HTMLImageElement} */ (node).decode().catch(() => {});
           await document.fonts.ready;
         });
       return { avatar, shot: await settled(page, avatar) };
