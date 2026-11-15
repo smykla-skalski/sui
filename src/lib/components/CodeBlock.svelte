@@ -326,15 +326,16 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   /* A bare block's host insets it, so the control ends on that inset, as the code starts on it.
-     With no file name it still centres on the first line, which then starts at the block's top;
-     in a file name's row it centres on the row. */
+     With no file name it stands at the block's top and the first line centres on it; in a file
+     name's row it centres on the row. */
   .bare .sui-code-block-copy {
     padding-inline-end: 0;
   }
 
+  /* Beside the lines the control adds no room under itself, and the lines keep their own
+     height, so a one-line block still ends on its baseline. */
   .bare:not(.labelled) .sui-code-block-copy {
-    margin-block-start: calc((var(--sui-leading-meta) - var(--sui-tier-quiet)) / 2);
-    padding-block-start: 0;
+    padding-block: 0;
   }
 
   .sui-code-block-scroll {
@@ -352,11 +353,20 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   /* A bare block's host gives the room above and below its lines, as it does for any content,
-     so its code stands where the host's words would. Under a file name the code keeps its room,
-     so it never meets the line under the name. */
+     so its code stands where the host's words would: the block starts at its first ink, the
+     copy control's edge, and ends on its last line's baseline, as trimmed words do (L-57), from
+     the mono face's ascent and descent (1.02em, 0.3em). Under a file name the code keeps its
+     room, so it never meets the line under the name. */
   .bare:not(.labelled) .sui-code-block-scroll {
     --sui-local-code-room-start: 0px;
     --sui-local-code-room-end: 0px;
+    --sui-local-code-under-baseline: round(calc(0.5lh - 0.36em), 1px);
+    align-self: start;
+    margin-block-end: calc(-1 * var(--sui-local-code-under-baseline));
+  }
+
+  .bare:not(.labelled):has(> .sui-code-block-copy) > .sui-code-block-scroll {
+    margin-block-start: calc((var(--sui-tier-quiet) - var(--sui-leading-meta)) / 2);
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
@@ -448,18 +458,23 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
 
   /* A bare block, inset by its host as under a disclosure's words, keeps the control in a
      column beside its first line, and takes the row only on a phone, whose column is too
-     narrow to give the control a column beside every line. */
+     narrow to give the control a column beside every line. The row's room above the control
+     stands in the host's room, so the control is still the block's first ink. The name's end
+     margin sets the control at the row's end, so the control's status pixel keeps the row's
+     start and never stands past its end (L-119). */
   @media (max-width: 47.9375rem) {
+    .sui-code-block.bare:not(.labelled):has(> .sui-code-block-copy) {
+      margin-block-start: calc(-1 * var(--sui-space-2));
+    }
+
     .sui-code-block.bare:not(.labelled) > .sui-code-block-copy {
       align-items: baseline;
       box-sizing: border-box;
       column-gap: var(--sui-space-3);
       flex-basis: 100%;
       flex-wrap: wrap;
-      justify-content: flex-end;
-      margin-block-start: 0;
       order: -1;
-      padding-block-start: var(--sui-space-2);
+      padding-block: var(--sui-space-2);
     }
 
     .bare .sui-code-block-lang {
@@ -479,6 +494,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
       border-start-end-radius: 0;
       border-start-start-radius: 0;
       flex-basis: 100%;
+      margin-block-start: 0;
       --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
     }
   }

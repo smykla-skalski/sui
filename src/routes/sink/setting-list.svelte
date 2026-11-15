@@ -2,7 +2,8 @@
   export const section = {
     title: 'Setting List',
     lead: 'The settings of one section, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
-    components: ['SettingList', 'SettingRow']
+    components: ['SettingList', 'SettingRow'],
+    measure: '54rem'
   };
 </script>
 

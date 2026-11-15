@@ -3,7 +3,8 @@
     title: 'Search Field',
     short: 'Search',
     lead: 'A search that narrows what is already on screen. A value chosen from suggestions as the reader types is a Combobox.',
-    components: ['SearchField']
+    components: ['SearchField'],
+    measure: '54rem'
   };
 </script>
 

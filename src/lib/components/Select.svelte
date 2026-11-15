@@ -76,6 +76,9 @@
     /** Layout for the call site only, never the field's own paint. */
     class?: HTMLSelectAttributes['class'];
   } & Omit<HTMLSelectAttributes, 'value' | 'multiple' | 'size' | 'children' | 'class'> = $props();
+  // Chrome asks every form field for an id or a name, so a field the caller names only by
+  // `aria-label` still has one.
+  const uid = $props.id();
 
   const isGroup = (item: SelectOption<Value> | SelectGroup<Value>): item is SelectGroup<Value> =>
     'options' in item;
@@ -140,7 +143,12 @@
     else onkeydown?.(event);
   }
 
-  const flat = $derived(options.flatMap((item) => (isGroup(item) ? item.options : [item])));
+  /* Options outside a group come first and the groups after them. A block inside the select
+     that chose between the two per item left an empty text node beside each option it drew in
+     the browser, which Chrome reports as a text node a customizable select must not hold. */
+  const loose = $derived(options.filter((item): item is SelectOption<Value> => !isGroup(item)));
+  const groups = $derived(options.filter(isGroup));
+  const flat = $derived([...loose, ...groups.flatMap((group) => group.options)]);
   const chosen = $derived(flat.find((option) => option.value === value));
   const active = $derived.by(() => {
     if (!preview) return undefined;
@@ -168,7 +176,7 @@ error edge shows. `preview` draws an inert copy of the open picker under the fie
 assistive technology, because a native picker cannot be held open.
 
 - Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
-- Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
+- Content: six or more options with short labels and optional notes, in optional headed groups, which follow any options outside a group; disabled options stay in view.
 - States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (an off text field's well with no frame and muted words, at full strength); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker; a surface may keep the trigger drawn at 34px on a phone with `--sui-local-field-seat`, and a 44px hit area behind it still opens it, or it stays 44px tall in a browser that cannot open a select from script.
@@ -217,6 +225,7 @@ assistive technology, because a native picker cannot be held open.
     <select
       bind:this={element}
       {...rest}
+      id={rest.id ?? uid}
       {@attach refusals?.watch}
       class="sui-select-control"
       aria-invalid={wrong || undefined}
@@ -250,15 +259,12 @@ assistive technology, because a native picker cannot be held open.
           {/if}
         </option>
       {/if}
-      {#each options as item (item)}
-        {#if isGroup(item)}
-          <optgroup label={item.label} data-sui-theme={pickerTheme}>
-            <legend class="sui-select-heading">{item.label}</legend>
-            {#each item.options as option (option.value)}{@render choice(option)}{/each}
-          </optgroup>
-        {:else}
-          {@render choice(item)}
-        {/if}
+      {#each loose as option (option.value)}{@render choice(option)}{/each}
+      {#each groups as group (group)}
+        <optgroup label={group.label} data-sui-theme={pickerTheme}>
+          <legend class="sui-select-heading">{group.label}</legend>
+          {#each group.options as option (option.value)}{@render choice(option)}{/each}
+        </optgroup>
       {/each}
     </select>
     <span class="sui-select-chevron"><Icon name="chevron-down" size="base" /></span>
@@ -280,13 +286,10 @@ assistive technology, because a native picker cannot be held open.
       {#if prompt !== undefined && presumed.length > 0}
         <div class="sui-select-option" aria-disabled="true">{@render face(prompt)}</div>
       {/if}
-      {#each options as item (item)}
-        {#if isGroup(item)}
-          <div class="sui-select-heading">{item.label}</div>
-          {#each item.options as option (option.value)}{@render row(option)}{/each}
-        {:else}
-          {@render row(item)}
-        {/if}
+      {#each loose as option (option.value)}{@render row(option)}{/each}
+      {#each groups as group (group)}
+        <div class="sui-select-heading">{group.label}</div>
+        {#each group.options as option (option.value)}{@render row(option)}{/each}
       {/each}
     </div>
   </div>

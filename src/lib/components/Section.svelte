@@ -245,8 +245,10 @@ its words on the title's edge.
   }
 
   /* The seat's face only measures the cap; the actions take the control tier, so a link here
-     reads as a control and not as a second title. */
+     reads as a control and not as a second title. Such a link stands apart from any sentence,
+     so it rests with no line under it, as a link list's do (L-81). */
   .sui-section-actions {
+    --sui-local-link-rest-line: transparent;
     align-items: center;
     display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)

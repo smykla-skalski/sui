@@ -2,7 +2,8 @@
   export const section = {
     title: 'Switch',
     lead: 'A boolean that takes effect the moment it flips. A value that a later save writes is a Checkbox.',
-    components: ['Switch']
+    components: ['Switch'],
+    measure: '54rem'
   };
 </script>
 

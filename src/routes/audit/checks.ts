@@ -2455,8 +2455,21 @@ function unsavedVeils(root: Document): Finding[] {
  * ground in every state. A disabled field sits in the field well and a read-only one in its
  * lighter tint (L-10), no place to type, and draws none.
  */
+function selectOpen(field: Element): boolean {
+  if (!field.matches('.sui-select-control:not([aria-invalid="true"], :user-invalid)')) return false;
+  if (field.matches(':focus-visible')) return true;
+  // :open is a syntax error where the customizable select is not shipped.
+  try {
+    return field.matches(':open');
+  } catch {
+    return false;
+  }
+}
+
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
+  // Off the CSS pixel grid the border shrinks to whole device pixels and the shadow does not.
+  const shrink = (pixelStep(root) % 1) + 0.01;
   const frames =
     '.sui-text-input:not(.bare), .sui-textarea, .sui-select:not(.bare) .sui-select-control, .sui-joined';
   for (const field of audited(root, frames)) {
@@ -2470,7 +2483,10 @@ function fieldRecesses(root: Document): Finding[] {
         ].map(([length]) => parseFloat(length));
         return { color: shadow.match(/[a-z-]+\([^)]*\)/)?.[0], x, y, blur, spread };
       })
-      .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
+      .find(
+        ({ x, y, blur, spread }) =>
+          x === 0 && Math.abs(y - stroke) < shrink && blur === 0 && spread === 0
+      );
     const off = `.sui-joined.disabled, ${OFF_FIELD}`;
     const reads =
       '.sui-text-input[readonly]:not(:disabled, [data-open]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
@@ -2489,10 +2505,13 @@ function fieldRecesses(root: Document): Finding[] {
       continue;
     }
     const ground = paintedGround(field);
-    // A select copy is drawn open, so it is held to the open frame it draws.
+    // An open or focused select, and a select copy drawn open, wear the open frame, so the
+    // recess is held to that frame.
     const frame = rgba(
       look.getPropertyValue(
-        field.closest('.sui-select-preview') ? '--sui-field-frame-focus' : '--sui-field-frame'
+        field.closest('.sui-select-preview') || selectOpen(field)
+          ? '--sui-field-frame-focus'
+          : '--sui-field-frame'
       )
     );
     if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))
@@ -2774,13 +2793,13 @@ function symbolTiles(root: Document): Finding[] {
     const box = tile.getBoundingClientRect();
     const bare = tile.closest('.sui-callout.compact');
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
-    // A compact callout's symbol stands bare at 16px, on no tile.
+    // A compact callout's symbol stands bare at 18px, a full callout's size, on no tile.
     if (bare) {
       if (rgba(getComputedStyle(tile).backgroundColor).a > 0)
         found.push(finding('L-56', tile, "a compact callout's symbol stands on a tile"));
-      if (glyph && Math.abs(glyph.width - 16) > 0.5)
+      if (glyph && Math.abs(glyph.width - 18) > 0.5)
         found.push(
-          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 16px`)
+          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 18px`)
         );
       if (Math.abs(box.width - 2 * rem) > 0.5)
         found.push(
@@ -3053,13 +3072,30 @@ function leadingIcons(root: Document): Finding[] {
 }
 
 /**
+ * The step a box's size and place may take: the pixel, where a CSS pixel is a whole number of
+ * device pixels. Under a browser zoom or a display scale that gives it a fraction, Chrome lays
+ * boxes out on CSS pixels but draws each border on whole device pixels, a 1px border 0.8px at
+ * 125% on a 2x screen, so a box keeps whole pixels only less what each hairline in it gives up,
+ * and that loss is the step.
+ */
+function pixelStep(root: Document): number {
+  const probe = root.createElement('div');
+  probe.style.borderBlockStart = '1px solid';
+  root.body.append(probe);
+  const hairline = probe.getBoundingClientRect().height;
+  probe.remove();
+  return hairline < 0.99 ? 1 - hairline : 1;
+}
+
+/**
  * Whole pixels (L-95): no box is born with a fractional height. A box counts when its own
  * height is fractional while every box it holds is whole, so a fraction is reported where it
  * starts and not again in everything it pushes down. Moving and inline boxes are left out.
  */
 function wholePixels(root: Document): Finding[] {
   const found: Finding[] = [];
-  const fractional = (value: number) => Math.abs(value - Math.round(value)) > 0.02;
+  const step = pixelStep(root);
+  const fractional = (value: number) => Math.abs(value - Math.round(value / step) * step) > 0.02;
   const counted = new Map<Element, boolean>();
   const counts = (element: Element) => {
     let answer = counted.get(element);
@@ -3226,12 +3262,16 @@ function codeLines(root: Document): Finding[] {
       edge.bottom - spans.at(-1)!.bottom - parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
     const air = (row - first.height) / 2;
-    if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
+    // A bare block's host gives the room at its ends, as it does for words, except under a
+    // phone's copy row, whose edge the first line keeps its air from.
+    const bare = block.matches('.bare:not(.labelled)');
+    const wants = bare ? [scroller.clientTop > 0 ? air : 0, 0] : [air, air];
+    if (gaps.some((gap, end) => Math.abs(gap - wants[end]) > 0.5))
       found.push(
         finding(
           'L-65',
           block,
-          `${gaps.map((gap) => round(gap)).join(' and ')}px of ground around its lines, not ${round(air)}px`
+          `${gaps.map((gap) => round(gap)).join(' and ')}px of ground around its lines, not ${wants.map((want) => round(want)).join(' and ')}px`
         )
       );
     const copy = block.querySelector(':scope > .sui-code-block-copy .sui-copy-button');
@@ -3405,6 +3445,7 @@ function rings(root: Document): Finding[] {
 // place, so there its box, not its ink, is what stands under the hairline.
 function loadMoreRows(root: Document): Finding[] {
   const found: Finding[] = [];
+  const step = pixelStep(root);
   for (const row of audited(root, '.sui-load-more')) {
     const list = row.previousElementSibling;
     const button = row.querySelector(':scope > button');
@@ -3433,7 +3474,16 @@ function loadMoreRows(root: Document): Finding[] {
     const line = list.getBoundingClientRect().bottom;
     const above = line - parseFloat(hairline.blockSize) - Math.max(...words);
     const below = Math.min(...tops) - line;
-    if (Math.abs(above - below) > 0.5)
+    // Off the CSS pixel grid each hairline in the list gives up part of a pixel, and the list's
+    // height, rounded up to the pixel (L-95), puts that loss under the last row's words.
+    const hairlines = [list, ...list.querySelectorAll('*')].reduce((sum, element) => {
+      const look = getComputedStyle(element);
+      return (
+        sum +
+        [look.borderTopWidth, look.borderBottomWidth].filter((w) => parseFloat(w) % 1 > 0.01).length
+      );
+    }, 0);
+    if (Math.abs(above - below) > 0.5 + hairlines * (step % 1))
       found.push(
         finding(
           'L-63',

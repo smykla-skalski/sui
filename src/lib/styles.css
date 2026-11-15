@@ -112,7 +112,7 @@
   --sui-primitive-diff-dark-chg: #0f2336;
   --sui-primitive-diff-dark-chg-word: #1b3c5d;
 
-  --sui-canvas: var(--sui-primitive-light-canvas);
+  --sui-canvas: var(--sui-surface-base);
   --sui-surface-base: var(--sui-primitive-light-surface);
   --sui-surface-raised: var(--sui-primitive-light-surface);
   --sui-surface-inset: var(--sui-primitive-light-inset);
@@ -272,7 +272,7 @@
   --sui-scrim: rgb(0 0 0 / 28%);
   --sui-scrim-blur: 2px;
 
-  --sui-sidebar-bg: var(--sui-canvas);
+  --sui-sidebar-bg: var(--sui-primitive-light-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
@@ -280,8 +280,7 @@
   --sui-sidebar-text-rest: color-mix(in srgb, var(--sui-text-primary) 30%, var(--sui-text-muted));
   --sui-sidebar-item-hover: color-mix(in srgb, var(--sui-text-primary) 6%, var(--sui-sidebar-bg));
   --sui-sidebar-item-pressed: color-mix(in srgb, var(--sui-text-primary) 9%, var(--sui-sidebar-bg));
-  /* The place's mark in a side nav's switch stands a step past a pressed row, on a neutral
-     plate, so the current page's accent plate stays the column's one accent (L-85). */
+  /* A side nav switch's place stands a step past a pressed row, on a neutral plate (L-85). */
   --sui-sidebar-place-bg: color-mix(in srgb, var(--sui-text-primary) 13%, var(--sui-sidebar-bg));
   /* The current plate stands a clear step past a pressed row's (L-85). */
   --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 18%, var(--sui-sidebar-bg));
@@ -480,6 +479,7 @@
   /* The mono face reads larger than the words' face at one size, so a typed technical value
      stands half a pixel under the words beside it, so its taller x-height matches theirs. */
   --sui-font-size-input-mono: 0.84375rem;
+  --sui-font-size-meta-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
   /* A state's title: a step over the body on a phone too (L-25). */
   --sui-font-size-state-title: var(--sui-font-size-title);
@@ -687,6 +687,8 @@
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
   --sui-segment-thumb: var(--sui-brand-action);
+  --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+  --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
@@ -717,7 +719,7 @@
 [data-sui-theme='dark'] {
   color-scheme: dark;
 
-  --sui-canvas: var(--sui-primitive-dark-canvas);
+  --sui-canvas: var(--sui-surface-base);
   --sui-surface-base: var(--sui-primitive-dark-surface);
   --sui-surface-raised: var(--sui-primitive-dark-raised);
   --sui-surface-inset: var(--sui-primitive-dark-inset);
@@ -838,14 +840,14 @@
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
   --sui-scrim: rgb(0 0 0 / 48%);
 
-  --sui-sidebar-bg: var(--sui-canvas);
+  --sui-sidebar-bg: var(--sui-primitive-dark-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
   --sui-sidebar-text: var(--sui-text-primary);
   --sui-sidebar-text-secondary: var(--sui-text-secondary);
   --sui-sidebar-text-muted: var(--sui-text-muted);
   --sui-sidebar-text-rest: var(--sui-text-muted);
   --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
-  --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
+  --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
   --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 13.5%, var(--sui-sidebar-bg));
   --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-text-current);
@@ -907,6 +909,8 @@
 
   --sui-segment-track: var(--sui-field-well);
   --sui-segment-thumb: var(--sui-brand-action);
+  --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+  --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
@@ -977,7 +981,7 @@
   :root:not([data-theme], [data-sui-theme]) {
     color-scheme: dark;
 
-    --sui-canvas: var(--sui-primitive-dark-canvas);
+    --sui-canvas: var(--sui-surface-base);
     --sui-surface-base: var(--sui-primitive-dark-surface);
     --sui-surface-raised: var(--sui-primitive-dark-raised);
     --sui-surface-inset: var(--sui-primitive-dark-inset);
@@ -1098,14 +1102,14 @@
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
     --sui-scrim: rgb(0 0 0 / 48%);
 
-    --sui-sidebar-bg: var(--sui-canvas);
+    --sui-sidebar-bg: var(--sui-primitive-dark-canvas);
     --sui-sidebar-border: var(--sui-border-subtle);
     --sui-sidebar-text: var(--sui-text-primary);
     --sui-sidebar-text-secondary: var(--sui-text-secondary);
     --sui-sidebar-text-muted: var(--sui-text-muted);
     --sui-sidebar-text-rest: var(--sui-text-muted);
     --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 6.8%, var(--sui-sidebar-bg));
-    --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9.5%, var(--sui-sidebar-bg));
+    --sui-sidebar-item-pressed: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
     --sui-sidebar-place-bg: color-mix(in srgb, #ffffff 13.5%, var(--sui-sidebar-bg));
     --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 30%, var(--sui-sidebar-bg));
     --sui-sidebar-active-ink: var(--sui-text-current);
@@ -1167,6 +1171,8 @@
 
     --sui-segment-track: var(--sui-field-well);
     --sui-segment-thumb: var(--sui-brand-action);
+    --sui-segment-thumb-hover: var(--sui-brand-action-hover);
+    --sui-segment-thumb-pressed: var(--sui-brand-action-pressed);
     --sui-segment-thumb-ink: var(--sui-on-brand-action);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
     --sui-segment-pressed: var(--sui-interactive-pressed);

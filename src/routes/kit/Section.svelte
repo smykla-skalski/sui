@@ -11,6 +11,9 @@
     lead: string;
     /** The library components the section shows, linked to their source. */
     components: string[];
+    /** The content measure of the widest frame, when every example keeps one, so the page's
+     * column, its header words and its foot end where its examples end. */
+    measure?: string;
   };
 
   export type SectionContext = {

@@ -2,7 +2,8 @@
   export const section = {
     title: 'Save Bar',
     lead: 'The one place a pane’s unsaved work is saved or thrown away. A setting that applies at once needs no bar.',
-    components: ['SaveBar']
+    components: ['SaveBar'],
+    measure: 'calc(50rem + 2 * var(--sui-space-6))'
   };
 </script>
 

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, suite, test } from 'node:test';
+import { chromium } from 'playwright-core';
 import {
   allSections,
   atRest,
@@ -39,11 +40,13 @@ suite('the kitchen sink', together, () => {
   /**
    * @param {number} width
    * @param {string} theme
-   * @param {import('playwright-core').BrowserContextOptions} [options]
+   * @param {import('playwright-core').BrowserContextOptions & { clock?: boolean }} [options]
+   *   `clock` installs the page clock before the load, so a test can run the page's timers on
    * @param {string} [section] a section's own page, for a test that reads only that section
    */
-  async function open(width, theme, options = {}, section) {
+  async function open(width, theme, { clock, ...options } = {}, section) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
+    if (clock) await page.clock.install();
     await visit(page, section ? new URL(`${section}/`, url).href : allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
@@ -252,6 +255,63 @@ suite('the kitchen sink', together, () => {
           }
         }
       );
+  });
+
+  // The audits above read every example's Code closed; open, its bare code block stood in the
+  // disclosure's rooms with its full line boxes and a copy control above its first line, and on
+  // a phone with the control's status pixel past the copy row's end.
+  test('L-57, L-65 and L-119 hold an example with its Code open, beside the code and above it', async () => {
+    const page = await open(1440, 'light', {}, 'field');
+    try {
+      for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        const code = page.locator('.tools details').first();
+        if (!(await code.evaluate((details) => /** @type {HTMLDetailsElement} */ (details).open)))
+          await code.locator('summary').click();
+        await code.locator('.sui-code-block').waitFor();
+        const findings = (await audit(page)).filter(({ law }) =>
+          ['L-57', 'L-65', 'L-119'].includes(law)
+        );
+        assert.equal(findings.length, 0, `${width}px\n${report(findings)}`);
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
+  // At 125% on a 2x screen Chrome draws a 1px border 0.8px, and the audit held every box with a
+  // hairline in it off the pixel grid, every field's 1px recess deeper than its frame, and a
+  // Load More row's words off its hairline by what the rows' borders gave up. The zoom is a
+  // profile's default, as a reader's browser keeps it; a device scale alone draws whole borders.
+  test('L-9, L-63 and L-95 hold a page under a browser zoom', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'sui-zoom-'));
+    mkdirSync(join(profile, 'Default'));
+    writeFileSync(
+      join(profile, 'Default', 'Preferences'),
+      JSON.stringify({ partition: { default_zoom_level: { x: Math.log(1.25) / Math.log(1.2) } } })
+    );
+    const zoomed = await chromium.launchPersistentContext(profile, {
+      channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome',
+      viewport: { width: 1800, height: 1125 },
+      deviceScaleFactor: 2,
+      colorScheme: 'dark',
+      serviceWorkers: 'block'
+    });
+    try {
+      const page = await zoomed.newPage();
+      assert.equal(await page.evaluate(() => devicePixelRatio), 2.5);
+      for (const section of ['buttons', 'field', 'load-more']) {
+        await visit(page, new URL(`${section}/`, url).href);
+        await page.waitForFunction(() => '__suiAudit' in window);
+        const findings = (await audit(page)).filter(({ law }) =>
+          ['L-9', 'L-63', 'L-95'].includes(law)
+        );
+        assert.equal(findings.length, 0, `${section}\n${report(findings)}`);
+      }
+    } finally {
+      await zoomed.close();
+      rmSync(profile, { recursive: true, force: true });
+    }
   });
 
   // A decision callout or an unsaved row restates the default paint for the controls it holds,
@@ -715,7 +775,7 @@ suite('the kitchen sink', together, () => {
     long,
     async () => {
       // Reduced motion also stops the spinners, whose boxes would otherwise turn between two reads.
-      const page = await open(1440, 'light', { reducedMotion: 'reduce' });
+      const page = await open(1440, 'light', { reducedMotion: 'reduce', clock: true });
       try {
         const moving = await page.evaluate(() => {
           const found = [];
@@ -747,6 +807,9 @@ suite('the kitchen sink', together, () => {
                 return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 2) / 2).join(',');
               })
           );
+        // A live skeleton turns slow 10s after the load, which a slow runner reached between the
+        // two themes' reads, so its timer runs out before either.
+        await page.clock.runFor(10_000);
         // Also the widths whose dark audit was dropped on the strength of this check.
         for (const width of [1440, 768, 320]) {
           await page.setViewportSize({ width, height: 900 });
@@ -922,8 +985,8 @@ suite('the kitchen sink', together, () => {
     assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
   });
 
-  test("L-57 a disclosure's hint follows the words on their line only when both fit", async () => {
-    const page = await open(375, 'light', {}, 'disclosure');
+  test("L-57 a block disclosure's hint stands under its words even where both fit one line", async () => {
+    const page = await open(1440, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
         ['Skipped Repositories', 'More About This Sync'].map((name) => {
@@ -945,9 +1008,36 @@ suite('the kitchen sink', together, () => {
         })
       );
       assert.deepEqual(placed, [
-        { lines: 1, beside: true, under: false },
+        { lines: 1, beside: false, under: true },
         { lines: 1, beside: false, under: true }
       ]);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a page whose examples keep a measure centres one column that ends where its widest frame ends', async () => {
+    // Field's widest frames keep 54rem, under the 70rem content column, so a column left at
+    // 70rem leaves its foot hairline running 16rem past every example.
+    const page = await open(1440, 'light', {}, 'field');
+    try {
+      const found = await page.evaluate(() => {
+        const main = /** @type {Element} */ (document.querySelector('main'));
+        const pane = /** @type {Element} */ (main.parentElement);
+        const frames = [...main.querySelectorAll('.frame')].map((frame) =>
+          frame.getBoundingClientRect()
+        );
+        const foot = /** @type {Element} */ (main.querySelector('.audit')).getBoundingClientRect();
+        const box = pane.getBoundingClientRect();
+        return {
+          start: Math.min(...frames.map((frame) => frame.left)) - foot.left,
+          end: Math.max(...frames.map((frame) => frame.right)) - foot.right,
+          centre: foot.left - box.left - (box.right - foot.right)
+        };
+      });
+      assert.ok(Math.abs(found.start) <= 0.5, `the frames start ${found.start}px off the foot`);
+      assert.ok(Math.abs(found.end) <= 0.5, `the widest frame ends ${found.end}px off the foot`);
+      assert.ok(Math.abs(found.centre) <= 1, `the column stands ${found.centre}px off centre`);
     } finally {
       await page.close();
     }
@@ -1353,13 +1443,10 @@ suite('the kitchen sink', together, () => {
       // so a shot is only a fair witness of an avatar standing on whole pixels.
       const x = (await avatar.boundingBox())?.x ?? 0;
       if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
-      // A lazy picture may not have started when decode() settles on a busy page, so it
-      // loads now and the shot waits for it to fail or draw, and for the faces.
+      // The shot waits for each picture to fail or draw, and for the faces.
       for (const img of await avatar.locator('img').all())
         await img.evaluate(async (node) => {
-          const picture = /** @type {HTMLImageElement} */ (node);
-          picture.loading = 'eager';
-          await picture.decode().catch(() => {});
+          await /** @type {HTMLImageElement} */ (node).decode().catch(() => {});
           await document.fonts.ready;
         });
       return { avatar, shot: await settled(page, avatar) };

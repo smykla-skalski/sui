@@ -2,7 +2,8 @@
   export const section = {
     title: 'Textarea',
     lead: 'The one multi-line field, for words a person writes, such as a reason or a note. A single line is a TextInput.',
-    components: ['Textarea']
+    components: ['Textarea'],
+    measure: '54rem'
   };
 </script>
 

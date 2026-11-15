@@ -8,14 +8,22 @@ const REPOSITORY = 'https://github.com/smykla-skalski/sui';
 /** The preview a path is in: `/pr-<number>`, or '' for main at the root. */
 export const previewOf = (pathname: string) => /^\/pr-\d+(?=\/|$)/.exec(pathname)?.[0] ?? '';
 
-/** The picker's choices, main and then the pull requests newest first, or none while no pull request has a preview. */
+/**
+ * The picker's choices, main and then the pull requests newest first, or none while no pull
+ * request has a preview. A pull request's title is its note, which the open list shows after its
+ * number, so the closed field holds the number whole in the sidebar's narrow head.
+ */
 export function previewOptions(previews: readonly Preview[]) {
   if (!previews.length) return [];
   return [
     { value: '', label: 'main' },
     ...previews
       .toSorted((a, b) => b.number - a.number)
-      .map(({ number, title }) => ({ value: `/pr-${number}`, label: `#${number} ${title}` }))
+      .map(({ number, title }) => ({
+        value: `/pr-${number}`,
+        label: `#${number}`,
+        description: title
+      }))
   ];
 }
 

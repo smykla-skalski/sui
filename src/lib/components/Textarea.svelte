@@ -24,6 +24,9 @@
     element?: HTMLTextAreaElement | null;
     class?: HTMLTextareaAttributes['class'];
   } & Omit<HTMLTextareaAttributes, 'value'> = $props();
+  // Chrome asks every form field for an id or a name, so a field the caller names only by
+  // `aria-label` still has one.
+  const uid = $props.id();
 
   const refusals = getRefusals();
 
@@ -80,6 +83,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   spellcheck={mono ? false : undefined}
   autocapitalize={mono ? 'off' : undefined}
   {...rest}
+  id={rest.id ?? uid}
   onkeydown={keydown}
   disabled={rest.disabled || holding === 'firm'}
   readonly={readonly || holding !== null}

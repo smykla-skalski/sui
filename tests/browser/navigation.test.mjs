@@ -197,6 +197,43 @@ suite('navigation', together, () => {
       }
     );
 
+    test('L-88 every page of the kit keeps one line in its folded strip', long, async () => {
+      const page = await openLayout('./', 1440);
+      try {
+        await page.locator('.sui-side-nav-fold').click();
+        const wrapped = await page.evaluate(() => {
+          const rows = [...document.querySelectorAll('.sui-side-nav-rows .sui-side-nav-row')];
+          const heights = rows.map((row) => row.getBoundingClientRect().height);
+          const pitch = Math.min(...heights);
+          return rows
+            .filter((_, i) => heights[i] - pitch > 1)
+            .map((row) => row.textContent?.trim().replace(/\s+/g, ' '));
+        });
+        assert.deepEqual(wrapped, [], 'a strip label wraps: give its page a short');
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a phone menu marks a place waiting behind it', long, async () => {
+      /** @type {[string, boolean][]} */
+      const pages = [
+        ['layouts/app-shell/', true],
+        ['layouts/detail-pane/', false]
+      ];
+      for (const [path, marked] of pages) {
+        const page = await openLayout(path, 390);
+        try {
+          const dot = await page
+            .locator('.sui-shell-menu-glyph')
+            .evaluate((glyph) => getComputedStyle(glyph, '::after').content);
+          assert.equal(dot !== 'none', marked, `${path} menu dot`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
     test(
       'a row followed in the phone drawer closes it and hands focus to the menu button',
       long,
@@ -377,26 +414,35 @@ suite('navigation', together, () => {
     }
   });
 
-  test("the shell demo lays its list to the header band's gutter on a 1440px pane", async () => {
-    const page = await openLayout('layouts/app-shell/', 1440);
-    try {
-      // A pane past 72rem centres the column, so the band's words end at its end padding.
-      const [list, words] = await page.evaluate(() => {
-        const band = /** @type {Element} */ (document.querySelector('main .sui-page-header'));
-        return [
-          /** @type {Element} */ (
-            document.querySelector('main .sui-object-list')
-          ).getBoundingClientRect().right,
-          band.getBoundingClientRect().right - parseFloat(getComputedStyle(band).paddingInlineEnd)
-        ];
-      });
-      assert.ok(
-        Math.abs(words - list) <= 0.5,
-        `the list ends at ${list}, the band's words at ${words}`
-      );
-    } finally {
-      await page.close();
-    }
+  test("the shell demo ends its list on a detail pane's main column, its start on the header's words", async () => {
+    const edges = async (/** @type {string} */ path, /** @type {string} */ part) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(
+          ([part]) => {
+            const box = /** @type {Element} */ (
+              document.querySelector(part)
+            ).getBoundingClientRect();
+            const words = /** @type {Element} */ (
+              document.querySelector('main .sui-page-header h1')
+            ).getBoundingClientRect();
+            return [box.left - words.left, box.right];
+          },
+          [part]
+        );
+      } finally {
+        await page.close();
+      }
+    };
+    const [overview, detail] = [
+      await edges('layouts/app-shell/', 'main .sui-object-list'),
+      await edges('layouts/detail-pane/', 'main .sui-callout')
+    ];
+    assert.ok(Math.abs(overview[0]) <= 0.5, `the list starts ${overview[0]}px off the title`);
+    assert.ok(
+      Math.abs(overview[1] - detail[1]) <= 0.5,
+      `the list ends at ${overview[1]}, the detail's main column at ${detail[1]}`
+    );
   });
 
   test('a one-figure count is a circle, and a longer one a pill as tall', async () => {
@@ -852,6 +898,63 @@ suite('navigation', together, () => {
     assert.ok(
       Math.abs(loaded - loading) <= 2,
       `the properties span ${loaded}px where their placeholders spanned ${loading}px`
+    );
+  });
+
+  test("a detail pane's waiting header draws a bar as long as each line of its description", async () => {
+    for (const width of [1440, 390]) {
+      const lines = async (/** @type {string} */ path) => {
+        const page = await openLayout(path, width);
+        try {
+          return await page.evaluate(() => {
+            const header = /** @type {Element} */ (document.querySelector('main .sui-page-header'));
+            const words = header.querySelector('.sui-page-header-description');
+            if (!words)
+              return [...header.querySelectorAll('.bar')]
+                .filter((bar) => bar.checkVisibility())
+                .map((bar) => bar.getBoundingClientRect().width);
+            const range = document.createRange();
+            range.selectNodeContents(words);
+            return [...range.getClientRects()].map((line) => line.width);
+          });
+        } finally {
+          await page.close();
+        }
+      };
+      const loaded = await lines('layouts/detail-pane/');
+      const waiting = (await lines('layouts/detail-pane/loading/')).slice(0, loaded.length);
+      for (const [index, line] of loaded.entries())
+        assert.ok(
+          Math.abs(line - waiting[index]) <= 2,
+          `at ${width}px line ${index + 1} is ${line}px and its bar ${waiting[index]}px`
+        );
+    }
+  });
+
+  test("a detail pane's waiting notice holds its button's box where the button will stand", async () => {
+    const box = async (
+      /** @type {string} */ path,
+      /** @type {string} */ frame,
+      /** @type {string} */ action
+    ) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(
+          ([frame, action]) => {
+            const outer = /** @type {Element} */ (document.querySelector(frame));
+            const inner = /** @type {Element} */ (outer.querySelector(action));
+            const [o, i] = [outer.getBoundingClientRect(), inner.getBoundingClientRect()];
+            return [i.top - o.top, o.right - i.right, i.width, i.height];
+          },
+          [frame, action]
+        );
+      } finally {
+        await page.close();
+      }
+    };
+    assert.deepEqual(
+      await box('layouts/detail-pane/loading/', '.notice', '.press.beside'),
+      await box('layouts/detail-pane/', '.sui-callout', '.sui-button')
     );
   });
 
@@ -2147,7 +2250,7 @@ suite('navigation', together, () => {
 
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each side of them a gap clear (L-107)',
+      'the side nav parts its title from rows scrolled under it and the part under its rows by hairlines, cuts its rows cleanly at both and at rest only between rows, and rests each side of them a gap clear (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -2169,12 +2272,18 @@ suite('navigation', together, () => {
             const rule = () => getComputedStyle(head, '::after');
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
+            const cut = [...list.querySelectorAll('.sui-side-nav-group, li')]
+              .map((part) => part.getBoundingClientRect())
+              .filter((part) => part.top < box().bottom && part.bottom > box().bottom + 0.5)
+              .map((part) => [part.top, part.bottom]);
             const more = shadow();
             const resting = rule().opacity;
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
             return {
               scrolls: tree.scrollHeight - tree.clientHeight,
+              cut,
+              slack: parseFloat(getComputedStyle(next).getPropertyValue('--sui-local-slack')) || 0,
               top,
               bottom,
               underHead: box().top - head.getBoundingClientRect().bottom,
@@ -2192,6 +2301,7 @@ suite('navigation', together, () => {
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
+          assert.deepEqual(found.cut, [], 'at rest the hairline under the rows cuts through a row');
           assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
           assert.deepEqual(
             found.shadows,
@@ -2223,7 +2333,7 @@ suite('navigation', together, () => {
           );
           assert.ok(
             Math.abs(found.underNext - found.gap) <= 0.5,
-            `the part under the rows starts ${found.underNext}px under its hairline`
+            `the part under the rows starts ${found.underNext}px under its hairline, whatever the fit leaves`
           );
         } finally {
           await page.evaluate(() => {

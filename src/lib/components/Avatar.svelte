@@ -206,7 +206,7 @@ page runs. The initials' ink, not their advance or line, centres on the box.
 - Responsive: one fixed size per place; the box is in rem, so text zoom grows the box and its initials together.
 - Accessibility: one image named by `alt`; pass `alt=""` where the name stands beside it, as IdentityRow and Timeline do, so the name is read once. The initials hold 4.5:1 on the brand tint.
 - Localization: initials take the first grapheme of each word, so a combined letter or an emoji stays whole, and they are uppercased in the page's language, so a Turkish "i" becomes "İ".
-- Performance: the picture loads lazily and decodes off the main thread; nothing animates.
+- Performance: the picture loads at low priority and decodes off the main thread; nothing animates. It is not lazy, because Chrome asks a lazy image for a size before it loads, and a picture that fails must take no room.
 - Analytics: none, because a reader does nothing with an avatar.
 - Failure: a missing picture, or one that fails to load, leaves the initials on the brand tint with no broken image, and an empty name and handle draw "?"; the failed URL is not requested again.
 -->
@@ -224,7 +224,7 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     ><text x="50%" y="50%" dx={ink[0]} dy={ink[1]}>{letters}</text></svg
   >
   {#if src}
-    <img {src} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+    <img {src} alt="" fetchpriority="low" decoding="async" referrerpolicy="no-referrer" />
   {/if}
 </span>
 

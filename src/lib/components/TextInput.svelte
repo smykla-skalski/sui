@@ -29,6 +29,9 @@
     element?: HTMLInputElement | null;
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type'> = $props();
+  // Chrome asks every form field for an id or a name, so a field the caller names only by
+  // `aria-label` still has one.
+  const uid = $props.id();
 
   const refusals = getRefusals();
 
@@ -93,6 +96,7 @@ tabular figures.
   spellcheck={technical ? false : undefined}
   autocapitalize={technical ? 'off' : undefined}
   {...rest}
+  id={rest.id ?? uid}
   onchange={commit}
   disabled={rest.disabled || holding === 'firm'}
   readonly={readonly || holding !== null}

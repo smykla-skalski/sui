@@ -12,6 +12,7 @@
     bars = true,
     side = bars,
     ruled = true,
+    widths,
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
@@ -32,6 +33,8 @@
     side?: boolean;
     /** A hairline under each row but the last, as list and property rows draw. Off draws none, for words that stand without rules, such as a header's facts. */
     ruled?: boolean;
+    /** Each one-line row's bar width, in order, where the caller knows how long the loaded words will be, such as a header's description. A bar never outgrows its row. */
+    widths?: readonly string[];
     /** What is being waited for, announced rather than drawn. */
     label?: string;
     /** Announced once the rows arrive, so a reader knows the wait is over. */
@@ -113,7 +116,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
 - Focus: it never takes focus, and the loaded rows arrive without moving it.
-- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column; on a phone a row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot.
+- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column, or the caller's `widths` for one-line rows, never past the row; on a phone a row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot.
 - Accessibility: the placeholders are hidden from assistive technology, and the status says what is awaited, when the wait is slow and when it ends; under forced colors each bar keeps an outline.
 - Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`, or by `marks.space` after a label that ends in its own ellipsis; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
 - Performance: each bar shows its part of one light that only `transform` moves, so the compositor runs it, for at most `patience` milliseconds, and none under reduced motion.
@@ -140,7 +143,11 @@ under reduced motion. Use it only where the shape of what is coming is already k
             {#if bars}<span class="bar side slot"></span>{/if}
           {:else}
             <span class="main"
-              ><span class="bar"></span>{#if bars}<span class="bar"></span>{/if}</span
+              ><span
+                class="bar"
+                style:inline-size={bars ? undefined : widths?.[index]}
+                style:max-inline-size={!bars && widths?.[index] ? '100%' : undefined}
+              ></span>{#if bars}<span class="bar"></span>{/if}</span
             >
             {#if side}<span class="bar side"></span>{/if}
           {/if}

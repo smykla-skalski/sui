@@ -46,7 +46,7 @@ keep the section tier, as the column's last sections.
 - Localization: `asideLabel` is a prop with an English default; the aside stands at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; the layout is one size container.
 - Analytics: none of its own; the content reports its own outcomes.
-- Failure: without `aside` the main column takes the whole width; a pane whose thing is missing draws an `ErrorState` in place of this layout.
+- Failure: without `aside` the main column takes the whole width; a pane whose thing is missing draws a `final` `EmptyState` in place of this layout, and one whose thing failed to load an `ErrorState`.
 -->
 
 <div {...rest} class={['sui-detail-layout', className]}>

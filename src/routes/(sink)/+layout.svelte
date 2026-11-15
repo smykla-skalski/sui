@@ -27,11 +27,21 @@
   // register none, so a frame never shows a notice of its own.
   const worker = registerServiceWorker(`${resolve('/(sink)')}service-worker.js`, { dev });
 
-  // Each row opens its component's page. On the page of every section, which the tests read and
-  // no row opens, the rows follow the sections in place instead, and mark the one in view.
+  // Each row opens its component's page. On the page of every section the rows follow the
+  // sections in place instead, and mark the one the reader has scrolled to.
   const everything = $derived(page.route.id === '/(sink)/all');
   const index: NavSection[] = $derived([
-    { items: [{ href: resolve('/(sink)'), label: 'Overview', icon: 'book' }] },
+    {
+      items: [
+        { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
+        {
+          href: `${resolve('/(sink)/all')}/`,
+          label: 'All Components',
+          short: 'All',
+          icon: glyphSnippet('all')
+        }
+      ]
+    },
     ...families.map((members) => ({
       label: members[0].family,
       items: members.map(({ id, meta }) => ({
@@ -138,11 +148,9 @@
       onnavigate={follow}
       head={deployed ? picker : undefined}
     >
-      {#snippet foot(folded: boolean)}<ThemeSwitch
-          system={false}
-          iconOnly={folded}
-          fill
-        />{/snippet}
+      {#snippet foot(folded: boolean)}<div class="theme">
+          <ThemeSwitch system={false} iconOnly={folded} fill />
+        </div>{/snippet}
     </SideNav>
   {/snippet}
 
@@ -152,6 +160,26 @@
 <ServiceWorkerStatus {worker} />
 
 <style>
+  /* The current page is the sidebar's one accent, so the theme's thumb is a raised neutral
+     plate in the primary ink and reads as a setting, under the place the reader is: the
+     control ground on light, and on dark 30% of the ink, so the choice still stands 2:1 off the track's well (L-85). */
+  .theme {
+    --sui-segment-thumb: light-dark(
+      var(--sui-control-bg),
+      color-mix(in srgb, var(--sui-text-primary) 30%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-hover: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 4%, var(--sui-control-bg)),
+      color-mix(in srgb, var(--sui-text-primary) 34%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-pressed: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 8%, var(--sui-control-bg)),
+      color-mix(in srgb, var(--sui-text-primary) 24%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-ink: var(--sui-text-primary);
+    display: contents;
+  }
+
   .preview-picker {
     align-items: center;
     display: grid;
