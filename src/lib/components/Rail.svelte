@@ -83,7 +83,7 @@ full name opens beside a tile only when `short` replaces it. A badge stands 4px 
 and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
 between its places and its foot: beside them in a column of their own while the sidebar is
 whole, and stacked with them in one column once it folds. Holding them, it marks its current
-place on a neutral plate a step past a pressed tile's, its glyph in the place's own ink, so the current page's accent plate and glyph are the column's one accent. Whole, its foot draws the pages' foot hairline on the same line. On a phone it rides in the drawer, or,
+place on a neutral plate a step past a pressed tile's, its glyph in the place's own ink, so the current page's accent plate and glyph are the column's one accent. Whole, its foot draws the pages' foot hairline on the same line, and where the pages keep no foot it keeps the line as its own. On a phone it rides in the drawer, or,
 in a shell with `bottomNav`, it turns into the bottom bar: the same tiles side by side, sharing
 the width.
 
@@ -293,14 +293,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   /* Whole beside the pages, the foot draws the hairline the pages' foot draws, on its line, and
      its tile centres on the fold control's, so the two feet read as one band. Under 64rem the
-     pages' foot goes, so this one keeps no line either. */
-  @container sui-shell (min-width: 64.0625rem) {
-    .host:not([data-collapsed]) .sui-rail-foot {
-      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
-      margin-inline: var(--sui-space-1);
-      padding: calc(var(--sui-space-3) - var(--sui-stroke)) 0
-        calc(var(--sui-space-3) - var(--sui-stroke));
-    }
+     pages' foot goes, and the rail's own line still sets its foot apart from its places. */
+  .host:not([data-collapsed], [data-bar]) .sui-rail-foot {
+    border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+    margin-inline: var(--sui-space-1);
+    padding: calc(var(--sui-space-3) - var(--sui-stroke)) 0
+      calc(var(--sui-space-3) - var(--sui-stroke));
   }
 
   .sui-rail:dir(rtl) {
