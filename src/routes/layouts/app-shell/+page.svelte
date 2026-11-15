@@ -9,14 +9,13 @@
     ObjectRow,
     PageHeader,
     Pill,
-    Rail,
     Section,
     SideNav,
     SkipLink,
     type Fact,
     type NavSection,
-    type PillTone,
-    type RailItem
+    type NavPlace,
+    type PillTone
   } from '#lib';
 
   const sections: NavSection[] = [
@@ -50,7 +49,7 @@
   ];
 
   // Each place is a link of its own, so it opens in a new tab and a shared link reaches it.
-  const places: RailItem[] = [
+  const places: NavPlace[] = [
     {
       href: '?place=smykla-skalski',
       label: 'Smykla Skalski',
@@ -61,7 +60,7 @@
     { href: '?place=console', label: 'Root console', short: 'Console', icon: 'server', badge: 4 }
   ];
 
-  const foot: RailItem[] = [{ href: '?place=settings', label: 'Settings', icon: 'settings' }];
+  const placeLinks: NavPlace[] = [{ href: '?place=settings', label: 'Settings', icon: 'settings' }];
 
   const repositories: { name: string; state: string; tone: PillTone }[] = [
     { name: 'smykla-skalski/sui', state: 'Synced', tone: 'success' },
@@ -85,7 +84,6 @@
 
   // Each page of the sidebar has an address of its own, so Back and a shared link reach it.
   const current = $derived(page.url.hash in names ? page.url.hash : '#overview');
-  const bottomNav = $derived(page.params.variant === 'bottom-nav');
   // A prerendered page has no query to read, so the place counts only once the page runs.
   let running = $state(false);
   onMount(() => {
@@ -94,6 +92,7 @@
   const place = $derived(
     `?place=${(running && page.url.searchParams.get('place')) || 'smykla-skalski'}`
   );
+  const placeName = $derived(places.find((item) => item.href === place)?.label ?? places[0].label);
 </script>
 
 <svelte:head>
@@ -102,18 +101,17 @@
 
 <SkipLink href="#content" />
 
-<AppShell
-  title={names[current]}
-  eyebrow="Smykla Skalski"
-  landmark="none"
-  label="Workspace navigation"
-  {bottomNav}
->
-  {#snippet rail()}
-    <Rail items={places} {foot} current={place} />
-  {/snippet}
+<AppShell title={names[current]} eyebrow={placeName} landmark="none" label="Workspace navigation">
   {#snippet sidebar()}
-    <SideNav kicker="Workspace" title="Smykla Skalski" {sections} {current} />
+    <SideNav
+      kicker="Workspace"
+      title={placeName}
+      {places}
+      {place}
+      {placeLinks}
+      {sections}
+      {current}
+    />
   {/snippet}
 
   <main id="content" tabindex="-1">

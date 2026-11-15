@@ -19,7 +19,6 @@
     ObjectRow,
     PageHeader,
     Pill,
-    Rail,
     RelativeTime,
     Section,
     SideNav,
@@ -31,7 +30,7 @@
     type LinkListItem,
     type NavSection,
     type PillTone,
-    type RailItem,
+    type NavPlace,
     type TimelineEvent
   } from '#lib';
 
@@ -102,12 +101,12 @@
     }
   ];
 
-  const places: RailItem[] = [
+  const places: NavPlace[] = [
     { label: 'Acme', icon: 'organization' },
     { label: 'Personal', icon: 'user' }
   ];
 
-  const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
+  const placeLinks: NavPlace[] = [{ label: 'Settings', icon: 'settings' }];
 
   // The workspace is named by the sidebar's head and in Details, so the headline keeps to the run.
   const headline: Fact[] = [
@@ -248,11 +247,19 @@
 <SkipLink href="#content" />
 
 <AppShell title="Sync Check #4182" eyebrow={place} landmark="none" label="Workspace navigation">
-  {#snippet rail()}
-    <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-  {/snippet}
   {#snippet sidebar()}
-    <SideNav kicker="Workspace" title="Acme" sections={nav} current="#queue" />
+    <SideNav
+      kicker="Workspace"
+      title={place}
+      {places}
+      {place}
+      {placeLinks}
+      onplace={(_, item) => {
+        if (places.includes(item)) place = item.label;
+      }}
+      sections={nav}
+      current="#queue"
+    />
   {/snippet}
 
   <main id="content" tabindex="-1">

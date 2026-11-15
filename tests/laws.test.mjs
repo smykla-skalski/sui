@@ -2152,7 +2152,6 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
   // so the current row's words step up to 500 and turning current never rewraps a label.
   for (const [name, label] of [
     ['SideNav', 'sui-side-nav-label'],
-    ['Rail', 'sui-rail-label'],
     ['PageToc', 'sui-page-toc-label']
   ]) {
     const path = `src/lib/components/${name}.svelte`;

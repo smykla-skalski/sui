@@ -29,7 +29,7 @@ Run a moderated task test with five to eight readers per user type, and repeat a
 
 - First use: can a new reader name the main action of a settings page and change a setting, including a list of pairs?
 - Recognition: the `undo`, `filter`, `sort`, `refresh` and sidebar glyphs, the pill's dot and pulse, the "Unsaved" word and gold plate, and the "Override Value" and "Use Inherited Value" words.
-- Navigation: the rail plus sidebar model on a desktop, and the bottom navigation plus drawer on a phone.
+- Navigation: one sidebar with a place switch at its head on a desktop, and the same sidebar as a drawer on a phone.
 - Reading: whether the toast's five seconds are enough, and whether a heatmap and a range chart are read correctly with their legends.
 
 ## Production

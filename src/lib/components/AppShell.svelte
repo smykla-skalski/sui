@@ -4,19 +4,16 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { clearance } from '../internal/clearance.js';
-  import RailPages from '../internal/RailPages.svelte';
   import { rootFontSize } from '../internal/rem.svelte.js';
   import { firstStop, setShell, trapTab, type ShellMode } from '../internal/shell.svelte.js';
 
   let {
     title,
     eyebrow,
-    rail,
     sidebar,
     bar,
     label = word('AppShell.label', 'Navigation'),
     menuLabel = word('AppShell.menuLabel', 'Menu'),
-    bottomNav = false,
     landmark = 'main',
     contained = false,
     collapsed = $bindable(false),
@@ -31,8 +28,6 @@
     title: string;
     /** Where the page is, such as its workspace, drawn small over the title in the phone bar. */
     eyebrow?: string;
-    /** The outermost navigation, such as a `Rail`. On a phone it rides in the drawer, or in the bottom bar with `bottomNav`. */
-    rail?: Snippet;
     /** The pages, usually a `SideNav`. It becomes a drawer on a phone. */
     sidebar: Snippet;
     /** Controls at the end of the phone bar. */
@@ -41,8 +36,6 @@
     label?: string;
     /** The word on the phone bar's button that opens the drawer, drawn beside its glyph. */
     menuLabel?: string;
-    /** On a phone, draws the rail's few peer places as a bar along the bottom, and the drawer keeps only the sidebar. */
-    bottomNav?: boolean;
     /** `main` makes the content the page's one main landmark; `none` when the page already has one. */
     landmark?: 'main' | 'none';
     /** Fills a bounded box instead of the viewport, as a preview does. */
@@ -65,10 +58,8 @@
   let root = $state<HTMLElement | null>(null);
   let side = $state<HTMLElement | null>(null);
   let topBar = $state<HTMLElement | null>(null);
-  let places = $state<HTMLElement | null>(null);
   let menu = $state<HTMLButtonElement | null>(null);
   let name = $state<HTMLElement | null>(null);
-  const bottom = $derived(bottomNav && rail !== undefined);
 
   // The palette's breakpoints, the same as the container queries below, which own the first
   // paint. They are read again whenever the width or the root's text size changes, so a reader
@@ -101,9 +92,6 @@
     get foldable() {
       return foldable;
     },
-    get bottomNav() {
-      return bottom;
-    },
     toggleCollapsed: () => {
       collapsed = !collapsed;
       oncollapsedchange?.(collapsed);
@@ -124,8 +112,8 @@
     else if (!drawerOpen && shown) side.hidePopover();
   });
 
-  /* Bars that would cover much of the screen, as with very large text on a phone, ride with
-     the content instead of sticking, so the content is never hidden under them (WCAG 1.4.10).
+  /* A bar that would cover much of the screen, as with very large text on a phone, rides with
+     the content instead of sticking, so the content is never hidden under it (WCAG 1.4.10).
      The screen is the window for a page shell and the shell's own box for a contained one. */
   const MOST = 0.25;
   let flowing = $state(false);
@@ -135,15 +123,13 @@
       return;
     }
     const head = topBar;
-    const foot = places;
     const check = () => {
       // A contained shell taller than the window is seen through the window.
       const room = contained && root ? Math.min(root.clientHeight, innerHeight) : innerHeight;
-      flowing = head.offsetHeight + (foot?.offsetHeight ?? 0) > room * MOST;
+      flowing = head.offsetHeight > room * MOST;
     };
     const observer = new ResizeObserver(check);
     observer.observe(head);
-    if (foot) observer.observe(foot);
     addEventListener('resize', check);
     return () => {
       observer.disconnect();
@@ -151,19 +137,15 @@
     };
   });
 
-  /* A page shell scrolls the document under its sticky bars, so a link to a fragment or a
-     focused control would land behind them; the page's scroll padding keeps them clear. A
-     contained shell scrolls its pane, which the bars never cover, and bars that ride with the
-     content cover nothing. */
+  /* A page shell scrolls the document under its sticky bar, so a link to a fragment or a
+     focused control would land behind it; the page's scroll padding keeps them clear. A
+     contained shell scrolls its pane, which the bar never covers, and a bar that rides with the
+     content covers nothing. */
   function padPage(head: HTMLElement) {
     if (contained || mode !== 'drawer' || flowing) return;
     const page = clearance(document.documentElement);
-    const foot = places;
-    const observer = new ResizeObserver(() =>
-      page.hold({ start: head.offsetHeight, end: foot?.offsetHeight })
-    );
+    const observer = new ResizeObserver(() => page.hold({ start: head.offsetHeight }));
     observer.observe(head);
-    if (foot) observer.observe(foot);
     return () => {
       observer.disconnect();
       page.release();
@@ -293,47 +275,48 @@
 
 <!--
 @component
-The frame of an application: an optional rail for the outermost choice, a sidebar with the
-pages, and the content. The shell owns the layout and its states, and the navigation inside
-it reads them from context.
+The frame of an application: a sidebar with the pages, and the content. The shell owns the
+layout and its states, and the navigation inside it reads them from context. The place the
+pages belong to, such as a workspace, is switched from the sidebar's own head (`SideNav`
+`places`), so the shell draws one navigation column, never a second one beside it.
 
-On a wide screen `collapsed` folds the sidebar into an 80px strip of icons with short labels.
-With a rail the two become one column: the places at the top, a hairline, the pages, then the
-fold control and the rail's foot, every tile 4px from the next, so every place and page is
-still one press away at one 48px pitch and Tab meets them in the order they are drawn. Below 64rem there is no room to fold, so the sidebar stays
-whole and its fold control leaves.
+On a wide screen `collapsed` folds the sidebar into an 80px strip of icons with short labels,
+the place's switch at its top and the fold control at its foot, every tile 4px from the next,
+so every page is still one press away at one 48px pitch and Tab meets them in the order they
+are drawn. Below 64rem there is no room to fold, so the sidebar stays whole and its fold
+control leaves.
 
 On a phone, below 48rem of the shell's own width, a 56px bar names the current page once the
 page's own h1 in the same words has gone under it; while that heading is on screen the bar
-names only where the page is, its `eyebrow`, on the bar's middle. Its
-button, a glyph and the word `menuLabel`, parted from the title by a 20px hairline, opens the
-sidebar from the shell's top, over the bar and the content, as a modal drawer. The drawer's pages are 288px wide, or the sidebar's 228px
-beside the rail, its edge a hairline as well as a shadow, and the drawer leaves at least 56px of the screen uncovered. `eyebrow` names where the page is, such as its workspace, over the title. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
-in a bar along the bottom, always in reach of a thumb, and the drawer holds only the pages.
+names only where the page is, its `eyebrow`, on the bar's middle. Its button, a glyph and the
+word `menuLabel`, parted from the title by a 20px hairline, opens the sidebar from the shell's
+top, over the bar and the content, as a modal drawer. The drawer's pages are 288px wide, its
+edge a hairline as well as a shadow, and the drawer leaves at least 56px of the screen
+uncovered. `eyebrow` names where the page is, such as its workspace, over the title.
 
 The layout answers to the shell's own width through container queries, so a shell inside a
 narrow preview behaves as it would on a phone. `contained` fills a bounded box instead of the
 viewport. `landmark="none"` keeps the content from claiming the page's one `main`.
 
-- Semantics: a plain frame; the rail and the sidebar bring their own `nav` landmarks, the content is the page's `main` unless `landmark="none"`, and the phone drawer is a modal `dialog` named by `label`.
-- Content: a `rail` (usually a `Rail`), a `sidebar` (usually a `SideNav`), the content, a page `title` and optional `bar` controls; with `bottomNav` the rail should hold five places or fewer.
-- States: full, collapsed into one column with the rail (wide screens only), phone with the drawer closed or open, and phone with the bottom bar; the menu button draws hover, pressed and focus like any bar control, and its glyph carries an accent dot while a place in the closed drawer has a count.
-- Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
-- Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
+- Semantics: a plain frame; the sidebar brings its own `nav` landmark, the content is the page's `main` unless `landmark="none"`, and the phone drawer is a modal `dialog` named by `label`.
+- Content: a `sidebar` (usually a `SideNav`, whose head switches the place), the content, a page `title` and optional `bar` controls.
+- States: full, collapsed into the strip (wide screens only), and phone with the drawer closed or open; the menu button draws hover, pressed and focus like any bar control, and its glyph carries an accent dot while another place waits with a count in the closed drawer.
+- Keyboard: Tab reaches the menu button, the bar and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
+- Pointer and touch: the menu button is 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
-- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut, and names the page only once the page's own `h1` in the same words has gone under the bar; bars that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
-- Accessibility: while the drawer is open the bars and the content are inert; the menu button shows its word and reports `aria-expanded`.
+- Responsive: container queries on the shell's own width switch between full, folded and drawer, and the phone bar's title wraps instead of being cut, and names the page only once the page's own `h1` in the same words has gone under the bar; a bar that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, rides with the content instead of sticking; a page shell pads the document's scroll by the bar's height so a focused control never hides behind it.
+- Accessibility: while the drawer is open the bar and the content are inert; the menu button shows its word and reports `aria-expanded`.
 - Localization: `menuLabel` and `label` are props with English defaults; the drawer opens from the start edge and is placed by direction, so it lands on the right in a right-to-left page, and the sidebar glyph mirrors.
 - Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open; the bar's title fades in over 160ms as the page's heading goes under the bar, by opacity and a whole-pixel lift only, and changes at once with reduced motion.
 - Analytics: `onopenchange(open)` reports the drawer and `oncollapsedchange(collapsed)` the fold; `drawerOpen` and `collapsed` are bindable too.
-- Failure: with no `rail` the shell draws the sidebar alone, and `bottomNav` without a rail falls back to the drawer; the shell holds no data of its own, so loading and errors belong to its content.
+- Failure: the shell holds no data of its own, so loading and errors belong to its content.
 -->
 
 <div
   bind:this={root}
   bind:contentRect={box}
   {...rest}
-  class={['sui-shell', className, { contained, 'bottom-nav': bottom, flowing }]}
+  class={['sui-shell', className, { contained, flowing }]}
 >
   <header bind:this={topBar} {@attach padPage} class="sui-shell-bar" inert={drawerOpen}>
     <button
@@ -358,30 +341,19 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     {@render bar?.()}
   </header>
 
-  {#snippet pages()}
-    <div class={['sui-shell-pages', { joined: rail }]}>{@render sidebar()}</div>
-  {/snippet}
-
   <div class="sui-shell-grid" data-collapsed={collapsed}>
-    {#if bottom}
-      <div bind:this={places} class="sui-shell-places" inert={drawerOpen}>{@render rail?.()}</div>
-    {/if}
     <div
       bind:this={side}
       id={sideId}
       popover="auto"
-      class={['sui-shell-side', { joined: rail }]}
+      class="sui-shell-side"
       role={mode === 'drawer' ? 'dialog' : undefined}
       aria-modal={mode === 'drawer' ? 'true' : undefined}
       aria-label={mode === 'drawer' ? label : undefined}
       {onbeforetoggle}
       {ontoggle}
     >
-      {#if rail}
-        <RailPages {pages}>{@render rail()}</RailPages>
-      {:else}
-        {@render pages()}
-      {/if}
+      <div class="sui-shell-pages">{@render sidebar()}</div>
     </div>
     <svelte:element
       this={landmark === 'main' ? 'main' : 'div'}
@@ -470,12 +442,11 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     position: relative;
   }
 
-  /* A place the reader is not on waits with a count inside the closed drawer, so the menu's
-     glyph carries a dot of the count's accent at the corner a badge takes, ringed in the bar's
-     ground; the count and its words stay on the place, one press away. A bottom bar shows its
-     counts itself. */
-  .sui-shell:not(.bottom-nav):has(:global(.sui-rail-tile:not([aria-current]) .sui-rail-badge))
-    .sui-shell-menu-glyph::after {
+  /* A place the reader is not on waits with a count on the place switch inside the closed
+     drawer, so the menu's glyph carries a dot of the count's accent at the corner a badge
+     takes, ringed in the bar's ground; the count and its words stay on the switch, one press
+     away. */
+  .sui-shell:has(:global(.sui-side-nav-switch .sui-side-nav-badge)) .sui-shell-menu-glyph::after {
     background: var(--sui-brand-action);
     block-size: var(--sui-space-2);
     border-radius: var(--sui-radius-pill);
@@ -589,9 +560,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     min-block-size: 0;
   }
 
-  /* The chrome holds the rail and the pages side by side and carries a popover attribute for
-     its phone drawer. Everywhere else it is in flow, so the browser's own popover box is undone
-     here. Its fit-content width stays, so it follows the columns inside. */
+  /* The chrome holds the pages and carries a popover attribute for its phone drawer. Everywhere
+     else it is in flow, so the browser's own popover box is undone here. Its fit-content width
+     stays, so it follows the column inside. */
   .sui-shell-side {
     align-self: start;
     background: var(--sui-sidebar-bg);
@@ -608,11 +579,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     position: sticky;
   }
 
-  /* The bottom bar's places stand only on a phone. Wider, the rail beside the pages draws them. */
-  .sui-shell-places {
-    display: none;
-  }
-
   .sui-shell-pages {
     border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
     box-sizing: border-box;
@@ -620,15 +586,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     flex-direction: column;
     inline-size: var(--sui-sidebar-width);
     min-inline-size: 0;
-  }
-
-  /* Beside a rail the pages ride inside it, between its places and its foot, and part from its
-     column by a hairline of their own. */
-  .sui-shell-pages.joined {
-    align-self: stretch;
-    border-inline-start: var(--sui-stroke) solid var(--sui-sidebar-border);
-    grid-area: pages;
-    max-inline-size: 100%;
   }
 
   .contained .sui-shell-side {
@@ -653,29 +610,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     .sui-shell-grid[data-collapsed='true'] .sui-shell-pages {
       inline-size: var(--sui-sidebar-width-collapsed);
     }
-
-    /* Folded, the rail and the strip are one column: the pages stand under the places, parted
-       by a hairline across the column, and the column keeps the edge. */
-    .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined {
-      --sui-local-strip-start: var(--sui-space-2);
-      --sui-local-strip-end: var(--sui-space-1);
-      --sui-local-strip-head: none;
-
-      border-inline: 0;
-    }
-
-    /* The hairline under the places stands 4px in from the column's sides, as the foot's does,
-       so the column's two structural lines match and the groups' short marks stay the minor
-       tier. A border, so it still draws under forced colors. */
-    .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined::before {
-      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
-      content: '';
-      margin-inline: var(--sui-space-1);
-    }
-
-    .sui-shell-grid[data-collapsed='true'] .sui-shell-side.joined {
-      border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
-    }
   }
 
   @container sui-shell (max-width: 47.9375rem) {
@@ -683,8 +617,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       display: flex;
     }
 
-    .sui-shell-grid,
-    .bottom-nav .sui-shell-grid {
+    .sui-shell-grid {
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -705,17 +638,12 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     }
 
     /* The drawer's pages take 288px, wider than the column they fold from, so a two-word label
-       keeps one line there; beside the rail they give way first, and 56px of the screen stays
-       uncovered to close the drawer by. */
+       keeps one line there, and they give way on a narrow screen, so 56px of it stays uncovered
+       to close the drawer by. */
     .sui-shell-side:popover-open .sui-shell-pages {
+      border-inline-end: 0;
+      flex: 0 1 auto;
       inline-size: 18rem;
-    }
-
-    /* Beside the rail the pages keep the sidebar's own width, so a wide strip of the screen
-       stays uncovered to close the drawer by. Over a bottom bar the rail stays in the bar and
-       the pages keep their 288px. */
-    .sui-shell:not(.bottom-nav) .sui-shell-side:popover-open .sui-shell-pages.joined {
-      inline-size: var(--sui-sidebar-width);
     }
 
     /* The drawer meets the screen's top, start and foot, so it keeps its rows off the notch and
@@ -730,52 +658,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       padding-block-start: calc(var(--sui-space-1) + env(safe-area-inset-top));
     }
 
-    /* The pages give way first when the rail beside them leaves less room. */
-    .sui-shell-side:popover-open .sui-shell-pages {
-      border-inline-end: 0;
-      flex: 0 1 auto;
-    }
-
-    /* Over a bottom bar the rail stays in the bar, so the drawer's pages have no rail to part
-       from and draw no line on the screen's edge. */
-    .bottom-nav .sui-shell-side:popover-open .sui-shell-pages.joined {
-      border-inline-start: 0;
-    }
-
     .sui-shell-side::backdrop {
       background: var(--sui-scrim);
     }
-
-    /* The bottom bar follows the content and sticks to the foot of the view. */
-    .bottom-nav .sui-shell-grid {
-      grid-template-rows: 1fr auto;
-    }
-
-    .contained.bottom-nav .sui-shell-grid {
-      grid-template-rows: minmax(0, 1fr) auto;
-    }
-
-    .bottom-nav .sui-shell-pane {
-      grid-row: 1;
-    }
-
-    .sui-shell-places,
-    .contained .sui-shell-places {
-      align-self: end;
-      display: flex;
-      block-size: auto;
-      grid-row: 2;
-      inset-block: auto 0;
-      position: sticky;
-      z-index: var(--sui-layer-top-bar);
-    }
   }
 
-  .flowing :is(.sui-shell-bar, .sui-shell-places) {
+  .flowing .sui-shell-bar {
     position: relative;
   }
 
-  /* A contained shell scrolls only its pane, so its bars ride with the content only once the
+  /* A contained shell scrolls only its pane, so its bar rides with the content only once the
      whole shell scrolls instead. */
   .contained.flowing {
     overflow-y: auto;

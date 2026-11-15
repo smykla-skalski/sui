@@ -541,11 +541,11 @@ function palette(): Finding[] {
       3
     )
   );
-  const rail = t('sidebar-bg');
-  if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
+  const sidebar = t('sidebar-bg');
+  if (deltaE(t('sidebar-active-bg'), sidebar) < deltaE(t('sidebar-item-pressed'), sidebar))
     found.push(finding('L-85', null, 'the current row is quieter than a pressed row'));
-  if (deltaE(t('sidebar-place-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
-    found.push(finding('L-85', null, "a rail's place is quieter than a pressed row"));
+  if (deltaE(t('sidebar-place-bg'), sidebar) < deltaE(t('sidebar-item-pressed'), sidebar))
+    found.push(finding('L-85', null, "a side nav's place mark is quieter than a pressed row"));
 
   for (let index = 1; index <= 5; index++)
     found.push(
@@ -2542,7 +2542,7 @@ function ringsOnPlates(root: Document): Finding[] {
  */
 function currentMarks(root: Document): Finding[] {
   const found: Finding[] = [];
-  const rows = '.sui-side-nav-row, .sui-rail-tile, .sui-page-toc-link, .sui-tabs-tab';
+  const rows = '.sui-side-nav-row, .sui-page-toc-link, .sui-tabs-tab';
   // What a row says: the box of its first words a sighted reader sees, past any hidden badge.
   const words = (row: Element): Element => {
     const walker = root.createTreeWalker(row, NodeFilter.SHOW_TEXT);
@@ -3040,9 +3040,12 @@ function leadingIcons(root: Document): Finding[] {
   const found: Finding[] = [];
   // A message's symbol stands in a tile that L-56 places against the whole copy.
   const tiles = '.sui-callout-icon, .sui-toast-mark';
+  // A place switch's mark and chevron stand beside a kicker over a title, a name in two lines
+  // that never wraps, and centre on the pair as a team switcher's do.
+  const pairs = '.sui-side-nav-switch';
   for (const icon of audited(root, 'svg.tier')) {
     const glyph = icon.getBoundingClientRect();
-    if (glyph.width === 0 || icon.closest(tiles)) continue;
+    if (glyph.width === 0 || icon.closest(tiles) || icon.closest(pairs)) continue;
     // The icon's own box is a wrapper that holds nothing else; the words are outside it.
     const parent = icon.parentElement;
     const holder =

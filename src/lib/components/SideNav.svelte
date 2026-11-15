@@ -13,6 +13,17 @@
     count?: number;
   };
 
+  export type NavPlace = {
+    label: string;
+    /** A shorter name for the folded strip, taken from the words of `label` so speech input finds it. */
+    short?: string;
+    icon: IconName;
+    /** A destination draws a link; without one the place is a button that calls `onplace`. */
+    href?: string;
+    /** A count of things waiting there, beside its name in the switch and read with it. */
+    badge?: number;
+  };
+
   export type NavSection = {
     /** A heading over the group. A heading is a label, never a link. */
     label?: string;
@@ -60,6 +71,8 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
+  import Popover from './Popover.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
   import { boundCount, formatCount } from '../internal/locale.js';
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
   import IconButton from './IconButton.svelte';
@@ -85,6 +98,12 @@
       'SideNav.countedName',
       (label: string, count: string) => `${label}${mark('comma')}${count}`
     ),
+    places = [],
+    place,
+    placeLinks = [],
+    placesLabel = word('SideNav.placesLabel', 'Places'),
+    badgeLabel = word('SideNav.badgeLabel', (count: number) => `${formatCount(count)} waiting`),
+    onplace,
     head,
     foot,
     onnavigate,
@@ -117,7 +136,19 @@
     countLabel?: (count: number) => string;
     /** A counted row's accessible name from its label and `countLabel`, in the language's order. */
     countedName?: (label: string, count: string) => string;
-    /** Content under the title that stays in view with it, such as a switch between places. */
+    /** The places these pages belong to, such as workspaces. Given, the kicker and the title become a switch that lists them. */
+    places?: NavPlace[];
+    /** The place on screen: its `href`, or the `label` of a place without one. */
+    place?: string;
+    /** Destinations listed under the places in the switch, such as settings or the account. */
+    placeLinks?: NavPlace[];
+    /** Names the list of places in the switch. */
+    placesLabel?: string;
+    /** The words a place's count is read as, after its name. */
+    badgeLabel?: (count: number) => string;
+    /** Called when a place or a place link is chosen: a link followed, or a place without one pressed. */
+    onplace?: (event: MouseEvent, place: NavPlace) => void;
+    /** Content under the title that stays in view with it. */
     head?: Snippet;
     /** Quiet content at the bottom, such as the account, told whether the sidebar is the folded strip, where it has a glyph's width. */
     foot?: Snippet<[folded: boolean]>;
@@ -282,13 +313,42 @@
     onnavigate?.(event, item);
     if (mode === 'drawer' && followsInPlace(event)) shell?.closeDrawer();
   }
+
+  const placeKey = (item: NavPlace) => item.href ?? item.label;
+  const chosen = $derived(places.find((item) => placeKey(item) === place));
+  // What waits in the other places, drawn on the switch, so a closed switch still says so.
+  const waiting = $derived(
+    places.reduce((sum, item) => (item === chosen ? sum : sum + (item.badge ?? 0)), 0)
+  );
+  const placesId = `${uid}-places`;
+  const waitingId = `${uid}-waiting`;
+  let switcher = $state<HTMLButtonElement | null>(null);
+  let names = $state<HTMLElement | null>(null);
+  let switching = $state(false);
+
+  // A link followed in place closes the switch, and the drawer with it; a place without a link
+  // swaps the pages under the reader, so the drawer stays to pick one.
+  function choose(event: MouseEvent, item: NavPlace) {
+    onplace?.(event, item);
+    if (item.href && !followsInPlace(event)) return;
+    switching = false;
+    if (item.href && mode === 'drawer') shell?.closeDrawer();
+  }
 </script>
 
 <!--
 @component
-The pages of one place, as rows under section headings: the second level of navigation, where
-a `Rail` chooses the place and this chooses the page. Every row is a destination with its own
-icon and address, and a heading is only a label.
+The pages of one place, as rows under section headings. Every row is a destination with its
+own icon and address, and a heading is only a label.
+
+Given `places`, the kicker and the title become a switch between them, as a workspace switch
+heads a sidebar: the current place's glyph on a 32px neutral plate, its kicker over its title
+and an up-and-down chevron. Pressing it opens a list under it, as wide as it, of every place
+with its glyph, its name, its `badge` count and a check on the current one, and `placeLinks`,
+such as settings, under a hairline. A count waiting in the other places rides the plate's
+corner, so a closed switch still says something waits. Choosing a place with an `href`
+follows it and closes the list, and the phone drawer with it; a place without one calls
+`onplace` and leaves the drawer open on the new place's pages.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it. Rest
 rows are muted and the page on screen is primary ink, a step of 2:1 or more in lightness,
@@ -301,24 +361,62 @@ Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the e
 into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
 over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
-hairline marks where each group starts. A strip that stands alone keeps its `kicker` in the primary ink over a hairline,
-8px from the strip's top, the line and the rows; beside a rail the rail's places name the place instead. The `foot` is told when the
+hairline marks where each group starts. The strip keeps the place's name at its top, 8px from
+the strip's top and the rows: the switch as a tile, the place's plate over its `short` name
+with its whole name in a tooltip and its list opening beside the strip, or else the `kicker`
+in the primary ink. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the line of its title, rows are 44px, and
 following a row closes the drawer.
 
-- Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
+- Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, with places a heading that holds the switch, a button that reports `aria-expanded`, whose list of places is named by `placesLabel` and marks the current place `aria-current`; each section is a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, drawn as "99+" past 99 so it keeps its two-digit seat, its whole number in the row's name, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
-- Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
+- Keyboard: Tab moves through the switch, the rows, then the fold or close control; Enter follows a row or presses the control; Enter or Space opens the switch's list, Tab moves into it and through its places, and Escape closes it to the switch.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below and, at rest, standing in the gap above the first row or heading that would not fit, never through its words, with the foot's controls 16px under it and the room the cut leaves under them, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
-- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
+- Accessibility: a count is read with its words from `countLabel`, and a place's count with `badgeLabel`, joined to the label by `countedName`, the count waiting elsewhere describes the switch, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
+- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort`, `countLabel`, `placesLabel` and `badgeLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform, and one fits the foot to the rows, only when their sizes change; it suits a sidebar of tens of rows, not thousands.
-- Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
-- Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
+- Analytics: `onnavigate(event, item)` reports every followed row and `onplace(event, place)` every chosen place; the shell's `oncollapsedchange` reports the fold.
+- Failure: a `current` that matches no row draws no plate, a `place` that matches no place draws the switch without a plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
 -->
+
+{#snippet placeRow(item: NavPlace, here: boolean)}
+  {@const name = item.badge ? countedName(item.label, badgeLabel(item.badge)) : undefined}
+  <li>
+    {#if item.href}
+      <a
+        href={item.href}
+        class="sui-side-nav-place"
+        aria-label={name}
+        aria-current={here ? 'page' : undefined}
+        onclick={(event) => choose(event, item)}>{@render placeFace(item, here)}</a
+      >
+    {:else}
+      <button
+        type="button"
+        class="sui-side-nav-place"
+        aria-label={name}
+        aria-current={here ? 'true' : undefined}
+        onclick={(event) => choose(event, item)}>{@render placeFace(item, here)}</button
+      >
+    {/if}
+  </li>
+{/snippet}
+
+{#snippet placeFace(item: NavPlace, here: boolean)}
+  <span class="sui-side-nav-place-glyph"><Icon name={item.icon} size="base" /></span>
+  <span class="sui-side-nav-place-label">{item.label}</span>
+  {#if item.badge}
+    <span class="sui-side-nav-count" aria-hidden="true"
+      ><Count value={boundCount(item.badge)} /></span
+    >
+  {/if}
+  <span class="sui-side-nav-place-check"
+    >{#if here}<Icon name="check" size="base" />{/if}</span
+  >
+{/snippet}
 
 <nav
   bind:this={nav}
@@ -329,9 +427,45 @@ following a row closes the drawer.
   data-collapsed={shell?.collapsed || undefined}
 >
   <div class="sui-side-nav-head">
-    <div class="sui-side-nav-names">
-      {#if kicker}<p class="sui-side-nav-kicker" translate="no">{kicker}</p>{/if}
-      <svelte:element this={`h${level}`} class="sui-side-nav-title">{title}</svelte:element>
+    <div bind:this={names} class="sui-side-nav-names">
+      {#if places.length > 0}
+        <svelte:element this={`h${level}`} class="sui-side-nav-heading">
+          <button
+            bind:this={switcher}
+            type="button"
+            class="sui-side-nav-switch"
+            popovertarget={placesId}
+            aria-expanded={switching}
+            aria-describedby={waiting ? waitingId : undefined}
+          >
+            {#if chosen}
+              <span class="sui-side-nav-mark"
+                ><Icon name={chosen.icon} size="base" />{#if waiting}<span
+                    class="sui-side-nav-badge"
+                    aria-hidden="true"><span data-count={boundCount(waiting)}></span></span
+                  >{/if}</span
+              >
+            {/if}
+            <span class="sui-side-nav-switch-names">
+              {#if kicker}<span class="sui-side-nav-kicker" translate="no">{kicker}</span>{/if}
+              <span class="sui-side-nav-title">{title}</span>
+            </span>
+            <span class="sui-side-nav-short" aria-hidden="true">{chosen?.short ?? title}</span>
+            <span class="sui-side-nav-switch-glyph"
+              ><Icon name="chevrons-up-down" size="base" /></span
+            >
+          </button>
+        </svelte:element>
+        <!-- The count waiting elsewhere describes the switch rather than joining its name, so the
+             name is the words it shows. -->
+        {#if waiting}<VisuallyHidden id={waitingId}>{badgeLabel(waiting)}</VisuallyHidden>{/if}
+        {#if mode === 'collapsed' && !switching}
+          <Tooltip anchor={switcher} text={title} side="inline-end" />
+        {/if}
+      {:else}
+        {#if kicker}<p class="sui-side-nav-kicker" translate="no">{kicker}</p>{/if}
+        <svelte:element this={`h${level}`} class="sui-side-nav-title">{title}</svelte:element>
+      {/if}
       {#if shell && mode === 'drawer'}
         <span class="sui-side-nav-close">
           <IconButton toolbar icon="close" label={closeLabel} onclick={() => shell.closeDrawer()} />
@@ -340,6 +474,28 @@ following a row closes the drawer.
     </div>
     {#if head}<div class="sui-side-nav-lead">{@render head()}</div>{/if}
   </div>
+
+  {#if places.length > 0}
+    <Popover
+      id={placesId}
+      anchor={mode === 'collapsed' ? switcher : names}
+      bind:open={switching}
+      side={mode === 'collapsed' ? 'inline-end' : 'block-end'}
+      width={mode === 'collapsed' ? 'auto' : 'trigger'}
+      offset={mode === 'collapsed' ? 10 : 4}
+    >
+      <div class="sui-side-nav-places">
+        <ul class="sui-side-nav-place-list" aria-label={placesLabel}>
+          {#each places as item (placeKey(item))}{@render placeRow(item, item === chosen)}{/each}
+        </ul>
+        {#if placeLinks.length > 0}
+          <ul class="sui-side-nav-place-list sui-side-nav-place-links">
+            {#each placeLinks as item (placeKey(item))}{@render placeRow(item, false)}{/each}
+          </ul>
+        {/if}
+      </div>
+    </Popover>
+  {/if}
 
   <div bind:this={scroller} class="sui-side-nav-tree">
     <div bind:this={tree} class={['sui-side-nav-list', { measured, gliding }]}>
@@ -564,6 +720,273 @@ following a row closes the drawer.
     text-box: trim-both cap alphabetic;
   }
 
+  /* With places the names are one switch: the place's mark, its kicker over its title, and a
+     chevron that says the switch opens. It is a row's width, its 32px mark stands 4px in, so
+     the mark centres on the rows' glyph column, and its chevron 12px from its end, on the
+     column the rows' counts stand on. The names stand 12px past the mark, so the badge on its
+     corner keeps 8px clear of the kicker. */
+  /* The switch's names stand 8px under its top, so it rises 8px and its kicker keeps the cap
+     line a page header's first words stand on, as a plain kicker does. */
+  .sui-side-nav-heading {
+    display: grid;
+    font: inherit;
+    grid-column: 1;
+    margin: calc(-1 * var(--sui-space-2)) 0 0;
+    min-inline-size: 0;
+  }
+
+  .sui-side-nav-names:has(> .sui-side-nav-heading) {
+    padding-inline-start: 0;
+  }
+
+  /* The switch's own ground already parts it from the rows, so the head keeps 4px under it. */
+  .sui-side-nav-head:has(.sui-side-nav-switch) {
+    padding-block-end: var(--sui-space-1);
+  }
+
+  /* In the drawer the switch is the title, so the close centres on it, on one line with its
+     chevron: the heading's 8px lift leaves the row's middle 4px under the switch's. */
+  .sui-side-nav-names:has(> .sui-side-nav-heading) > .sui-side-nav-close {
+    translate: 0 calc(-1 * var(--sui-space-1));
+  }
+
+  /* The badge's halo takes the switch's ground in every state, so it never shows the sidebar
+     through a hovered, pressed or open switch. */
+  .sui-side-nav-switch {
+    --sui-local-switch-ground: var(--sui-sidebar-bg);
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: var(--sui-radius-control);
+    box-sizing: border-box;
+    color: var(--sui-sidebar-text);
+    cursor: pointer;
+    display: flex;
+    font: inherit;
+    gap: var(--sui-space-3);
+    inline-size: 100%;
+    margin: 0;
+    min-block-size: var(--sui-touch-target);
+    padding-block: var(--sui-space-1);
+    padding-inline: var(--sui-space-1) var(--sui-space-3);
+    text-align: start;
+    touch-action: manipulation;
+    transition:
+      translate var(--sui-duration-press) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  @media (hover: hover) {
+    .sui-side-nav-switch:hover:not(:active) {
+      --sui-local-switch-ground: var(--sui-sidebar-item-hover);
+      background: var(--sui-local-switch-ground);
+    }
+  }
+
+  /* Open, the switch keeps the hover ground, so the list reads as its own. */
+  .sui-side-nav-switch[aria-expanded='true']:not(:active) {
+    --sui-local-switch-ground: var(--sui-sidebar-item-hover);
+    background: var(--sui-local-switch-ground);
+  }
+
+  .sui-side-nav-switch:active {
+    --sui-local-switch-ground: var(--sui-sidebar-item-pressed);
+    background: var(--sui-local-switch-ground);
+    box-shadow: var(--sui-sidebar-pressed-inset);
+    translate: 0 1px;
+  }
+
+  .sui-side-nav-switch:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-sidebar-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  /* The place's mark is a 32px neutral plate, a step past a pressed row, so the current page's
+     accent plate stays the column's one accent (L-85), with a hairline edge so it still reads
+     on the switch's hover ground. */
+  .sui-side-nav-mark {
+    background: var(--sui-sidebar-place-bg);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-sidebar-border);
+    block-size: var(--sui-space-8);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-sidebar-text);
+    display: grid;
+    flex: none;
+    inline-size: var(--sui-space-8);
+    place-items: center;
+    position: relative;
+  }
+
+  /* Something waiting in another place is information, not a fault, so it wears the accent, on
+     the mark's top-end corner. */
+  .sui-side-nav-badge {
+    align-items: center;
+    background: var(--sui-brand-action);
+    block-size: var(--sui-space-4);
+    border-radius: var(--sui-radius-pill);
+    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-local-switch-ground);
+    box-sizing: border-box;
+    color: var(--sui-on-brand-action);
+    display: inline-flex;
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
+      var(--sui-sans);
+    font-variant-numeric: tabular-nums;
+    inset-block-start: calc(-1 * var(--sui-space-1));
+    inset-inline-end: calc(-1 * var(--sui-space-1));
+    justify-content: center;
+    min-inline-size: var(--sui-space-4);
+    padding-inline: var(--sui-space-1);
+    position: absolute;
+  }
+
+  /* The count is drawn, not written, so the switch's visible words lead its name (WCAG 2.5.3),
+     and its words follow them unseen. */
+  .sui-side-nav-badge > span {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-side-nav-badge > span::before {
+    content: attr(data-count);
+  }
+
+  .sui-side-nav-switch-names {
+    display: grid;
+    flex: 1;
+    min-inline-size: 0;
+    row-gap: var(--sui-row-copy-gap);
+  }
+
+  .sui-side-nav-switch-names > :is(.sui-side-nav-kicker, .sui-side-nav-title) {
+    display: block;
+  }
+
+  .sui-side-nav-switch-glyph {
+    color: var(--sui-sidebar-text-secondary);
+    display: inline-flex;
+    flex: none;
+  }
+
+  /* The switch's list floats over the page, so it takes a menu's grounds and inks, a row one
+     control tall, with the place's glyph, its name, a count and a check on the current one. */
+  /* Whole, the list is as wide as the sidebar's rows; beside the strip it takes a menu's
+     floor, since the strip gives it no width of its own. */
+  .sui-side-nav-places {
+    box-sizing: border-box;
+    display: grid;
+    max-inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-3)));
+    padding: var(--sui-space-1);
+  }
+
+  .sui-side-nav[data-mode='collapsed'] .sui-side-nav-places {
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
+  }
+
+  .sui-side-nav-place-list {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    row-gap: 2px;
+  }
+
+  /* Links under the places part from them by a hairline, as a menu parts its groups. */
+  .sui-side-nav-place-links {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    margin-block-start: var(--sui-space-1);
+    padding-block-start: var(--sui-space-1);
+  }
+
+  .sui-side-nav-place {
+    --sui-local-line: round(up, 1cap, 2px);
+    align-items: flex-start;
+    background: transparent;
+    border: 0;
+    border-radius: var(--sui-radius-popover-row);
+    box-sizing: border-box;
+    color: var(--sui-text-primary);
+    cursor: pointer;
+    display: flex;
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
+      var(--sui-sans);
+    gap: var(--sui-space-2);
+    inline-size: 100%;
+    margin: 0;
+    min-block-size: var(--sui-control-height-compact);
+    padding-block: calc((var(--sui-control-height-compact) - var(--sui-local-line)) / 2);
+    /* 8px past the list's 4px and its 1px edge, so a place's glyph stands on the rows' glyph
+       column. */
+    padding-inline: calc(var(--sui-space-2) - var(--sui-stroke));
+    text-align: start;
+    text-decoration: none;
+    text-wrap: balance;
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  @media (hover: hover) {
+    .sui-side-nav-place:hover:not(:active) {
+      background: var(--sui-list-highlight);
+      color: var(--sui-hover-ink);
+    }
+  }
+
+  .sui-side-nav-place:active {
+    background: var(--sui-list-pressed);
+    translate: 0 1px;
+  }
+
+  .sui-side-nav-place:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  .sui-side-nav-place[aria-current] {
+    font-weight: var(--sui-weight-medium);
+  }
+
+  .sui-side-nav-place-glyph,
+  .sui-side-nav-place-check {
+    color: var(--sui-text-secondary);
+    display: inline-flex;
+    flex: none;
+    margin-block: calc((var(--sui-local-line) - var(--sui-icon-base)) / 2);
+  }
+
+  .sui-side-nav-place-check {
+    color: var(--sui-brand-action-text);
+    inline-size: var(--sui-icon-base);
+  }
+
+  /* Only the current place holds its check, so another place's count ends on the rows' count
+     column instead of an empty slot's width inside it. */
+  .sui-side-nav-place-check:empty {
+    display: none;
+  }
+
+  /* The name trims to its cap band, as a menu item's does, so the row's padding centres it and
+     the glyph, the count and the check centre on its first line (L-94). */
+  .sui-side-nav-place-label {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-side-nav-place .sui-side-nav-count {
+    margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
+  }
+
   /* The rows scroll through the gaps that part them from the title and the foot and are cut
      cleanly at the hairlines, as a page scrolls under a sticky header, so a row passing the
      title never reads as a faded ghost. The list's ends rest a gap clear of the hairlines, and
@@ -611,8 +1034,7 @@ following a row closes the drawer.
   }
 
   /* A phone's 13px caps stand a pixel taller than 12px ones, so the head gives that pixel
-     back under the names, and its hairline stays at 56px, on the line the rail's first place
-     ends on. */
+     back under the names, and its hairline stays at 56px, on the line the shell's bar ends on. */
   @media (max-width: 47.9375rem) {
     .sui-side-nav-head {
       padding-block-end: calc(var(--sui-space-3) - 1px);
@@ -911,11 +1333,8 @@ following a row closes the drawer.
      rather than being cut, the place's names give way to its kicker, and a heading's boundary stays as
      space. */
   @container sui-shell (min-width: 64.0625rem) {
-    /* A column that joins a rail's places and foot sets its own block room, so its tiles keep
-       the places' pitch across the hairlines between them (AppShell). */
     .sui-side-nav[data-collapsed] {
-      padding-block: var(--sui-local-strip-start, var(--sui-space-4))
-        var(--sui-local-strip-end, var(--sui-space-4));
+      padding-block: var(--sui-space-4);
       padding-inline: var(--sui-space-1);
     }
 
@@ -923,17 +1342,70 @@ following a row closes the drawer.
       display: none;
     }
 
-    /* Alone, the strip keeps its kicker, the place's short name, in the primary ink, since it
-       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 12px
-       under the strip's top, as a rail's first place does, so naming the place costs the list
-       23px. Joined to a rail, the rail's places name the place, and the head leaves (AppShell). */
-    .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
-      display: var(--sui-local-strip-head, flex);
+    /* The strip keeps the place's name: its switch, or else its kicker, the place's short name,
+       in the primary ink, since it is the strip's one name. The name, its hairline and the rows
+       stand 8px apart, from 8px under the strip's top. */
+    .sui-side-nav[data-collapsed]
+      .sui-side-nav-head:has(:is(.sui-side-nav-kicker, .sui-side-nav-switch)) {
+      display: flex;
       flex: none;
       justify-content: center;
-      margin-block: calc(var(--sui-space-3) - var(--sui-local-strip-start, var(--sui-space-4)))
+      margin-block: calc(var(--sui-space-2) - var(--sui-space-4))
         calc(var(--sui-space-2) - var(--sui-space-4));
       padding-block-end: var(--sui-space-2);
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-names:has(> .sui-side-nav-heading) {
+      align-self: stretch;
+      flex: 1;
+    }
+
+    /* Folded, the switch is a tile like the rows under it: the place's mark over its short
+       name, its whole name in a tooltip and still read. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-switch {
+      flex-direction: column;
+      font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+        var(--sui-sans);
+      gap: var(--sui-space-1);
+      justify-content: center;
+      /* The badge rides 4px over the plate with a 2px halo, so the tile's top clears both and
+         the halo never crosses its rounded edge. */
+      padding: calc(var(--sui-space-1) + var(--sui-stroke-bold)) calc(var(--sui-space-1) / 2)
+        var(--sui-space-1);
+      text-align: center;
+    }
+
+    /* The place's glyph takes the pages' 18px strip tier. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-mark {
+      --sui-icon-base: var(--sui-icon-md);
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-heading {
+      margin: 0;
+    }
+
+    /* The group hairline parts the place's tile from the pages, so it never reads as the
+       first page. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-switch)::after {
+      animation: none;
+      inline-size: var(--sui-space-6);
+      margin-inline: auto;
+      opacity: 1;
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-switch-glyph {
+      display: none;
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-switch-names {
+      block-size: 1px;
+      clip-path: inset(50%);
+      inline-size: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      white-space: nowrap;
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-names {
@@ -948,7 +1420,7 @@ following a row closes the drawer.
     }
 
     .sui-side-nav[data-collapsed]
-      :is(.sui-side-nav-title, .sui-side-nav-close, .sui-side-nav-lead) {
+      :is(.sui-side-nav-names > .sui-side-nav-title, .sui-side-nav-close, .sui-side-nav-lead) {
       display: none;
     }
 
@@ -962,7 +1434,7 @@ following a row closes the drawer.
     }
 
     /* The column keeps the strip's width, so a long label wraps instead of widening it. The
-       tiles stand 4px apart, a 48px pitch, as a rail's places do in the same column. */
+       tiles stand 4px apart, a 48px pitch. */
     .sui-side-nav[data-collapsed] .sui-side-nav-rows {
       gap: var(--sui-space-1);
       grid-template-columns: minmax(0, 1fr);
@@ -996,8 +1468,7 @@ following a row closes the drawer.
       text-align: center;
     }
 
-    /* Folded, a page's glyph takes a place's 18px tier, so the rail's places and the pages
-       under them read as one column of one glyph size. */
+    /* Folded, a page's glyph takes the 18px tier, since it names the tile over a 12px label. */
     .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
       --sui-icon-base: var(--sui-icon-md);
       margin-block: 0;
@@ -1035,7 +1506,7 @@ following a row closes the drawer.
     /* A count rides past the glyph's top-end corner, 4px clear of it, in the count's own
        neutral ground, so a count reads the same folded and whole and the accent stays with the
        current page; a ring of the sidebar's ground parts it from the label under it. */
-    .sui-side-nav[data-collapsed] .sui-side-nav-count {
+    .sui-side-nav[data-collapsed] .sui-side-nav-row .sui-side-nav-count {
       border-radius: var(--sui-radius-pill);
       box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
       inset-block-start: 0;
@@ -1050,8 +1521,8 @@ following a row closes the drawer.
       box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-active-bg);
     }
 
-    /* Anchored, the count stands 4px over the glyph's top and 4px past its end, as a place's
-       badge does on the rail, so the one folded column marks its places and pages alike. */
+    /* Anchored, the count stands 4px over the glyph's top and 4px past its end, as the switch's
+       badge does on its plate, so the folded column marks its place and its pages alike. */
     @supports (anchor-name: --a) {
       .sui-side-nav[data-collapsed] .sui-side-nav-row {
         anchor-scope: --sui-side-nav-glyph;
@@ -1061,7 +1532,7 @@ following a row closes the drawer.
         anchor-name: --sui-side-nav-glyph;
       }
 
-      .sui-side-nav[data-collapsed] .sui-side-nav-count {
+      .sui-side-nav[data-collapsed] .sui-side-nav-row .sui-side-nav-count {
         inset-block-start: calc(anchor(--sui-side-nav-glyph top) - var(--sui-space-1));
         inset-inline-start: calc(anchor(--sui-side-nav-glyph end) + var(--sui-space-1));
       }
@@ -1090,6 +1561,10 @@ following a row closes the drawer.
       border-block-end-color: CanvasText;
     }
 
+    .sui-side-nav-badge {
+      border: var(--sui-stroke) solid CanvasText;
+    }
+
     .sui-side-nav-head::after {
       content: none;
     }
@@ -1109,11 +1584,15 @@ following a row closes the drawer.
 
   @media (prefers-reduced-motion: reduce) {
     .gliding .sui-side-nav-thumb,
-    .sui-side-nav-row {
+    .sui-side-nav-row,
+    .sui-side-nav-switch,
+    .sui-side-nav-place {
       transition: none;
     }
 
     .sui-side-nav-row:active,
+    .sui-side-nav-switch:active,
+    .sui-side-nav-place:active,
     .sui-side-nav-list:has(.sui-side-nav-row[aria-current='page']:active) .sui-side-nav-thumb {
       translate: none;
     }

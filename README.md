@@ -47,7 +47,7 @@ export default defineConfig({
 
 Each component documents its contract in an `@component` comment, and the kitchen sink shows its states.
 
-- Shell: `AppShell` (rail, sidebar and content, a collapsed icon strip on wide screens, a bar and a drawer on phones), `SideNav`, `Rail`
+- Shell: `AppShell` (sidebar and content, a collapsed icon strip on wide screens, a bar and a drawer on phones), `SideNav` (with a place switch at its head)
 - Actions: `Button` (tones `default`, `signal`, `ghost`, `stop`, `stop-quiet`, `add`, `decision`), `IconButton`, `CopyButton`, `Link`, `BackLink`, `Breadcrumb`, `Tabs`, `SkipLink`
 - Inputs: `Field`, `TextInput`, `Textarea`, `SearchField`, `Switch`, `Checkbox`, `CheckList`, `ChoiceCards`, `SegmentedControl`, `ThemeSwitch`, `CopyableLinkField`, `ColorPicker`
 - Pickers and editors: `Select`, `Combobox`, `ActionMenu`, `HelpTip`, `DurationInput`, `PairEntry`, `PatternEntries`, `InheritControl`, `AdditionPicker`, `SettingList`, `SettingRow`

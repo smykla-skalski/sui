@@ -1,4 +1,4 @@
-import { getContext, setContext, type Snippet } from 'svelte';
+import { getContext, setContext } from 'svelte';
 import { tabStops } from './focus.js';
 
 /** `drawer` is a phone, `collapsed` the labelled icon strip on a wide screen, `full` everything else. */
@@ -9,14 +9,11 @@ export type ShellState = {
   readonly collapsed: boolean;
   /** The shell is wide enough to fold its sidebar into the strip. */
   readonly foldable: boolean;
-  /** On a phone the rail's places stand in a bar along the bottom instead of in the drawer. */
-  readonly bottomNav: boolean;
   toggleCollapsed(): void;
   closeDrawer(): void;
 };
 
 const key = Symbol('sui-shell');
-const pagesKey = Symbol('sui-shell-pages');
 
 export function setShell(state: ShellState): void {
   setContext(key, state);
@@ -25,23 +22,6 @@ export function setShell(state: ShellState): void {
 /** The shell around a navigation component, or nothing when it stands on its own. */
 export function getShell(): ShellState | undefined {
   return getContext<ShellState | undefined>(key);
-}
-
-/**
- * Hands the shell's pages to the rail beside them, which draws them between its places and its
- * foot, so the folded strip and the rail are one column whose Tab order is its visual order.
- */
-export function setRailPages(pages: Snippet): { hosted: boolean } {
-  const host = { pages, hosted: false };
-  setContext(pagesKey, host);
-  return host;
-}
-
-/** Takes the shell's pages to draw, so the shell knows a rail holds them and draws none itself. */
-export function getRailPages(): Snippet | undefined {
-  const host = getContext<{ pages: Snippet; hosted: boolean } | undefined>(pagesKey);
-  if (host) host.hosted = true;
-  return host?.pages;
 }
 
 /**
