@@ -318,10 +318,14 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
   /* Mono's strokes at 400 are thinner than the sans beside it, so a muted clock time takes the
      face's 500 to read as firmly as the words, not as the page's faintest text. Its x-height
-     is taller, so it stands half a pixel under the words' size, as a typed mono value does. */
+     is taller, so it stands half a pixel under the words' size, as a typed mono value does. The
+     size is the cell's, so a placeholder's bar is as wide as the time will be. */
+  .sui-timeline-time.clock {
+    font-size: var(--sui-font-size-meta-mono);
+  }
+
   .sui-timeline-time.clock > time {
     font-family: var(--sui-mono);
-    font-size: var(--sui-font-size-meta-mono);
     font-weight: var(--sui-weight-medium);
     font-variant-numeric: tabular-nums;
   }
@@ -450,9 +454,21 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     inline-size: min(18rem, 80%);
   }
 
+  /* The time's smaller cap rounds a pixel short of the line it stands on, so its bar takes the
+     list's cap, computed where the words' size holds, as the words' bars do. */
+  @property --sui-local-timeline-cap {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
+
+  .sui-timeline {
+    --sui-local-timeline-cap: round(up, 1cap, 1px);
+  }
+
   .clock .bar {
+    block-size: var(--sui-local-timeline-cap);
     font-family: var(--sui-mono);
-    font-size: var(--sui-font-size-meta-mono);
     inline-size: var(--sui-local-clock-width);
   }
 
