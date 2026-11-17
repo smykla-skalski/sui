@@ -1,6 +1,6 @@
 [tools]
 jq = "1.8.2"
-node = "26.13.0"
+node = "26.13.1"
 
 [tasks.install]
 description = "Install current dependencies and update the lockfile"
