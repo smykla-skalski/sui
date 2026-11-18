@@ -27,8 +27,8 @@ env:
   GH_TOKEN: ${{ github.token }}
   # Renovate moves the tag and its digest together, so keep the three lines in this order.
   # renovate: datasource=github-release-attachments depName=superfly/flyctl
-  FLYCTL_VERSION: v0.5.7
-  FLYCTL_SHA256: 1b340c3f326abc34659b7bc1f2eed69eac31115c9796e325596e27687ea421a5
+  FLYCTL_VERSION: v0.5.8
+  FLYCTL_SHA256: 0115ae5202c9984695e22e4e99a375565ae3d7edc462377ce00c833406c877ac
 
 jobs:
   deploy:
