@@ -35,8 +35,8 @@ env:
   BASE_PATH: ${{ github.event.pull_request.number && format('/pr-{0}', github.event.pull_request.number) || '' }}
   # Renovate moves the tag and its digest together, so keep the three lines in this order.
   # renovate: datasource=github-release-attachments depName=superfly/flyctl
-  FLYCTL_VERSION: v0.5.13
-  FLYCTL_SHA256: f1ae6fc1d0151d9a3a0086d22e0552e33cf9ab6f8f9c7c2baf7daa96d3ee0870
+  FLYCTL_VERSION: v0.5.14
+  FLYCTL_SHA256: 0ff9abeae51ef2efe5eec13e260c2090a533f8250b1bed7094acdbc7b8e5a9a5
 
 jobs:
   # A push filter on paths sees only the files changed since the push before it, and GitHub can
